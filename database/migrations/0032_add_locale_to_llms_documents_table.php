@@ -8,15 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('llms_documents', function (Blueprint $table) {
-            $table->string('locale', 10)->nullable()->default('vi')->after('model_type');
-        });
+        // Superseded by 2026_04_26_001_ml01_add_locale_to_seo_tables — no-op
     }
 
     public function down(): void
     {
-        Schema::table('llms_documents', function (Blueprint $table) {
-            $table->dropColumn('locale');
-        });
+        // no-op
     }
 };

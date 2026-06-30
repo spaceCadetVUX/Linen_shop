@@ -12,6 +12,9 @@ php artisan migrate --force
 echo "==> Linking storage..."
 php artisan storage:link --force
 
+echo "==> Publishing Filament assets..."
+php artisan filament:assets
+
 echo "==> Caching config..."
 php artisan config:cache
 
