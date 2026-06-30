@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINNÉ — Typography System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================
+     LINNÉ — Typography System
+     Crimson Pro + DM Sans
+  ============================================ */
+
+  :root {
+    /* Colors */
+    --ink:        #111111;
+    --graphite:   #3A3A38;
+    --ash:        #767672;
+    --silver:     #B2B0AB;
+    --pebble:     #E0DDD8;
+    --stone:      #ECEAE6;
+    --ivory:      #F4F3F0;
+    --warm-white: #FAFAF8;
+    --white:      #FFFFFF;
+
+    /* Fonts */
+    --font-display: 'Crimson Pro', Georgia, serif;
+    --font-body:    'DM Sans', system-ui, sans-serif;
+
+    /* Spacing */
+    --gap-xs:  4px;
+    --gap-sm:  8px;
+    --gap-md:  16px;
+    --gap-lg:  24px;
+    --gap-xl:  40px;
+    --gap-2xl: 64px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+
+  body {
+    font-family: var(--font-body);
+    font-weight: 300;
+    background: var(--warm-white);
+    color: var(--ink);
+    line-height: 1.7;
+  }
+
+  /* ============================================
+     LAYOUT
+  ============================================ */
+  .page-wrap { max-width: 1920px; margin: 0 auto; }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 80px;
+  }
+
+  @media (max-width: 1024px) { .container { padding: 0 40px; } }
+  @media (max-width: 640px)  { .container { padding: 0 20px; } }
+
+  section { padding: var(--gap-2xl) 0; }
+
+  .section-divider {
+    border: none;
+    border-top: 0.5px solid var(--pebble);
+    margin: 0;
+  }
+
+  /* ============================================
+     HEADER / LABEL
+  ============================================ */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--gap-xl);
+  }
+
+  .section-eyebrow {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ash);
+    margin-bottom: 8px;
+  }
+
+  /* ============================================
+     TYPOGRAPHY — CRIMSON PRO
+  ============================================ */
+
+  /* H1 — Hero */
+  .t-hero {
+    font-family: var(--font-display);
+    font-size: 64px;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: var(--ink);
+  }
+
+  /* H1 alt */
+  .t-hero-lg {
+    font-family: var(--font-display);
+    font-size: 80px;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.05;
+    color: var(--ink);
+  }
+
+  /* H2 — Section title */
+  .t-h2 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+
+  /* H2 italic */
+  .t-h2-italic {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 500;
+    font-style: italic;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+
+  /* H3 — Product name */
+  .t-h3 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  /* Quote / Pullquote */
+  .t-quote {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--graphite);
+  }
+
+  /* ============================================
+     TYPOGRAPHY — DM SANS
+  ============================================ */
+
+  /* Nav logo */
+  .t-logo {
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  /* Nav links */
+  .t-nav {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--graphite);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  .t-nav:hover, .t-nav.active {
+    color: var(--ink);
+  }
+
+  /* Eyebrow label */
+  .t-eyebrow {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--graphite);
+  }
+
+  /* Body */
+  .t-body {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--graphite);
+  }
+
+  /* Body small */
+  .t-body-sm {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--graphite);
+  }
+
+  /* Price */
+  .t-price {
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .t-price-old {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 300;
+    color: var(--silver);
+    text-decoration: line-through;
+  }
+
+  /* Caption */
+  .t-caption {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ash);
+    letter-spacing: 0.04em;
+  }
+
+  /* ============================================
+     BUTTONS
+  ============================================ */
+  .btn {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    border-radius: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--warm-white);
+  }
+  .btn-primary:hover {
+    background: var(--graphite);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 0.5px solid var(--ink);
+  }
+  .btn-outline:hover {
+    background: var(--ink);
+    color: var(--warm-white);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--warm-white);
+    border: 0.5px solid var(--warm-white);
+  }
+  .btn-ghost:hover {
+    background: var(--warm-white);
+    color: var(--ink);
+  }
+
+  /* CTA link style */
+  .cta-link {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 0.5px solid var(--ink);
+    padding-bottom: 2px;
+    transition: opacity 0.2s;
+  }
+  .cta-link:hover { opacity: 0.6; }
+
+  .cta-link-white {
+    color: var(--warm-white);
+    border-bottom-color: var(--warm-white);
+  }
+
+  /* ============================================
+     BADGES / TAGS
+  ============================================ */
+  .badge {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 1px;
+  }
+
+  .badge-dark   { background: var(--ink); color: var(--warm-white); }
+  .badge-outline{ background: transparent; color: var(--ink); border: 0.5px solid var(--ink); }
+  .badge-muted  { background: var(--stone); color: var(--ash); }
+  .badge-sale   { background: var(--ink); color: var(--warm-white); }
+
+  /* ============================================
+     NAVBAR
+  ============================================ */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ink);
+    height: 52px;
+    display: flex;
+    align-items: stretch;
+    border-bottom: 0.5px solid transparent;
+    transition: border-color 0.3s ease;
+  }
+
+  .navbar.scrolled {
+    border-bottom-color: #2A2A28;
+  }
+
+  .navbar .container {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 80px;
+  }
+
+  .nav-logo {
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    margin-right: 48px;
+    white-space: nowrap;
+  }
+
+  .nav-links {
+    display: flex;
+    flex: 1;
+    list-style: none;
+  }
+
+  .nav-links li a {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #E8E8E4;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    height: 100%;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease;
+  }
+
+  .nav-links li a:hover,
+  .nav-links li a.active {
+    color: var(--warm-white);
+    border-bottom-color: var(--warm-white);
+  }
+
+  .nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+    color: #C8C8C4;
+    font-size: 17px;
+  }
+
+  .nav-icons a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-icons a:hover { color: var(--warm-white); }
+
+  /* ============================================
+     DEMO SECTIONS
+  ============================================ */
+
+  /* Type scale preview */
+  .type-preview-block {
+    border: 0.5px solid var(--pebble);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: var(--gap-lg);
+  }
+
+  .type-row {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-lg);
+    padding: var(--gap-md) var(--gap-lg);
+    border-bottom: 0.5px solid var(--pebble);
+  }
+  .type-row:last-child { border-bottom: none; }
+
+  .type-meta {
+    min-width: 220px;
+    flex-shrink: 0;
+  }
+
+  .type-meta-label {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-bottom: 4px;
+  }
+
+  .type-meta-val {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: var(--ash);
+    line-height: 1.6;
+  }
+
+  .type-sample { flex: 1; }
+
+  /* Spec table */
+  .spec-table {
+    width: 100%;
+    border: 0.5px solid var(--pebble);
+    border-radius: 4px;
+    overflow: hidden;
+    border-collapse: collapse;
+  }
+
+  .spec-table thead tr {
+    background: var(--ivory);
+  }
+
+  .spec-table th {
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--silver);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--pebble);
+  }
+
+  .spec-table td {
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--graphite);
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--pebble);
+  }
+
+  .spec-table tr:last-child td { border-bottom: none; }
+
+  .spec-table td:first-child {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .spec-table td code {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    background: var(--stone);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--graphite);
+  }
+
+  /* Color swatch */
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--gap-sm);
+  }
+
+  .swatch-item {
+    border-radius: 4px;
+    padding: 16px 14px 12px;
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 3px;
+  }
+
+  .swatch-name {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .swatch-hex {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    opacity: 0.7;
+  }
+
+  .swatch-role {
+    font-size: 9px;
+    opacity: 0.5;
+    letter-spacing: 0.03em;
+  }
+
+  /* Hero preview */
+  .hero-preview {
+    border-radius: 6px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero-preview-dark {
+    background: var(--ink);
+    padding: 48px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 12px;
+    min-height: 320px;
+  }
+
+  .hero-preview-light {
+    background: var(--warm-white);
+    padding: 40px;
+    border: 0.5px solid var(--pebble);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* Product card */
+  .product-card {
+    border: 0.5px solid var(--pebble);
+    border-radius: 2px;
+    overflow: hidden;
+    background: var(--white);
+  }
+
+  .product-img {
+    background: var(--stone);
+    aspect-ratio: 3 / 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .product-img-placeholder {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+
+  .product-info {
+    padding: 14px 16px 16px;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .product-info .t-eyebrow {
+    color: var(--ash);
+    letter-spacing: 0.14em;
+  }
+  .color-swatch-row {
+    display: flex;
+    gap: 5px;
+    margin: 8px 0;
+  }
+
+  .color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .color-dot:hover { transform: scale(1.15); }
+  .color-dot.active { box-shadow: 0 0 0 2px var(--warm-white), 0 0 0 3px var(--ink); }
+
+  /* Utility */
+  .text-muted  { color: var(--ash); }
+  .text-silver { color: var(--silver); }
+  .mt-2  { margin-top: 8px; }
+  .mt-3  { margin-top: 12px; }
+  .mt-4  { margin-top: 16px; }
+  .mt-6  { margin-top: 24px; }
+  .flex  { display: flex; }
+  .items-center { align-items: center; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+
+  /* Page header */
+  .page-title-block {
+    padding: 48px 0 40px;
+    border-bottom: 0.5px solid var(--pebble);
+    margin-bottom: 0;
+  }
+
+  .page-title-block .t-eyebrow { margin-bottom: 10px; }
+
+  /* Section title row */
+  .section-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 0.5px solid var(--pebble);
+  }
+
+  .section-label-row h2 {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .section-label-row span {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--silver);
+  }
+
+  /* Print / export hint */
+  .note-block {
+    background: var(--ivory);
+    border: 0.5px solid var(--pebble);
+    border-radius: 4px;
+    padding: 14px 18px;
+    font-size: 11px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--graphite);
+  }
+
+  .note-block code {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    background: var(--white);
+    padding: 1px 6px;
+    border-radius: 2px;
+    color: var(--graphite);
+    border: 0.5px solid var(--pebble);
+  }
+
+  /* Navbar scroll effect */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+
+</style>
+</head>
+
+<body>
+
+<!-- ============================================
+     NAVBAR
+============================================ -->
+<nav class="navbar" id="navbar">
+  <div class="container" style="max-width:1280px;margin:0 auto;padding:0 80px;display:flex;align-items:stretch;width:100%">
+    <a href="#" class="nav-logo">Linné</a>
+    <ul class="nav-links">
+      <li><a href="#" class="active">Quần áo</a></li>
+      <li><a href="#">Phụ kiện</a></li>
+      <li><a href="#">Lookbook</a></li>
+      <li><a href="#">Sale</a></li>
+    </ul>
+    <div class="nav-icons">
+      <a href="#" aria-label="Tìm kiếm">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </a>
+      <a href="#" aria-label="Yêu thích">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </a>
+      <a href="#" aria-label="Giỏ hàng">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+<div class="container">
+
+  <!-- PAGE TITLE -->
+  <div class="page-title-block">
+    <div class="t-eyebrow">Design System · LINNÉ</div>
+    <div class="t-h2">Typography System</div>
+    <div class="t-body mt-2">Crimson Pro + DM Sans — toàn bộ spec, scale, và ví dụ thực tế.</div>
+  </div>
+
+  <!-- ============================================
+       SECTION 1 — CORMORANT GARAMOND
+  ============================================ -->
+  <section>
+    <div class="section-label-row">
+      <h2>Crimson Pro — Heading / Display</h2>
+      <span>Dùng cho: Hero, Section title, Product name, Quote</span>
+    </div>
+
+    <div class="type-preview-block">
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Hero H1 — italic</div>
+          <div class="type-meta-val">64px / weight 400<br>italic / line-height 1.1</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-hero">Linen</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Hero H1 large</div>
+          <div class="type-meta-val">80px / weight 400<br>italic / line-height 1.05</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-hero-lg">Thuần khiết</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Section title</div>
+          <div class="type-meta-val">36px / weight 500<br>normal / line-height 1.25</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-h2">Bộ sưu tập mới</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Section title — italic</div>
+          <div class="type-meta-val">36px / weight 500<br>italic / line-height 1.25</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-h2-italic">Bộ sưu tập mới</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Product name</div>
+          <div class="type-meta-val">22px / weight 500<br>normal / line-height 1.3</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-h3">Relaxed Linen Shirt</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Quote / Pullquote</div>
+          <div class="type-meta-val">24px / weight 400<br>italic / line-height 1.6</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-quote">"Vải lanh — lựa chọn sống chậm, sống có ý thức."</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Crimson Pro spec table -->
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Class</th>
+          <th>Font size</th>
+          <th>Weight</th>
+          <th>Style</th>
+          <th>Line height</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Hero H1</td><td><code>.t-hero</code></td><td>64px</td><td>400</td><td>Italic</td><td>1.1</td></tr>
+        <tr><td>Hero H1 large</td><td><code>.t-hero-lg</code></td><td>80px</td><td>400</td><td>Italic</td><td>1.05</td></tr>
+        <tr><td>Section title</td><td><code>.t-h2</code></td><td>36px</td><td>500</td><td>Normal</td><td>1.25</td></tr>
+        <tr><td>Section italic</td><td><code>.t-h2-italic</code></td><td>36px</td><td>500</td><td>Italic</td><td>1.25</td></tr>
+        <tr><td>Product name</td><td><code>.t-h3</code></td><td>22px</td><td>500</td><td>Normal</td><td>1.3</td></tr>
+        <tr><td>Quote</td><td><code>.t-quote</code></td><td>24px</td><td>400</td><td>Italic</td><td>1.6</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- ============================================
+       SECTION 2 — DM SANS
+  ============================================ -->
+  <section>
+    <div class="section-label-row">
+      <h2>DM Sans — Body / UI / Label</h2>
+      <span>Dùng cho: Nav, Body, Price, Button, Badge</span>
+    </div>
+
+    <div class="type-preview-block">
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Nav logo</div>
+          <div class="type-meta-val">18px / weight 500<br>letter-spacing 0.20em<br>uppercase</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-logo">LINNÉ</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Nav links</div>
+          <div class="type-meta-val">11px / weight 500<br>letter-spacing 0.12em<br>uppercase · color #3A3A38</div>
+        </div>
+        <div class="type-sample" style="display:flex;gap:24px;align-items:center">
+          <a href="#" class="t-nav active" style="color:var(--ink);border-bottom:1px solid var(--ink);padding-bottom:1px">Quần áo</a>
+          <a href="#" class="t-nav">Phụ kiện</a>
+          <a href="#" class="t-nav">Lookbook</a>
+          <a href="#" class="t-nav">Sale</a>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Eyebrow / label</div>
+          <div class="type-meta-val">11px / weight 500<br>letter-spacing 0.14em<br>uppercase · color #3A3A38</div>
+        </div>
+        <div class="type-sample" style="display:flex;gap:24px">
+          <span style="font-family:var(--font-body);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#3A3A38">Bộ sưu tập mới</span>
+          <span style="font-family:var(--font-body);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#3A3A38">Thu 2026</span>
+          <span style="font-family:var(--font-body);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#3A3A38">100% European Linen</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Body text</div>
+          <div class="type-meta-val">14px / weight 400<br>line-height 1.7<br>color #3A3A38</div>
+        </div>
+        <div class="type-sample">
+          <p style="font-family:var(--font-body);font-size:14px;font-weight:400;line-height:1.7;color:#3A3A38">100% Belgian linen, enzyme-washed để mềm từ lần đầu mặc. Thoáng khí, kháng khuẩn tự nhiên, bền 10+ năm. Đây là loại vải được dệt tại Bỉ từ cây lanh châu Âu.</p>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Body small</div>
+          <div class="type-meta-val">13px / weight 400<br>line-height 1.7<br>color #3A3A38</div>
+        </div>
+        <div class="type-sample">
+          <p style="font-family:var(--font-body);font-size:13px;font-weight:400;line-height:1.7;color:#3A3A38">Size: XS / S / M / L / XL · Màu: Trắng sữa, Đen, Xám khói · Chất liệu: 100% Belgian Linen</p>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Price</div>
+          <div class="type-meta-val">16px / weight 500<br>Old price: 12px / 300</div>
+        </div>
+        <div class="type-sample" style="display:flex;align-items:baseline;gap:10px">
+          <span class="t-price">1.890.000₫</span>
+          <span class="t-price-old">2.200.000₫</span>
+        </div>
+      </div>
+
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Caption</div>
+          <div class="type-meta-val">12px / weight 400<br>letter-spacing 0.04em<br>color #767672</div>
+        </div>
+        <div class="type-sample">
+          <span class="t-caption">*Miễn phí giao hàng cho đơn từ 1.000.000₫ · Đổi trả trong 30 ngày</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DM Sans spec table -->
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Class</th>
+          <th>Font size</th>
+          <th>Weight</th>
+          <th>Letter spacing</th>
+          <th>Transform</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Nav logo</td><td><code>.t-logo</code></td><td>18px</td><td>500</td><td>0.20em</td><td>Uppercase</td></tr>
+        <tr><td>Nav links</td><td><code>.t-nav</code></td><td>11px</td><td>500</td><td>0.12em</td><td>Uppercase · #3A3A38</td></tr>
+        <tr><td>Eyebrow</td><td><code>.t-eyebrow</code></td><td>11px</td><td>500</td><td>0.14em</td><td>Uppercase · #3A3A38</td></tr>
+        <tr><td>Body</td><td><code>.t-body</code></td><td>14px</td><td>400</td><td>—</td><td>#3A3A38</td></tr>
+        <tr><td>Body small</td><td><code>.t-body-sm</code></td><td>13px</td><td>400</td><td>—</td><td>#3A3A38</td></tr>
+        <tr><td>Price</td><td><code>.t-price</code></td><td>16px</td><td>500</td><td>—</td><td>—</td></tr>
+        <tr><td>Price old</td><td><code>.t-price-old</code></td><td>12px</td><td>300</td><td>—</td><td>—</td></tr>
+        <tr><td>Caption</td><td><code>.t-caption</code></td><td>12px</td><td>400</td><td>0.04em</td><td>#767672</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- ============================================
+       SECTION 3 — BUTTONS & BADGES
+  ============================================ -->
+  <section>
+    <div class="section-label-row">
+      <h2>Buttons & Badges</h2>
+      <span>10px / weight 400 / letter-spacing 0.14em / uppercase</span>
+    </div>
+
+    <div class="type-preview-block">
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Button primary</div>
+          <div class="type-meta-val">bg #111 / color #FAFAF8<br>padding: 12px 24px</div>
+        </div>
+        <div class="type-sample" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <a href="#" class="btn btn-primary">Thêm vào giỏ</a>
+          <a href="#" class="btn btn-primary">Khám phá ngay</a>
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Button outline</div>
+          <div class="type-meta-val">bg transparent<br>border: 0.5px solid #111</div>
+        </div>
+        <div class="type-sample" style="display:flex;gap:12px;align-items:center">
+          <a href="#" class="btn btn-outline">Xem thêm</a>
+          <a href="#" class="btn btn-outline">Xem tất cả</a>
+        </div>
+      </div>
+      <div class="type-row" style="background:var(--ink)">
+        <div class="type-meta">
+          <div class="type-meta-label" style="color:var(--ash)">Button ghost</div>
+          <div class="type-meta-val" style="color:var(--ash)">Dùng trên nền tối<br>border: 0.5px solid #FAFAF8</div>
+        </div>
+        <div class="type-sample" style="display:flex;gap:12px;align-items:center">
+          <a href="#" class="btn btn-ghost">Khám phá ngay</a>
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">CTA link</div>
+          <div class="type-meta-val">border-bottom: 0.5px<br>text-underline-offset: 2px</div>
+        </div>
+        <div class="type-sample" style="display:flex;gap:24px;align-items:center">
+          <a href="#" class="cta-link">Xem bộ sưu tập</a>
+          <a href="#" class="cta-link">Đọc thêm</a>
+        </div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-label">Badges</div>
+          <div class="type-meta-val">8px / weight 500<br>letter-spacing 0.10em</div>
+        </div>
+        <div class="type-sample" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="badge badge-dark">Mới về</span>
+          <span class="badge badge-dark">Bestseller</span>
+          <span class="badge badge-outline">Limited</span>
+          <span class="badge badge-muted">Còn hàng</span>
+          <span class="badge badge-sale">−20%</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- ============================================
+       SECTION 4 — COLOR SYSTEM
+  ============================================ -->
+  <section>
+    <div class="section-label-row">
+      <h2>Color System</h2>
+      <span>9 tokens — không có accent màu</span>
+    </div>
+
+    <div class="swatch-grid">
+      <div class="swatch-item" style="background:#FFFFFF;border:0.5px solid #E0DDD8">
+        <span class="swatch-name" style="color:#111">White</span>
+        <span class="swatch-hex" style="color:#555">#FFFFFF</span>
+        <span class="swatch-role" style="color:#555">Nav, modal, card</span>
+      </div>
+      <div class="swatch-item" style="background:#FAFAF8">
+        <span class="swatch-name" style="color:#111">Warm white</span>
+        <span class="swatch-hex" style="color:#555">#FAFAF8</span>
+        <span class="swatch-role" style="color:#555">Canvas chính</span>
+      </div>
+      <div class="swatch-item" style="background:#F4F3F0">
+        <span class="swatch-name" style="color:#111">Ivory</span>
+        <span class="swatch-hex" style="color:#555">#F4F3F0</span>
+        <span class="swatch-role" style="color:#555">Section xen kẽ</span>
+      </div>
+      <div class="swatch-item" style="background:#ECEAE6">
+        <span class="swatch-name" style="color:#111">Stone</span>
+        <span class="swatch-hex" style="color:#444">#ECEAE6</span>
+        <span class="swatch-role" style="color:#444">Footer, strip</span>
+      </div>
+      <div class="swatch-item" style="background:#E0DDD8">
+        <span class="swatch-name" style="color:#111">Pebble</span>
+        <span class="swatch-hex" style="color:#444">#E0DDD8</span>
+        <span class="swatch-role" style="color:#444">Border / divider</span>
+      </div>
+      <div class="swatch-item" style="background:#111111">
+        <span class="swatch-name" style="color:#FAFAF8">Ink</span>
+        <span class="swatch-hex" style="color:#aaa">#111111</span>
+        <span class="swatch-role" style="color:#aaa">Logo / heading</span>
+      </div>
+      <div class="swatch-item" style="background:#3A3A38">
+        <span class="swatch-name" style="color:#E0DDD8">Graphite</span>
+        <span class="swatch-hex" style="color:#aaa">#3A3A38</span>
+        <span class="swatch-role" style="color:#aaa">Body text</span>
+      </div>
+      <div class="swatch-item" style="background:#767672">
+        <span class="swatch-name" style="color:#FAFAF8">Ash</span>
+        <span class="swatch-hex" style="color:#ddd">#767672</span>
+        <span class="swatch-role" style="color:#ddd">Label / meta</span>
+      </div>
+      <div class="swatch-item" style="background:#B2B0AB">
+        <span class="swatch-name" style="color:#3A3A38">Silver</span>
+        <span class="swatch-hex" style="color:#555">#B2B0AB</span>
+        <span class="swatch-role" style="color:#555">Placeholder</span>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- ============================================
+       SECTION 5 — LIVE PREVIEW
+  ============================================ -->
+  <section>
+    <div class="section-label-row">
+      <h2>Live Preview</h2>
+      <span>Dark hero + Light product card</span>
+    </div>
+
+    <div class="hero-preview">
+      <div class="hero-preview-dark">
+        <div>
+          <div class="t-eyebrow" style="color:#B2B0AB;margin-bottom:12px;font-size:11px;font-weight:500;letter-spacing:.14em">Bộ sưu tập · Thu 2026</div>
+          <div class="t-hero" style="color:#FAFAF8">Vải lanh —<br>hơi thở<br>thiên nhiên</div>
+        </div>
+        <p class="t-body" style="color:#C8C8C4;max-width:320px;font-size:13px">100% European linen. Mềm hơn sau mỗi lần giặt. Thiết kế để mặc mãi.</p>
+        <a href="#" class="cta-link cta-link-white">Khám phá ngay</a>
+      </div>
+      <div class="hero-preview-light">
+        <div style="font-family:var(--font-body);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#3A3A38;margin-bottom:10px">Áo linen</div>
+        <div class="t-h3" style="font-size:26px">Relaxed Linen Shirt</div>
+        <p style="font-family:var(--font-body);font-size:13px;font-weight:400;line-height:1.7;color:#3A3A38;margin-top:8px">Belgian linen, enzyme-washed.<br>Size XS – XL · 3 màu có sẵn</p>
+        <div class="color-swatch-row">
+          <div class="color-dot active" style="background:#111111;border:0.5px solid #111"></div>
+          <div class="color-dot" style="background:#FAFAF8;border:0.5px solid #B2B0AB"></div>
+          <div class="color-dot" style="background:#B2B0AB;border:0.5px solid #767672"></div>
+        </div>
+        <div class="flex items-center gap-3 mt-2">
+          <span class="t-price">1.890.000₫</span>
+          <span class="t-price-old">2.200.000₫</span>
+          <span class="badge badge-sale">−14%</span>
+        </div>
+        <a href="#" class="btn btn-primary mt-4" style="display:inline-block">Thêm vào giỏ</a>
+      </div>
+    </div>
+
+    <!-- Product cards -->
+    <div class="product-grid mt-6">
+      <div class="product-card">
+        <div class="product-img">
+          <span class="badge badge-dark" style="position:absolute;top:10px;left:10px">Mới về</span>
+          <span class="product-img-placeholder">Ảnh sản phẩm</span>
+        </div>
+        <div class="product-info">
+          <div class="t-eyebrow" style="margin-bottom:6px;color:#3A3A38;font-size:11px;font-weight:500">Áo linen</div>
+          <div class="t-h3" style="font-size:19px">Washed Linen Shirt</div>
+          <div class="color-swatch-row mt-2">
+            <div class="color-dot active" style="background:#111111;border:0.5px solid #111"></div>
+            <div class="color-dot" style="background:#FAFAF8;border:0.5px solid #B2B0AB"></div>
+            <div class="color-dot" style="background:#B2B0AB;border:0.5px solid #767672"></div>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="t-price" style="font-size:14px">890.000₫</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img" style="background:#DDDAD5">
+          <span class="badge badge-sale" style="position:absolute;top:10px;left:10px">−20%</span>
+          <span class="product-img-placeholder">Ảnh sản phẩm</span>
+        </div>
+        <div class="product-info">
+          <div class="t-eyebrow" style="margin-bottom:6px;color:#3A3A38;font-size:11px;font-weight:500">Túi tote</div>
+          <div class="t-h3" style="font-size:19px">Market Tote Linen</div>
+          <div class="color-swatch-row mt-2">
+            <div class="color-dot active" style="background:#3A3A38;border:0.5px solid #111"></div>
+            <div class="color-dot" style="background:#ECEAE6;border:0.5px solid #B2B0AB"></div>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="t-price" style="font-size:14px">1.032.000₫</span>
+            <span class="t-price-old">1.290.000₫</span>
+          </div>
+        </div>
+      </div>
+      <div class="product-card">
+        <div class="product-img" style="background:#ECEAE6">
+          <span class="product-img-placeholder">Ảnh sản phẩm</span>
+        </div>
+        <div class="product-info">
+          <div class="t-eyebrow" style="margin-bottom:6px;color:#3A3A38;font-size:11px;font-weight:500">Phụ kiện</div>
+          <div class="t-h3" style="font-size:19px">Bucket Hat Linen</div>
+          <div class="color-swatch-row mt-2">
+            <div class="color-dot active" style="background:#111111;border:0.5px solid #111"></div>
+            <div class="color-dot" style="background:#B2B0AB;border:0.5px solid #767672"></div>
+          </div>
+          <div class="flex items-center gap-2 mt-2">
+            <span class="t-price" style="font-size:14px">690.000₫</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- ============================================
+       SECTION 6 — CATEGORY MOSAIC
+  ============================================ -->
+  <section>
+    <div class="section-header">
+      <div>
+        <div class="t-eyebrow" style="margin-bottom:8px">Danh mục</div>
+        <div class="t-h2">Bộ sưu tập</div>
+        <div class="t-body-sm mt-2">4 danh mục · 120+ sản phẩm</div>
+      </div>
+      <a href="#" class="cta-link">Xem tất cả</a>
+    </div>
+
+    <!-- Mosaic grid -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:12px">
+
+      <!-- Ảnh lớn trái — span 2 rows -->
+      <div style="grid-row:span 2;position:relative;border-radius:3px;overflow:hidden;background:#C5BFB6;min-height:440px;display:flex;align-items:flex-end;padding:20px;cursor:pointer">
+        <span style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.4) 0%,transparent 55%)"></span>
+        <div style="position:relative;z-index:1">
+          <div class="t-eyebrow" style="color:rgba(255,255,255,.6);margin-bottom:6px">48 sản phẩm</div>
+          <div class="t-h3" style="color:#FAFAF8">Áo linen</div>
+          <a href="#" class="cta-link cta-link-white" style="font-size:9px;margin-top:8px;display:inline-block">Khám phá</a>
+        </div>
+      </div>
+
+      <!-- Ảnh nhỏ phải trên -->
+      <div style="position:relative;border-radius:3px;overflow:hidden;background:#D5CFC7;display:flex;align-items:flex-end;padding:16px;cursor:pointer;min-height:210px">
+        <span style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.38) 0%,transparent 55%)"></span>
+        <div style="position:relative;z-index:1">
+          <div class="t-eyebrow" style="color:rgba(255,255,255,.6);margin-bottom:4px">32 sản phẩm</div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:400;color:#FAFAF8">Quần & Váy</div>
+        </div>
+      </div>
+
+      <!-- Ảnh nhỏ phải dưới -->
+      <div style="position:relative;border-radius:3px;overflow:hidden;background:#DDDAD5;display:flex;align-items:flex-end;padding:16px;cursor:pointer;min-height:210px">
+        <span style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.35) 0%,transparent 55%)"></span>
+        <div style="position:relative;z-index:1">
+          <div class="t-eyebrow" style="color:rgba(255,255,255,.6);margin-bottom:4px">24 sản phẩm</div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:400;color:#FAFAF8">Phụ kiện</div>
+        </div>
+      </div>
+
+      <!-- Ảnh lớn phải — full width dưới -->
+      <div style="grid-column:span 2;position:relative;border-radius:3px;overflow:hidden;background:#C9C4BC;display:flex;align-items:flex-end;padding:20px;cursor:pointer;min-height:200px">
+        <span style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.38) 0%,transparent 55%)"></span>
+        <div style="position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;width:100%">
+          <div>
+            <div class="t-eyebrow" style="color:rgba(255,255,255,.6);margin-bottom:6px">16 sản phẩm</div>
+            <div class="t-h3" style="color:#FAFAF8">Bộ set linen</div>
+          </div>
+          <a href="#" class="cta-link cta-link-white" style="font-size:9px">Xem bộ set</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="section-divider">
+
+  <!-- ============================================
+       SECTION 7 — IMPORT GUIDE
+  ============================================ -->
+  <section>
+    <div class="section-label-row">
+      <h2>Cách dùng trong dự án</h2>
+      <span>Google Fonts · CSS Variables · Figma</span>
+    </div>
+
+    <div class="note-block">
+      <strong style="font-weight:500">Google Fonts import:</strong><br>
+      <code>&lt;link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"&gt;</code>
+      <br><br>
+      <strong style="font-weight:500">CSS variables:</strong><br>
+      <code>--font-display: 'Crimson Pro', Georgia, serif;</code><br>
+      <code>--font-body: 'DM Sans', system-ui, sans-serif;</code>
+      <br><br>
+      <strong style="font-weight:500">Figma:</strong> Plugins → Google Fonts → search "Crimson Pro" và "DM Sans" → Install
+    </div>
+  </section>
+
+</div><!-- .container -->
+</div><!-- .page-wrap -->
+
+<script>
+  // Navbar scroll effect
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+</script>
+
+</body>
+</html>

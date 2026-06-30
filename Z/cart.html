@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LINNÉ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="page-pd">
+
+  <!-- ==============================  NAVBAR  ============================== -->
+  <header class="navbar" id="navbar">
+    <div class="nav-inner">
+
+      <!-- Left: hamburger + quick nav links -->
+      <div class="nav-left">
+        <button class="nav-btn" id="menuBtn" aria-expanded="false" aria-label="Menu">
+          <span class="hbg" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+          <span id="menuLabel">Menu</span>
+        </button>
+        <nav class="nav-quick" aria-label="Quick navigation">
+          <a href="#" class="nav-quick-link">Bộ sưu tập</a>
+          <a href="#" class="nav-quick-link">Journal</a>
+          <a href="#" class="nav-quick-link">Về LINNÉ</a>
+        </nav>
+      </div>
+
+      <!-- Center: logo -->
+      <a href="/" class="nav-logo">LINNÉ</a>
+
+      <!-- Right: search + store + icons -->
+      <div class="nav-right">
+        <a href="#" class="nav-btn nav-contact">Cửa hàng</a>
+        <button class="nav-btn nav-search-btn" aria-label="Tìm kiếm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <span>Tìm kiếm</span>
+        </button>
+        <button class="nav-icon-btn" aria-label="Yêu thích">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+        <button class="nav-icon-btn" aria-label="Tài khoản">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==============================  MEGA MENU  ============================== -->
+  <div class="mega-wrap" id="megaWrap">
+    <div class="mega-panel">
+
+      <!-- Col 1: Mới — ảnh editorial + links -->
+      <div class="mega-col mega-col--new">
+        <h3 class="mega-col-title">Mới</h3>
+
+        <div class="mega-group mega-group--img">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Sản phẩm mới</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <a href="#" class="mega-feature-img-wrap">
+            <img
+              src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=800"
+              alt="Sản phẩm mới — LINNÉ Thu 2026"
+              class="mega-feature-img"
+            >
+          </a>
+        </div>
+
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Nổi bật</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            <a href="#" class="mega-link">Lookbook Thu 2026</a>
+            <a href="#" class="mega-link">Đầm linen cổ chữ V</a>
+            <a href="#" class="mega-link">Bộ set mùa thu</a>
+            <a href="#" class="mega-link">Áo blouse phiên bản giới hạn</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 2: Bộ sưu tập — text links -->
+      <div class="mega-col mega-col--collection">
+        <h3 class="mega-col-title">Bộ sưu tập</h3>
+
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Áo</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            <a href="#" class="mega-link">Tất cả áo linen</a>
+            <a href="#" class="mega-link">Áo blouse</a>
+            <a href="#" class="mega-link">Áo phông</a>
+            <a href="#" class="mega-link">Áo khoác</a>
+          </div>
+        </div>
+
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Quần &amp; Váy</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            <a href="#" class="mega-link">Quần âu</a>
+            <a href="#" class="mega-link">Wide leg</a>
+            <a href="#" class="mega-link">Váy midi</a>
+            <a href="#" class="mega-link">Váy maxi</a>
+          </div>
+        </div>
+
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Bộ set linen</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            <a href="#" class="mega-link">Set áo + quần</a>
+            <a href="#" class="mega-link">Set blouse + váy</a>
+            <a href="#" class="mega-link">Set oversized</a>
+          </div>
+        </div>
+
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Phụ kiện</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            <a href="#" class="mega-link">Túi tote</a>
+            <a href="#" class="mega-link">Mũ linen</a>
+            <a href="#" class="mega-link">Khăn &amp; Túi đeo</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 3: Product image grid 2×3 -->
+      <div class="mega-col mega-col--products">
+        <span class="mega-group-name mega-products-eyebrow">Sản phẩm tiêu biểu</span>
+        <div class="mega-product-grid">
+          <a href="#" class="mega-product-card">
+            <div class="mega-product-img-wrap">
+              <img src="https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=600" alt="Áo linen cổ chữ V" class="mega-product-img">
+            </div>
+            <span class="mega-product-name">Áo linen cổ chữ V</span>
+          </a>
+          <a href="#" class="mega-product-card">
+            <div class="mega-product-img-wrap">
+              <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=600" alt="Áo blouse thắt nơ" class="mega-product-img">
+            </div>
+            <span class="mega-product-name">Áo blouse thắt nơ</span>
+          </a>
+          <a href="#" class="mega-product-card">
+            <div class="mega-product-img-wrap">
+              <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange.jpg?v=1778217470&width=600" alt="Áo crop linen" class="mega-product-img">
+            </div>
+            <span class="mega-product-name">Áo crop linen</span>
+          </a>
+          <a href="#" class="mega-product-card">
+            <div class="mega-product-img-wrap">
+              <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=600" alt="Áo linen oversized" class="mega-product-img">
+            </div>
+            <span class="mega-product-name">Áo linen oversized</span>
+          </a>
+          <a href="#" class="mega-product-card">
+            <div class="mega-product-img-wrap">
+              <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Sand-Cream3.jpg?v=1781216151&width=600" alt="Đầm linen cổ chữ V" class="mega-product-img">
+            </div>
+            <span class="mega-product-name">Đầm linen cổ chữ V</span>
+          </a>
+          <a href="#" class="mega-product-card">
+            <div class="mega-product-img-wrap">
+              <img src="https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=600" alt="Bộ set linen" class="mega-product-img">
+            </div>
+            <span class="mega-product-name">Bộ set linen Thu</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 4: La Maison LINNÉ -->
+      <div class="mega-col mega-col--brand">
+        <h3 class="mega-col-title">La Maison LINNÉ</h3>
+
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Héritage &amp; Savoir-faire</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            <a href="#" class="mega-link">Về chúng tôi</a>
+            <a href="#" class="mega-link">Câu chuyện linen</a>
+            <a href="#" class="mega-link">Sustainability</a>
+          </div>
+        </div>
+
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Dịch vụ</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            <a href="#" class="mega-link">Hướng dẫn size</a>
+            <a href="#" class="mega-link">Chăm sóc vải</a>
+            <a href="#" class="mega-link">Liên hệ</a>
+          </div>
+        </div>
+
+        <div class="mega-brand-footer">
+          <a href="#" class="mega-intl-link">Việt Nam (VND ₫) ↗</a>
+        </div>
+      </div>
+
+      <button class="mega-close" id="megaClose" aria-label="Đóng menu">✕</button>
+    </div>
+  </div>
+  <div class="mega-overlay" id="megaOverlay"></div>
+
+  <!-- smooth-wrap: tất cả section scrollable — navbar/mega nằm ngoài (fixed) -->
+  <div id="smooth-wrap">
+
+    <!-- ==============================  CART PAGE  ============================== -->
+    <div class="cart-page">
+
+      <!-- Header -->
+      <div class="cart-hd">
+        <p class="cart-hd-eyebrow">LINNÉ · Giỏ hàng</p>
+        <h1 class="cart-hd-title">Giỏ hàng <em id="cartCountLabel">(3)</em></h1>
+      </div>
+
+      <!-- 2-col layout: items + summary -->
+      <div class="cart-layout">
+
+        <!-- LEFT: cart items -->
+        <div class="cart-items-col">
+
+          <!-- Item 1 -->
+          <article class="cart-item">
+            <a href="product-details.html" class="cart-item-thumb">
+              <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Black.jpg?v=1779070489&width=400"
+                   alt="Áo linen cổ chữ V" class="cart-item-thumb-img">
+            </a>
+            <div class="cart-item-body">
+              <div class="cart-item-top">
+                <div class="cart-item-meta">
+                  <a href="product-details.html" class="cart-item-name">Áo linen cổ chữ V</a>
+                  <p class="cart-item-variant">Ivory · Size S</p>
+                  <p class="cart-item-material">100% Linen</p>
+                </div>
+                <button class="cart-item-del" aria-label="Xóa sản phẩm">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="cart-item-foot">
+                <div class="cart-qty">
+                  <button class="cart-qty-btn" aria-label="Giảm số lượng">−</button>
+                  <span class="cart-qty-val">1</span>
+                  <button class="cart-qty-btn" aria-label="Tăng số lượng">+</button>
+                </div>
+                <span class="cart-item-price">660.000 ₫</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Item 2 -->
+          <article class="cart-item">
+            <a href="product-details.html" class="cart-item-thumb">
+              <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Black-Sand_80abcf68-ce45-46c1-8665-8419cb22e876.jpg?v=1781216042&width=400"
+                   alt="Áo blouse thắt nơ" class="cart-item-thumb-img">
+            </a>
+            <div class="cart-item-body">
+              <div class="cart-item-top">
+                <div class="cart-item-meta">
+                  <a href="product-details.html" class="cart-item-name">Áo blouse thắt nơ</a>
+                  <p class="cart-item-variant">Cognac · Size M</p>
+                  <p class="cart-item-material">100% Linen</p>
+                </div>
+                <button class="cart-item-del" aria-label="Xóa sản phẩm">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="cart-item-foot">
+                <div class="cart-qty">
+                  <button class="cart-qty-btn" aria-label="Giảm số lượng">−</button>
+                  <span class="cart-qty-val">1</span>
+                  <button class="cart-qty-btn" aria-label="Tăng số lượng">+</button>
+                </div>
+                <span class="cart-item-price">720.000 ₫</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Item 3 -->
+          <article class="cart-item">
+            <a href="product-details.html" class="cart-item-thumb">
+              <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Red.jpg?v=1778217693&width=400"
+                   alt="Áo crop linen" class="cart-item-thumb-img">
+            </a>
+            <div class="cart-item-body">
+              <div class="cart-item-top">
+                <div class="cart-item-meta">
+                  <a href="product-details.html" class="cart-item-name">Áo crop linen</a>
+                  <p class="cart-item-variant">Rouge · Size XS</p>
+                  <p class="cart-item-material">100% Linen · Crop fit</p>
+                </div>
+                <button class="cart-item-del" aria-label="Xóa sản phẩm">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="cart-item-foot">
+                <div class="cart-qty">
+                  <button class="cart-qty-btn" aria-label="Giảm số lượng">−</button>
+                  <span class="cart-qty-val">2</span>
+                  <button class="cart-qty-btn" aria-label="Tăng số lượng">+</button>
+                </div>
+                <span class="cart-item-price">1.240.000 ₫</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Continue shopping -->
+          <div class="cart-continue">
+            <a href="product-page.html" class="cart-continue-link">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+              </svg>
+              Tiếp tục mua sắm
+            </a>
+          </div>
+
+        </div><!-- /.cart-items-col -->
+
+        <!-- RIGHT: order summary (sticky) -->
+        <aside class="cart-summary">
+
+          <h2 class="cart-summary-hd">Đơn hàng</h2>
+
+          <!-- Promo code -->
+          <div class="cart-promo">
+            <div class="cart-promo-field">
+              <input type="text" class="cart-promo-input" placeholder="Mã giảm giá">
+              <button class="cart-promo-apply">Áp dụng</button>
+            </div>
+          </div>
+
+          <!-- Totals rows -->
+          <div class="cart-totals">
+            <div class="cart-totals-row">
+              <span>Tạm tính <span class="cart-totals-count">(4 sản phẩm)</span></span>
+              <span>2.620.000 ₫</span>
+            </div>
+            <div class="cart-totals-row">
+              <span>Phí vận chuyển</span>
+              <span class="cart-ship-free">Miễn phí</span>
+            </div>
+          </div>
+
+          <!-- Grand total -->
+          <div class="cart-grand">
+            <div class="cart-grand-label">
+              <span class="cart-grand-title">Tổng cộng</span>
+              <span class="cart-grand-vat">Đã bao gồm VAT</span>
+            </div>
+            <span class="cart-grand-amt">2.620.000 ₫</span>
+          </div>
+
+          <!-- Checkout CTA -->
+          <button class="cart-checkout">Thanh toán</button>
+
+          <!-- Trust signals -->
+          <ul class="cart-trust">
+            <li class="cart-trust-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+                <rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+              </svg>
+              Miễn phí giao hàng từ 500.000 ₫
+            </li>
+            <li class="cart-trust-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Đổi trả miễn phí trong 30 ngày
+            </li>
+            <li class="cart-trust-item">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Thanh toán an toàn &amp; bảo mật
+            </li>
+          </ul>
+
+        </aside><!-- /.cart-summary -->
+
+      </div><!-- /.cart-layout -->
+
+    </div><!-- /.cart-page -->
+
+
+
+  <!-- ==============================  FOOTER  ============================== -->
+  <footer class="site-footer">
+
+    <div class="footer-main">
+      <div class="footer-col footer-col--left">
+        <h4 class="footer-col-title">Bộ sưu tập</h4>
+        <nav class="footer-nav">
+          <a href="#">Áo linen</a>
+          <a href="#">Quần &amp; Váy</a>
+          <a href="#">Bộ set linen</a>
+          <a href="#">Phụ kiện</a>
+        </nav>
+      </div>
+
+      <div class="footer-col footer-col--center">
+        <a href="/" class="footer-logo">LINNÉ</a>
+      </div>
+
+      <div class="footer-col footer-col--right">
+        <h4 class="footer-col-title">Thông tin</h4>
+        <nav class="footer-nav">
+          <a href="#">Về LINNÉ</a>
+          <a href="#">Liên hệ</a>
+          <a href="#">Chính sách bảo mật</a>
+          <a href="#">Hướng dẫn size</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="footer-social">
+      <a href="#" class="footer-social-link" aria-label="Facebook">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      </a>
+      <a href="#" class="footer-social-link" aria-label="Instagram">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="#" class="footer-social-link" aria-label="YouTube">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.96-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/></svg>
+      </a>
+      <a href="#" class="footer-social-link" aria-label="TikTok">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.32 6.32 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.05a8.16 8.16 0 0 0 4.78 1.52V7.12a4.85 4.85 0 0 1-1.01-.43z"/></svg>
+      </a>
+      <a href="#" class="footer-social-link" aria-label="X (Twitter)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="footer-selects">
+        <div class="footer-select-wrap">
+          <select class="footer-select" aria-label="Quốc gia / Tiền tệ">
+            <option>Việt Nam | VND ₫</option>
+          </select>
+          <svg class="footer-select-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="footer-select-wrap">
+          <select class="footer-select" aria-label="Ngôn ngữ">
+            <option>Tiếng Việt</option>
+            <option>English</option>
+          </select>
+          <svg class="footer-select-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+
+      <div class="footer-payments">
+        <span class="footer-pay-icon footer-pay--visa">VISA</span>
+        <span class="footer-pay-icon footer-pay--mc">MC</span>
+        <span class="footer-pay-icon footer-pay--applepay">⌘Pay</span>
+        <span class="footer-pay-icon footer-pay--amex">AMEX</span>
+        <span class="footer-pay-icon footer-pay--paypal">PP</span>
+        <span class="footer-pay-icon footer-pay--momo">MoMo</span>
+        <span class="footer-pay-icon footer-pay--zalopay">Zalo</span>
+      </div>
+    </div>
+
+    <div class="footer-legal">
+      <p>© 2026, LINNÉ &nbsp;·&nbsp; <a href="#">Chính sách bảo mật</a> &nbsp;·&nbsp; <a href="#">Điều khoản dịch vụ</a> &nbsp;·&nbsp; <a href="#">Liên hệ</a></p>
+    </div>
+
+  </footer>
+
+  </div><!-- /#smooth-wrap -->
+
+  <script src="main.js"></script>
+</body>
+</html>
