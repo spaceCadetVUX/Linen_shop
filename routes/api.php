@@ -1,0 +1,113 @@
+<?php
+
+use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Auth\EmailVerificationController;
+use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
+use App\Http\Controllers\Api\V1\Auth\SocialAuthController;
+use App\Http\Controllers\Api\V1\Blog\BlogCategoryController;
+use App\Http\Controllers\Api\V1\Blog\BlogCommentController;
+use App\Http\Controllers\Api\V1\Blog\BlogPostController;
+use App\Http\Controllers\Api\V1\Blog\BlogTagController;
+use App\Http\Controllers\Api\V1\Cart\CartController;
+use App\Http\Controllers\Api\V1\Cart\CartItemController;
+use App\Http\Controllers\Api\V1\Catalog\BrandController;
+use App\Http\Controllers\Api\V1\Catalog\ManufacturerController;
+use App\Http\Controllers\Api\V1\Category\CategoryController;
+use App\Http\Controllers\Api\V1\Address\AddressController;
+use App\Http\Controllers\Api\V1\Order\OrderController;
+use App\Http\Controllers\Api\V1\Product\ProductController;
+use App\Http\Controllers\Api\V1\Product\ProductSearchController;
+use App\Http\Controllers\Api\V1\Site\SiteConfigController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes — /api/v1/*
+|--------------------------------------------------------------------------
+| All routes are prefixed with /api (set in bootstrap/app.php).
+| Controllers are added per sprint (S20–S52).
+*/
+
+Route::prefix('v1')->group(function () {
+
+    // ── Site config (public) ─────────────────────────────────────────────
+    Route::get('site/config', SiteConfigController::class);
+
+    // ── Health check (public) ─────────────────────────────────────────────
+    Route::get('ping', fn () => response()->json(['status' => 'ok']));
+
+    // ── Auth (S20–S22) ────────────────────────────────────────────────────
+    Route::prefix('auth')->group(function () {
+
+        // Public — rate-limited to 5 req/min per IP
+        Route::middleware('throttle:5,1')->group(function () {
+            Route::post('register', [AuthController::class, 'register']);
+            Route::post('login',    [AuthController::class, 'login']);
+        });
+        Route::post('google', [SocialAuthController::class, 'google']);  // S21
+
+        // Password reset (public)
+        Route::post('forgot-password', [PasswordResetController::class, 'forgot']);
+        Route::post('reset-password',  [PasswordResetController::class, 'reset']);
+
+        // Email verification
+        Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+            ->middleware('signed')
+            ->name('api.auth.email.verify');
+
+        // Protected
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::post('logout',        [AuthController::class, 'logout']);
+            Route::get('me',             [AuthController::class, 'me']);
+            Route::put('me',             [AuthController::class, 'update']);
+            Route::post('email/resend',  [EmailVerificationController::class, 'resend']);
+        });
+    });
+
+    // ── Catalog (S45–S47) ─────────────────────────────────────────────────
+    Route::get('categories',        [CategoryController::class, 'index']);
+    Route::get('categories/{slug}', [CategoryController::class, 'show']);
+    Route::get('brands',                    [BrandController::class, 'index']);
+    Route::get('brands/{slug}',             [BrandController::class, 'show']);
+    Route::get('manufacturers',             [ManufacturerController::class, 'index']);
+    Route::get('manufacturers/{slug}',      [ManufacturerController::class, 'show']);
+    Route::get('products',          [ProductController::class, 'index']);
+    Route::get('products/{slug}',   [ProductController::class, 'show']);
+    Route::get('search',            ProductSearchController::class);
+
+    // ── Cart (S48) ────────────────────────────────────────────────────────
+    // Guest + auth (X-Session-ID for guests, Bearer token for auth)
+    Route::get('cart',                          [CartController::class, 'show']);
+    Route::delete('cart',                       [CartController::class, 'clear']);
+    Route::post('cart/items',                   [CartItemController::class, 'store']);
+    Route::put('cart/items/{cartItem}',         [CartItemController::class, 'update']);
+    Route::delete('cart/items/{cartItem}',      [CartItemController::class, 'destroy']);
+    Route::middleware('auth:sanctum')->post('cart/merge', [CartController::class, 'merge']);
+
+    // ── Addresses (S50) ──────────────────────────────────────────────────
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::apiResource('addresses', AddressController::class);
+        Route::patch('addresses/{address}/default', [AddressController::class, 'setDefault']);
+    });
+
+    // ── Orders (S49) ─────────────────────────────────────────────────────
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('orders',                    [OrderController::class, 'index']);
+        Route::post('orders',                   [OrderController::class, 'store']);
+        Route::get('orders/{order}',            [OrderController::class, 'show']);
+        Route::patch('orders/{order}/cancel',   [OrderController::class, 'cancel']);
+    });
+
+    // ── Blog (S51) ────────────────────────────────────────────────────────
+    // Literal routes must come before blog/{slug} wildcard
+    Route::get('blog',                   [BlogPostController::class,     'index']);
+    Route::get('blog/categories',        [BlogCategoryController::class, 'index']);
+    Route::get('blog/categories/{slug}', [BlogCategoryController::class, 'show']);
+    Route::get('blog/tags',              [BlogTagController::class,      'index']);
+    Route::get('blog/{slug}',            [BlogPostController::class,     'show']);
+
+    // ── Blog Comments (S52) ───────────────────────────────────────────────────
+    Route::get('blog/{slug}/comments', [BlogCommentController::class, 'index']);
+    Route::middleware('auth:sanctum')->post('blog/{slug}/comments', [BlogCommentController::class, 'store']);
+
+});

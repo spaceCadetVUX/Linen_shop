@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Models;
+
+use App\Traits\HasGeoProfile;
+use App\Traits\HasJsonldSchemas;
+use App\Traits\HasLlmsEntry;
+use App\Traits\HasSeoMeta;
+use App\Traits\HasSitemapEntry;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class BlogCategory extends Model
+{
+    use HasFactory;
+    use HasSeoMeta;
+    use HasGeoProfile;
+    use HasJsonldSchemas;
+    use HasSitemapEntry;
+    use HasLlmsEntry;
+
+    // ── PK config (bigint auto-increment) ─────────────────────────────────────
+    // keyType must be 'string' so Eloquent binds the PK as a quoted string in
+    // PostgreSQL polymorphic queries (geo_entity_profiles.model_id is varchar(36)).
+
+    public $incrementing = true;
+
+    protected $keyType = 'string';
+
+    // ── Mass assignment ───────────────────────────────────────────────────────
+
+    protected $fillable = [
+        'parent_id',
+        'name',
+        'slug',
+        'description',
+        'is_active',
+        'sort_order',
+        'mcp_drafted_at',
+        'mcp_token_id',
+    ];
+
+    // ── Casts ─────────────────────────────────────────────────────────────────
+
+    protected function casts(): array
+    {
+        return [
+            'is_active'      => 'boolean',
+            'mcp_drafted_at' => 'datetime',
+            'mcp_token_id'   => 'integer',
+        ];
+    }
+
+    // ── Scopes ────────────────────────────────────────────────────────────────
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+
+    // ── Relationships ─────────────────────────────────────────────────────────
+
+    /** Parent blog category (self-referencing). */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(BlogCategory::class, 'parent_id');
+    }
+
+    /** Direct children (self-referencing). */
+    public function children(): HasMany
+    {
+        return $this->hasMany(BlogCategory::class, 'parent_id');
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(BlogPost::class);
+    }
+
+    // ── Multilingual ──────────────────────────────────────────────────────────
+
+    public function translations(): HasMany
+    {
+        return $this->hasMany(BlogCategoryTranslation::class);
+    }
+
+    public function translation(?string $locale = null): ?BlogCategoryTranslation
+    {
+        $locale ??= app()->getLocale();
+
+        if ($this->relationLoaded('translations')) {
+            return $this->translations->firstWhere('locale', $locale)
+                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
+        }
+
+        return $this->translations()->where('locale', $locale)->first()
+            ?? $this->translations()->where('locale', config('app.fallback_locale'))->first();
+    }
+}
