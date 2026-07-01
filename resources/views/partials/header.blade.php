@@ -24,9 +24,19 @@
     {{-- Center: logo --}}
     <a href="{{ url('/') }}" class="nav-logo">LINNÉ</a>
 
-    {{-- Right: store link + search + wishlist + account --}}
+    {{-- Right: lang switcher + search + wishlist + account --}}
     <div class="nav-right">
-      <a href="{{ url('/stores') }}" class="nav-btn nav-contact">Cửa hàng</a>
+      @php
+        $currentLocale = app()->getLocale();
+        $uri = request()->getRequestUri();
+        $viUrl = str_starts_with($uri, '/en') ? preg_replace('#^/en#', '/vi', $uri) : '/vi/';
+        $enUrl = str_starts_with($uri, '/vi') ? preg_replace('#^/vi#', '/en', $uri) : '/en/';
+      @endphp
+      <div class="nav-lang" aria-label="Chọn ngôn ngữ">
+        <a href="{{ $viUrl }}" class="nav-lang-btn @if($currentLocale === 'vi') is-active @endif">Tiếng Việt</a>
+        <span class="nav-lang-sep">/</span>
+        <a href="{{ $enUrl }}" class="nav-lang-btn @if($currentLocale === 'en') is-active @endif">English</a>
+      </div>
 
       <button class="nav-btn nav-search-btn" aria-label="Tìm kiếm">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">

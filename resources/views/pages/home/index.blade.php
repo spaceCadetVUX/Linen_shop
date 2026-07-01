@@ -36,12 +36,20 @@
   </div>
 
   <div class="hero-caption">
-    <p class="hero-eyebrow">Mới ra mắt</p>
-    <h1 class="hero-title">Bộ sưu tập Thu 2026</h1>
+    @if($heroEyebrow)
+      <p class="hero-eyebrow">{{ $heroEyebrow }}</p>
+    @endif
+    @if($heroHeadline)
+      <h1 class="hero-title">{{ $heroHeadline }}</h1>
+    @endif
     <div class="hero-links">
-      <a href="{{ url('/collections/lookbook') }}" class="hero-link">Khám phá lookbook</a>
-      <span class="hero-link-sep"></span>
-      <a href="{{ url('/collections/new') }}" class="hero-link">Khám phá thêm</a>
+      @if($heroCtaLabel && $heroCtaUrl)
+        <a href="{{ url($heroCtaUrl) }}" class="hero-link">{{ $heroCtaLabel }}</a>
+      @endif
+      @if($heroCtaLabel2 && $heroCtaUrl2)
+        <span class="hero-link-sep"></span>
+        <a href="{{ url($heroCtaUrl2) }}" class="hero-link">{{ $heroCtaLabel2 }}</a>
+      @endif
     </div>
   </div>
 </section>
