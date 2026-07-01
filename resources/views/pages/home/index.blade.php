@@ -56,27 +56,19 @@
 
 <!-- ==============================  EDITORIAL GRID  ============================== -->
   <section class="edit-grid" id="editGrid">
-    <a href="#" class="edit-grid-item">
-      <div class="edit-grid-img edit-grid-img--linen"></div>
+    @foreach($editorialItems as $eg)
+    <a href="{{ $eg['url'] }}" class="edit-grid-item">
+      @if($eg['image_url'])
+        <div class="edit-grid-img" style="background-image:url('{{ $eg['image_url'] }}')"></div>
+      @else
+        <div class="edit-grid-img {{ $eg['fallback_class'] }}"></div>
+      @endif
       <div class="edit-grid-label">
-        <span class="edit-grid-name">Áo linen</span>
-        <span class="edit-grid-cta">Khám phá</span>
+        <span class="edit-grid-name">{{ $eg['name'] }}</span>
+        <span class="edit-grid-cta">{{ $eg['cta'] }}</span>
       </div>
     </a>
-    <a href="#" class="edit-grid-item">
-      <div class="edit-grid-img edit-grid-img--pants"></div>
-      <div class="edit-grid-label">
-        <span class="edit-grid-name">Quần &amp; Váy</span>
-        <span class="edit-grid-cta">Khám phá</span>
-      </div>
-    </a>
-    <a href="#" class="edit-grid-item">
-      <div class="edit-grid-img edit-grid-img--set"></div>
-      <div class="edit-grid-label">
-        <span class="edit-grid-name">Bộ set linen</span>
-        <span class="edit-grid-cta">Khám phá</span>
-      </div>
-    </a>
+    @endforeach
   </section>
 
   <!-- ==============================  FEATURED PRODUCT  ============================== -->

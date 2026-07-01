@@ -28,9 +28,8 @@
     <div class="nav-right">
       @php
         $currentLocale = app()->getLocale();
-        $uri = request()->getRequestUri();
-        $viUrl = str_starts_with($uri, '/en') ? preg_replace('#^/en#', '/vi', $uri) : '/vi/';
-        $enUrl = str_starts_with($uri, '/vi') ? preg_replace('#^/vi#', '/en', $uri) : '/en/';
+        $viUrl = $alternateUrls['vi'] ?? '/vi/';
+        $enUrl = $alternateUrls['en'] ?? '/en/';
       @endphp
       <div class="nav-lang" aria-label="Chọn ngôn ngữ">
         <a href="{{ $viUrl }}" class="nav-lang-btn @if($currentLocale === 'vi') is-active @endif">Tiếng Việt</a>

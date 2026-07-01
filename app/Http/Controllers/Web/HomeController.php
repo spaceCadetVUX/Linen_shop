@@ -56,11 +56,32 @@ class HomeController extends Controller
         $heroImageUrl = $heroImageRaw
             ? (str_starts_with($heroImageRaw, 'http') ? $heroImageRaw : asset('storage/' . ltrim($heroImageRaw, '/')))
             : null;
-        $heroEyebrow   = $landing['hero_eyebrow']    ?? 'Mới ra mắt';
-        $heroHeadline  = $landing['hero_headline']   ?? 'Bộ sưu tập Thu 2026';
-        $heroCtaLabel  = $landing['hero_cta_label']  ?? 'Khám phá lookbook';
+
+        $isEn   = $locale === 'en';
+        $imgUrl = fn(?string $path) => $path
+            ? (str_starts_with($path, 'http') ? $path : asset('storage/' . ltrim($path, '/')))
+            : null;
+
+        $editorialItems = array_map(function (int $i) use ($landing, $isEn, $imgUrl): array {
+            $defaults = [
+                ['name' => 'Áo linen',    'name_en' => 'Linen Tops',    'cta' => 'Khám phá', 'cta_en' => 'Explore', 'url' => '/shop/ao-linen',  'fallback_class' => 'edit-grid-img--linen'],
+                ['name' => 'Quần & Váy',  'name_en' => 'Pants & Skirts','cta' => 'Khám phá', 'cta_en' => 'Explore', 'url' => '/shop/quan-vay',  'fallback_class' => 'edit-grid-img--pants'],
+                ['name' => 'Bộ set linen','name_en' => 'Linen Sets',    'cta' => 'Khám phá', 'cta_en' => 'Explore', 'url' => '/shop/set-linen', 'fallback_class' => 'edit-grid-img--set'],
+            ][$i];
+            $raw = $landing["eg{$i}_image"] ?? null;
+            return [
+                'image_url'      => $imgUrl($raw),
+                'fallback_class' => $raw ? null : $defaults['fallback_class'],
+                'name'           => ($isEn ? ($landing["eg{$i}_name_en"] ?? null) : null) ?? $landing["eg{$i}_name"] ?? $defaults[$isEn ? 'name_en' : 'name'],
+                'cta'            => ($isEn ? ($landing["eg{$i}_cta_en"]  ?? null) : null) ?? $landing["eg{$i}_cta"]  ?? $defaults[$isEn ? 'cta_en'  : 'cta'],
+                'url'            => $landing["eg{$i}_url"] ?? $defaults['url'],
+            ];
+        }, [0, 1, 2]);
+        $heroEyebrow   = ($isEn ? ($landing['hero_eyebrow_en']    ?? null) : null) ?? $landing['hero_eyebrow']    ?? 'Mới ra mắt';
+        $heroHeadline  = ($isEn ? ($landing['hero_headline_en']   ?? null) : null) ?? $landing['hero_headline']   ?? 'Bộ sưu tập Thu 2026';
+        $heroCtaLabel  = ($isEn ? ($landing['hero_cta_label_en']  ?? null) : null) ?? $landing['hero_cta_label']  ?? 'Khám phá lookbook';
         $heroCtaUrl    = $landing['hero_cta_url']    ?? '/collections/lookbook';
-        $heroCtaLabel2 = $landing['hero_cta2_label'] ?? 'Khám phá thêm';
+        $heroCtaLabel2 = ($isEn ? ($landing['hero_cta2_label_en'] ?? null) : null) ?? $landing['hero_cta2_label'] ?? 'Khám phá thêm';
         $heroCtaUrl2   = $landing['hero_cta2_url']   ?? '/collections/new';
 
         $seoMeta = null;
@@ -94,7 +115,8 @@ class HomeController extends Controller
         return view('pages.home.index', compact(
             'locale', 'businessSchemas', 'faqItems', 'latestBlogs',
             'seoMeta', 'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
-            'heroImageUrl', 'heroEyebrow', 'heroHeadline', 'heroCtaLabel', 'heroCtaUrl', 'heroCtaLabel2', 'heroCtaUrl2'
+            'heroImageUrl', 'heroEyebrow', 'heroHeadline', 'heroCtaLabel', 'heroCtaUrl', 'heroCtaLabel2', 'heroCtaUrl2',
+            'editorialItems'
         ));
     }
 }

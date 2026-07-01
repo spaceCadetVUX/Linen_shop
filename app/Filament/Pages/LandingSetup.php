@@ -53,6 +53,28 @@ class LandingSetup extends Page
             'newsletter_enabled' => (bool) ($landing['newsletter_enabled'] ?? true),
             'newsletter_heading' => $landing['newsletter_heading'] ?? 'Nhận ưu đãi mỗi tuần',
             'newsletter_body'    => $landing['newsletter_body']    ?? null,
+
+            // Editorial Grid — 3 items cố định
+            'eg0_image'   => $landing['eg0_image']   ?? null,
+            'eg0_name'    => $landing['eg0_name']    ?? 'Áo linen',
+            'eg0_name_en' => $landing['eg0_name_en'] ?? 'Linen Tops',
+            'eg0_cta'     => $landing['eg0_cta']     ?? 'Khám phá',
+            'eg0_cta_en'  => $landing['eg0_cta_en']  ?? 'Explore',
+            'eg0_url'     => $landing['eg0_url']     ?? '/shop/ao-linen',
+
+            'eg1_image'   => $landing['eg1_image']   ?? null,
+            'eg1_name'    => $landing['eg1_name']    ?? 'Quần & Váy',
+            'eg1_name_en' => $landing['eg1_name_en'] ?? 'Pants & Skirts',
+            'eg1_cta'     => $landing['eg1_cta']     ?? 'Khám phá',
+            'eg1_cta_en'  => $landing['eg1_cta_en']  ?? 'Explore',
+            'eg1_url'     => $landing['eg1_url']     ?? '/shop/quan-vay',
+
+            'eg2_image'   => $landing['eg2_image']   ?? null,
+            'eg2_name'    => $landing['eg2_name']    ?? 'Bộ set linen',
+            'eg2_name_en' => $landing['eg2_name_en'] ?? 'Linen Sets',
+            'eg2_cta'     => $landing['eg2_cta']     ?? 'Khám phá',
+            'eg2_cta_en'  => $landing['eg2_cta_en']  ?? 'Explore',
+            'eg2_url'     => $landing['eg2_url']     ?? '/shop/set-linen',
         ]);
     }
 
@@ -66,28 +88,50 @@ class LandingSetup extends Page
                     ->description('Phần đầu trang — hiển thị ngay khi vào homepage.')
                     ->schema([
                         TextInput::make('hero_eyebrow')
-                            ->label('Eyebrow (dòng nhỏ trên tiêu đề)')
+                            ->label('Eyebrow Tiếng Việt')
                             ->placeholder('Mới ra mắt')
                             ->maxLength(60)
-                            ->columnSpanFull(),
+                            ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
+
+                        TextInput::make('hero_eyebrow_en')
+                            ->label('Eyebrow English')
+                            ->placeholder('New Arrivals')
+                            ->maxLength(60)
+                            ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
 
                         TextInput::make('hero_headline')
-                            ->label('Tiêu đề chính (h1)')
+                            ->label('Tiêu đề chính (h1) Tiếng Việt')
                             ->maxLength(120)
-                            ->columnSpanFull(),
+                            ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
+
+                        TextInput::make('hero_headline_en')
+                            ->label('Tiêu đề chính (h1) English')
+                            ->maxLength(120)
+                            ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
 
                         Fieldset::make('Link chính')
                             ->schema([
                                 TextInput::make('hero_cta_label')
-                                    ->label('Text hiển thị')
+                                    ->label('Text Tiếng Việt')
                                     ->placeholder('Khám phá lookbook')
                                     ->maxLength(50)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('hero_cta_label_en')
+                                    ->label('Text English')
+                                    ->placeholder('Explore lookbook')
+                                    ->maxLength(50)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                     ->columnSpan(1),
                                 TextInput::make('hero_cta_url')
                                     ->label('URL đích')
                                     ->placeholder('/collections/lookbook')
                                     ->maxLength(200)
-                                    ->columnSpan(1),
+                                    ->columnSpanFull(),
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
@@ -95,15 +139,22 @@ class LandingSetup extends Page
                         Fieldset::make('Link phụ')
                             ->schema([
                                 TextInput::make('hero_cta2_label')
-                                    ->label('Text hiển thị')
+                                    ->label('Text Tiếng Việt')
                                     ->placeholder('Khám phá thêm')
                                     ->maxLength(50)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('hero_cta2_label_en')
+                                    ->label('Text English')
+                                    ->placeholder('Discover more')
+                                    ->maxLength(50)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                     ->columnSpan(1),
                                 TextInput::make('hero_cta2_url')
                                     ->label('URL đích')
                                     ->placeholder('/collections/new')
                                     ->maxLength(200)
-                                    ->columnSpan(1),
+                                    ->columnSpanFull(),
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
@@ -168,6 +219,108 @@ class LandingSetup extends Page
                     ])
                     ->columns(2),
 
+                Section::make('Editorial Grid')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->description('3 ô ảnh danh mục nằm dưới hero banner.')
+                    ->schema([
+                        Fieldset::make('Ô 1')
+                            ->schema([
+                                FileUpload::make('eg0_image')
+                                    ->label('Ảnh')
+                                    ->image()->disk('public')->directory('landing/editorial')
+                                    ->imagePreviewHeight('140')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                    ->maxSize(3072)
+                                    ->columnSpanFull(),
+                                TextInput::make('eg0_name')
+                                    ->label('Tên Tiếng Việt')
+                                    ->maxLength(60)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg0_name_en')
+                                    ->label('Tên English')
+                                    ->maxLength(60)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg0_cta')
+                                    ->label('CTA Tiếng Việt')
+                                    ->maxLength(40)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg0_cta_en')
+                                    ->label('CTA English')
+                                    ->maxLength(40)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg0_url')->label('Link')->maxLength(200)->columnSpanFull(),
+                            ])->columns(2)->columnSpan(1),
+
+                        Fieldset::make('Ô 2')
+                            ->schema([
+                                FileUpload::make('eg1_image')
+                                    ->label('Ảnh')
+                                    ->image()->disk('public')->directory('landing/editorial')
+                                    ->imagePreviewHeight('140')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                    ->maxSize(3072)
+                                    ->columnSpanFull(),
+                                TextInput::make('eg1_name')
+                                    ->label('Tên Tiếng Việt')
+                                    ->maxLength(60)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg1_name_en')
+                                    ->label('Tên English')
+                                    ->maxLength(60)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg1_cta')
+                                    ->label('CTA Tiếng Việt')
+                                    ->maxLength(40)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg1_cta_en')
+                                    ->label('CTA English')
+                                    ->maxLength(40)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg1_url')->label('Link')->maxLength(200)->columnSpanFull(),
+                            ])->columns(2)->columnSpan(1),
+
+                        Fieldset::make('Ô 3')
+                            ->schema([
+                                FileUpload::make('eg2_image')
+                                    ->label('Ảnh')
+                                    ->image()->disk('public')->directory('landing/editorial')
+                                    ->imagePreviewHeight('140')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                    ->maxSize(3072)
+                                    ->columnSpanFull(),
+                                TextInput::make('eg2_name')
+                                    ->label('Tên Tiếng Việt')
+                                    ->maxLength(60)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg2_name_en')
+                                    ->label('Tên English')
+                                    ->maxLength(60)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg2_cta')
+                                    ->label('CTA Tiếng Việt')
+                                    ->maxLength(40)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg2_cta_en')
+                                    ->label('CTA English')
+                                    ->maxLength(40)
+                                    ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:8px 10px;border-radius:6px;'])
+                                    ->columnSpan(1),
+                                TextInput::make('eg2_url')->label('Link')->maxLength(200)->columnSpanFull(),
+                            ])->columns(2)->columnSpan(1),
+                    ])
+                    ->columns(3),
+
                 Section::make('Newsletter')
                     ->icon('heroicon-o-envelope')
                     ->description('Form đăng ký nhận email newsletter.')
@@ -212,10 +365,14 @@ class LandingSetup extends Page
 
         $extra['landing'] = [
             'hero_eyebrow'       => filled($data['hero_eyebrow'])       ? trim($data['hero_eyebrow'])       : null,
+            'hero_eyebrow_en'    => filled($data['hero_eyebrow_en'])    ? trim($data['hero_eyebrow_en'])    : null,
             'hero_headline'      => filled($data['hero_headline'])      ? trim($data['hero_headline'])      : null,
+            'hero_headline_en'   => filled($data['hero_headline_en'])   ? trim($data['hero_headline_en'])   : null,
             'hero_cta_label'     => filled($data['hero_cta_label'])     ? trim($data['hero_cta_label'])     : null,
+            'hero_cta_label_en'  => filled($data['hero_cta_label_en'])  ? trim($data['hero_cta_label_en'])  : null,
             'hero_cta_url'       => filled($data['hero_cta_url'])       ? trim($data['hero_cta_url'])       : null,
             'hero_cta2_label'    => filled($data['hero_cta2_label'])    ? trim($data['hero_cta2_label'])    : null,
+            'hero_cta2_label_en' => filled($data['hero_cta2_label_en']) ? trim($data['hero_cta2_label_en']) : null,
             'hero_cta2_url'      => filled($data['hero_cta2_url'])      ? trim($data['hero_cta2_url'])      : null,
             'hero_image'         => $data['hero_image']                 ?? null,
             'featured_enabled'   => (bool) ($data['featured_enabled']  ?? true),
@@ -227,6 +384,27 @@ class LandingSetup extends Page
             'newsletter_enabled' => (bool) ($data['newsletter_enabled'] ?? true),
             'newsletter_heading' => filled($data['newsletter_heading']) ? trim($data['newsletter_heading']) : null,
             'newsletter_body'    => filled($data['newsletter_body'])    ? trim($data['newsletter_body'])    : null,
+
+            'eg0_image'   => $data['eg0_image']   ?? null,
+            'eg0_name'    => filled($data['eg0_name'])    ? trim($data['eg0_name'])    : null,
+            'eg0_name_en' => filled($data['eg0_name_en']) ? trim($data['eg0_name_en']) : null,
+            'eg0_cta'     => filled($data['eg0_cta'])     ? trim($data['eg0_cta'])     : null,
+            'eg0_cta_en'  => filled($data['eg0_cta_en'])  ? trim($data['eg0_cta_en'])  : null,
+            'eg0_url'     => filled($data['eg0_url'])     ? trim($data['eg0_url'])     : null,
+
+            'eg1_image'   => $data['eg1_image']   ?? null,
+            'eg1_name'    => filled($data['eg1_name'])    ? trim($data['eg1_name'])    : null,
+            'eg1_name_en' => filled($data['eg1_name_en']) ? trim($data['eg1_name_en']) : null,
+            'eg1_cta'     => filled($data['eg1_cta'])     ? trim($data['eg1_cta'])     : null,
+            'eg1_cta_en'  => filled($data['eg1_cta_en'])  ? trim($data['eg1_cta_en'])  : null,
+            'eg1_url'     => filled($data['eg1_url'])     ? trim($data['eg1_url'])     : null,
+
+            'eg2_image'   => $data['eg2_image']   ?? null,
+            'eg2_name'    => filled($data['eg2_name'])    ? trim($data['eg2_name'])    : null,
+            'eg2_name_en' => filled($data['eg2_name_en']) ? trim($data['eg2_name_en']) : null,
+            'eg2_cta'     => filled($data['eg2_cta'])     ? trim($data['eg2_cta'])     : null,
+            'eg2_cta_en'  => filled($data['eg2_cta_en'])  ? trim($data['eg2_cta_en'])  : null,
+            'eg2_url'     => filled($data['eg2_url'])     ? trim($data['eg2_url'])     : null,
         ];
 
         $profile->extra = $extra;
