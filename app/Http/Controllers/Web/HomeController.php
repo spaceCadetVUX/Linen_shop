@@ -51,6 +51,16 @@ class HomeController extends Controller
             ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/' . ltrim($ogRaw, '/')))
             : null;
 
+        $landing         = (array) ($profile->extra['landing'] ?? []);
+        $heroImageRaw    = $landing['hero_image'] ?? null;
+        $heroImageUrl    = $heroImageRaw
+            ? (str_starts_with($heroImageRaw, 'http') ? $heroImageRaw : asset('storage/' . ltrim($heroImageRaw, '/')))
+            : null;
+        $heroHeadline    = $landing['hero_headline']    ?? null;
+        $heroSubheadline = $landing['hero_subheadline'] ?? null;
+        $heroCtaLabel    = $landing['hero_cta_label']   ?? 'Khám phá lookbook';
+        $heroCtaUrl      = $landing['hero_cta_url']     ?? '/collections/lookbook';
+
         $seoMeta = null;
         $ogType  = 'website';
 
@@ -81,7 +91,8 @@ class HomeController extends Controller
 
         return view('pages.home.index', compact(
             'locale', 'businessSchemas', 'faqItems', 'latestBlogs',
-            'seoMeta', 'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType'
+            'seoMeta', 'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
+            'heroImageUrl', 'heroHeadline', 'heroSubheadline', 'heroCtaLabel', 'heroCtaUrl'
         ));
     }
 }

@@ -75,3 +75,13 @@ docker compose exec php-fpm php artisan db:seed
 | meilisearch  | 7700  | Search engine        |
 | horizon      | —     | Queue worker         |
 | scheduler    | —     | Laravel scheduler    |
+
+
+
+docker compose up -d
+
+Sau đó chờ khoảng 1-2 phút để php-fpm chạy xong entrypoint (composer install + artisan commands). Khi nào muốn biết đã ready chưa thì kiểm tra:
+
+docker logs laravel13vux-php-fpm-1 2>&1 | Select-String "ready to handle"
+
+Thấy ready to handle connections là vào được.

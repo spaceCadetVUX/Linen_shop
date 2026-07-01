@@ -15,11 +15,19 @@
      ============================================================ --}}
 <section class="hero" id="hero">
   <div class="hero-bg">
-    <img
-      src="https://wonder-theme-fashion.myshopify.com/cdn/shop/files/5-velour-main-banner-image-desktop.jpg?v=1754861835&width=1920"
-      alt="LINNÉ — Bộ sưu tập Thu 2026"
-      class="hero-img"
-    >
+    @if($heroImageUrl)
+      <img
+        src="{{ $heroImageUrl }}"
+        alt="{{ $heroHeadline ?? 'LINNÉ — Bộ sưu tập Thu 2026' }}"
+        class="hero-img"
+      >
+    @else
+      <img
+        src="https://wonder-theme-fashion.myshopify.com/cdn/shop/files/5-velour-main-banner-image-desktop.jpg?v=1754861835&width=1920"
+        alt="LINNÉ — Bộ sưu tập Thu 2026"
+        class="hero-img"
+      >
+    @endif
   </div>
   <div class="hero-overlay"></div>
 
