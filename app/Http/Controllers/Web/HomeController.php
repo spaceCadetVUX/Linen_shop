@@ -36,15 +36,15 @@ class HomeController extends Controller
         $siteName    = $profile->name ?: config('app.name');
         $tagline     = $profile->tagline ?? '';
 
-        $enTagline = Setting::get('site_tagline_en') ?: 'Smart Lighting Solutions';
+        $enTagline = Setting::get('site_tagline_en') ?: 'Minimalist, Sustainable Linen Fashion';
         $fallbackTitle = $locale === 'vi'
             ? ($tagline ?: $siteName)
             : $enTagline;
 
         $fallbackDescription = Setting::get('meta_description')
             ?? ($tagline ?: null)
-            ?? ($locale === 'vi' ? 'Phân phối và tư vấn giải pháp chiếu sáng thông minh KNX, DALI-2, Casambi tại Việt Nam.'
-                                 : 'Distributor and consultant for smart lighting solutions in Vietnam.');
+            ?? ($locale === 'vi' ? 'LINNÉ — Thời trang linen tối giản, bền vững.'
+                                 : 'LINNÉ — Minimalist, sustainable linen fashion.');
 
         $ogRaw = $profile->extra['og_image'] ?? Setting::get('default_og_image');
         $fallbackImage = $ogRaw

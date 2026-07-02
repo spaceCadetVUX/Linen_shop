@@ -25,7 +25,7 @@ class Setting
             // Brand / identity
             'site_name'            => $p->name ?? config('app.name'),
             'site_tagline'         => $p->tagline,
-            'site_tagline_en'      => $p->extra['site_tagline_en'] ?? null,
+            'site_tagline_en'      => $p->extra['tagline_en'] ?? null,
             'site_logo'            => $p->logo_path,
 
             // Contact
@@ -56,7 +56,7 @@ class Setting
             'about_og_image'        => $p->extra['about_og_image'] ?? null,
 
             // SEO / OG defaults
-            'default_og_image'     => $p->extra['default_og_image'] ?? null,
+            'default_og_image'     => $p->extra['og_image'] ?? null,
             'meta_description'     => $p->extra['meta_description'] ?? null,
 
             // Product page trust badges — configurable from Filament BusinessProfile
