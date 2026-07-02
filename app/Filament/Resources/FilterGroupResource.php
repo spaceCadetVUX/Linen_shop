@@ -55,7 +55,7 @@ class FilterGroupResource extends Resource
                     Forms\Components\Repeater::make('values')
                         ->relationship('values')
                         ->label('')
-                        ->columns(3)
+                        ->columns(4)
                         ->schema([
                             Forms\Components\TextInput::make('name')
                                 ->label('Tên (vi)')
@@ -63,6 +63,10 @@ class FilterGroupResource extends Resource
 
                             Forms\Components\TextInput::make('name_en')
                                 ->label('Name (en)'),
+
+                            Forms\Components\ColorPicker::make('color_hex')
+                                ->label('Màu (chỉ dùng cho group màu sắc)')
+                                ->helperText('Để trống nếu group này không phải màu sắc'),
 
                             Forms\Components\Toggle::make('is_active')
                                 ->label('Active')

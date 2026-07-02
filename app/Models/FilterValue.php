@@ -14,6 +14,7 @@ class FilterValue extends Model
         'name',
         'name_en',
         'slug',
+        'color_hex',
         'sort_order',
         'is_active',
     ];

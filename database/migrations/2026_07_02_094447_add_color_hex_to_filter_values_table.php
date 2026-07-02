@@ -1,0 +1,30 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('filter_values', function (Blueprint $table) {
+            // Nullable — only set when this value belongs to a "color" filter group.
+            // Frontend renders a swatch instead of a text label when present.
+            $table->string('color_hex', 7)->nullable()->after('name_en');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('filter_values', function (Blueprint $table) {
+            $table->dropColumn('color_hex');
+        });
+    }
+};
