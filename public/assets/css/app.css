@@ -3321,6 +3321,59 @@ img    { display: block; }
   display: inline-block;
 }
 
+/* -- Category index (/danh-muc, /categories) -- */
+.cat-index-section {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+}
+
+.cat-index-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 0.5px solid var(--silver);
+}
+
+.cat-index-item {
+  border-bottom: 0.5px solid var(--silver);
+}
+
+.cat-index-link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 4px;
+  text-decoration: none;
+}
+
+.cat-index-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+}
+
+.cat-index-count {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+  white-space: nowrap;
+}
+
+.plp-empty {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--graphite);
+  text-align: center;
+  padding: 48px 24px;
+}
+
 /* -- Toolbar wrap (sticky) -- */
 .plp-toolbar-wrap {
   position: sticky;
