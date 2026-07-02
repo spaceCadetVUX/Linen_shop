@@ -46,29 +46,35 @@ class BusinessProfileResource extends Resource
 
                             Forms\Components\TextInput::make('legal_name')
                                 ->label('🇻🇳 Legal Name')
-                                ->placeholder('Công ty Cổ phần...'),
+                                ->placeholder('Công ty Cổ phần...')
+                                ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
 
                             Forms\Components\TextInput::make('extra.legal_name_en')
                                 ->label('🇬🇧 Legal Name (EN)')
-                                ->placeholder('Company Ltd.'),
+                                ->placeholder('Company Ltd.')
+                                ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
 
                             Forms\Components\TextInput::make('tagline')
                                 ->label('🇻🇳 Tagline')
-                                ->placeholder('Khẩu hiệu ngắn'),
+                                ->placeholder('Khẩu hiệu ngắn')
+                                ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
 
                             Forms\Components\TextInput::make('extra.tagline_en')
                                 ->label('🇬🇧 Tagline (EN)')
-                                ->placeholder('Short slogan in English'),
+                                ->placeholder('Short slogan in English')
+                                ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
 
                             Forms\Components\Textarea::make('description')
                                 ->label('🇻🇳 Description')
                                 ->rows(4)
-                                ->columnSpanFull(),
+                                ->columnSpanFull()
+                                ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
 
                             Forms\Components\Textarea::make('extra.description_en')
                                 ->label('🇬🇧 Description (EN)')
                                 ->rows(4)
-                                ->columnSpanFull(),
+                                ->columnSpanFull()
+                                ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
 
                             Forms\Components\TextInput::make('logo_path')
                                 ->label('Logo Path / URL')
@@ -194,6 +200,7 @@ class BusinessProfileResource extends Resource
                             Forms\Components\Repeater::make('extra.faq')
                                 ->label('🇻🇳 FAQ — Tiếng Việt (schema.org FAQPage)')
                                 ->helperText('Câu hỏi thường gặp — inject JSON-LD FAQPage vào trang chủ /vi/.')
+                                ->extraAttributes(['style' => 'background-color: #dcfce7; padding: 12px; border-radius: 8px;'])
                                 ->schema([
                                     Forms\Components\TextInput::make('question')
                                         ->label('Câu hỏi')
@@ -212,6 +219,7 @@ class BusinessProfileResource extends Resource
                             Forms\Components\Repeater::make('extra.faq_en')
                                 ->label('🇬🇧 FAQ — English (schema.org FAQPage)')
                                 ->helperText('Frequently asked questions — injected into JSON-LD FAQPage on /en/ homepage.')
+                                ->extraAttributes(['style' => 'background-color: #dbeafe; padding: 12px; border-radius: 8px;'])
                                 ->schema([
                                     Forms\Components\TextInput::make('question')
                                         ->label('Question')
@@ -237,21 +245,25 @@ class BusinessProfileResource extends Resource
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.product_catalog_title')
                                         ->label('🇻🇳 Tiêu đề')
-                                        ->placeholder('Tất cả sản phẩm — LINNÉ'),
+                                        ->placeholder('Tất cả sản phẩm — LINNÉ')
+                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
 
                                     Forms\Components\TextInput::make('extra.product_catalog_title_en')
                                         ->label('🇬🇧 Title')
-                                        ->placeholder('All Products — LINNÉ'),
+                                        ->placeholder('All Products — LINNÉ')
+                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
 
                                     Forms\Components\Textarea::make('extra.product_catalog_description')
                                         ->label('🇻🇳 Mô tả')
                                         ->rows(2)
-                                        ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.'),
+                                        ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.')
+                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
 
                                     Forms\Components\Textarea::make('extra.product_catalog_description_en')
                                         ->label('🇬🇧 Description')
                                         ->rows(2)
-                                        ->placeholder('Browse the full LINNÉ collection of minimalist, sustainable linen fashion.'),
+                                        ->placeholder('Browse the full LINNÉ collection of minimalist, sustainable linen fashion.')
+                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
                                 ])
                                 ->columns(2),
 
@@ -260,21 +272,25 @@ class BusinessProfileResource extends Resource
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.category_index_title')
                                         ->label('🇻🇳 Tiêu đề')
-                                        ->placeholder('Danh mục sản phẩm'),
+                                        ->placeholder('Danh mục sản phẩm')
+                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
 
                                     Forms\Components\TextInput::make('extra.category_index_title_en')
                                         ->label('🇬🇧 Title')
-                                        ->placeholder('Product Categories'),
+                                        ->placeholder('Product Categories')
+                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
 
                                     Forms\Components\Textarea::make('extra.category_index_description')
                                         ->label('🇻🇳 Mô tả')
                                         ->rows(2)
-                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của LINNÉ.'),
+                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của LINNÉ.')
+                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
 
                                     Forms\Components\Textarea::make('extra.category_index_description_en')
                                         ->label('🇬🇧 Description')
                                         ->rows(2)
-                                        ->placeholder('Browse all LINNÉ product categories.'),
+                                        ->placeholder('Browse all LINNÉ product categories.')
+                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
                                 ])
                                 ->columns(2),
                         ]),

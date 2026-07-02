@@ -128,6 +128,13 @@ return $this->error(message: 'Not found', code: 404);
 | `seo` | JSON-LD sync, sitemap sync, llms sync |
 | `notifications` | Future: push, SMS |
 
+### ⚠️ Horizon must be restarted after queue-related code changes
+`config/scout.php` has `'queue' => [...]` (truthy) — Scout/Meilisearch sync (`scout:import`, `Model::searchable()`, save observers) runs through the `seo` queue, processed by the long-running `horizon` container. Horizon does **not** pick up changed PHP automatically (a queue worker is one long-lived process — PHP won't re-declare an already-loaded class, unlike `php-fpm` which recompiles per request). After editing `toSearchableArray()`, `makeAllSearchableUsing()`, `config/scout.php`, or any Job/Listener/Mailable class, run:
+```bash
+docker compose restart horizon
+```
+Skipping this fails silently — `scout:import` still reports "imported" but Meilisearch quietly gets stale-schema data.
+
 ### Soft delete behavior
 These models use soft deletes — never call `->forceDelete()` unless explicitly requested:
 `User`, `Product`, `Category`, `Order`, `BlogPost`

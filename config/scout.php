@@ -145,7 +145,7 @@ return [
         'index-settings' => [
             'app_products' => [
                 'searchableAttributes' => ['name', 'sku', 'short_description'],
-                'filterableAttributes' => ['category_ids', 'price', 'sale_price', 'is_active', 'stock_quantity', '__soft_deleted'],
+                'filterableAttributes' => ['category_ids', 'filter_value_ids', 'price', 'sale_price', 'is_active', 'stock_quantity', '__soft_deleted'],
                 'sortableAttributes'   => ['price', 'created_at', 'name'],
             ],
             'app_blog_posts' => [

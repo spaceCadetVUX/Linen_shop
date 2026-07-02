@@ -112,32 +112,40 @@ class Product extends Model
     public function toSearchableArray(): array
     {
         $categoriesLoaded = $this->relationLoaded('categories');
+        $filterValuesLoaded = $this->relationLoaded('filterValues');
 
         return [
-            'id'                => $this->id,
-            'name'              => $this->name,
-            'sku'               => $this->sku,
-            'short_description' => $this->short_description,
-            'category_ids'      => $categoriesLoaded
+            'id'                 => $this->id,
+            'name'               => $this->name,
+            'sku'                => $this->sku,
+            'short_description'  => $this->short_description,
+            'category_ids'       => $categoriesLoaded
                                     ? $this->categories->pluck('id')->all()
                                     : [],
-            'categories'        => $categoriesLoaded
+            'categories'         => $categoriesLoaded
                                     ? $this->categories->pluck('name')->all()
                                     : [],
-            'price'             => (float) $this->price,
-            'sale_price'        => $this->sale_price ? (float) $this->sale_price : null,
-            'stock_quantity'    => $this->stock_quantity,
-            'is_active'         => $this->is_active,
-            'created_at'        => $this->created_at?->timestamp,
+            'filter_value_ids'   => $filterValuesLoaded
+                                    ? $this->filterValues->pluck('id')->all()
+                                    : [],
+            'filter_value_slugs' => $filterValuesLoaded
+                                    ? $this->filterValues->pluck('slug')->all()
+                                    : [],
+            'price'              => (float) $this->price,
+            'sale_price'         => $this->sale_price ? (float) $this->sale_price : null,
+            'stock_quantity'     => $this->stock_quantity,
+            'is_active'          => $this->is_active,
+            'created_at'         => $this->created_at?->timestamp,
         ];
     }
 
     /**
-     * Eager-load categories when running scout:import to populate category_ids.
+     * Eager-load categories + filterValues when running scout:import to
+     * populate category_ids and filter_value_ids/slugs.
      */
     public function makeAllSearchableUsing(Builder $query): Builder
     {
-        return $query->with('categories');
+        return $query->with(['categories', 'filterValues']);
     }
 
     /**

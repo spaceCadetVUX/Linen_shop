@@ -64,6 +64,20 @@ docker compose exec php-fpm php artisan db:seed
 
 ---
 
+## Gotchas
+
+**Sửa code liên quan Scout/Meilisearch (`toSearchableArray()`, `makeAllSearchableUsing()`, `config/scout.php`) → PHẢI restart `horizon`:**
+
+```bash
+docker compose restart horizon
+```
+
+Lý do: `config/scout.php` bật `'queue' => [...]` (truthy) nên mọi lần đồng bộ search index (`scout:import`, `$model->searchable()`, save model) đều bị đẩy qua Redis queue `seo`, xử lý bởi container `horizon` — container này chạy liên tục (`php artisan horizon`), không tự nạp lại code PHP đã đổi (PHP không re-declare class đã load trong cùng process, khác với `php-fpm` vốn xử lý request-per-request nên luôn đọc code mới). Nếu quên restart, `scout:import` vẫn báo "imported" bình thường nhưng dữ liệu lên Meilisearch âm thầm dùng schema **cũ** — không có lỗi nào hiện ra, rất dễ bỏ sót.
+
+Áp dụng tương tự cho bất kỳ code nào chạy qua queue: job, listener, mail — restart `horizon` sau khi sửa.
+
+---
+
 ## Services
 
 | Service      | Port  | Description          |

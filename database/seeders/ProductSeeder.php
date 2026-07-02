@@ -2,18 +2,41 @@
 
 namespace Database\Seeders;
 
+use App\Models\FilterGroup;
+use App\Models\FilterValue;
 use App\Models\Product;
 use App\Models\ProductTranslation;
 use Illuminate\Database\Seeder;
 
 /**
- * Dữ liệu test tối thiểu để kiểm thử Scout/Meilisearch (song ngữ vi/en).
+ * Dữ liệu test tối thiểu để kiểm thử Scout/Meilisearch (song ngữ vi/en)
+ * + gán filter màu sắc để test facet filter qua Meilisearch.
  * Chạy riêng: php artisan db:seed --class=ProductSeeder
  */
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
+        $colorGroup = FilterGroup::firstOrCreate(
+            ['slug' => 'mau-sac'],
+            ['name' => 'Màu sắc', 'name_en' => 'Color', 'sort_order' => 1, 'is_active' => true],
+        );
+
+        $colors = [
+            'cream' => FilterValue::firstOrCreate(
+                ['filter_group_id' => $colorGroup->id, 'slug' => 'be-sua'],
+                ['name' => 'Be sữa', 'name_en' => 'Cream', 'color_hex' => '#eae0d5', 'sort_order' => 1, 'is_active' => true],
+            ),
+            'grey' => FilterValue::firstOrCreate(
+                ['filter_group_id' => $colorGroup->id, 'slug' => 'xam-tro'],
+                ['name' => 'Xám tro', 'name_en' => 'Heather Grey', 'color_hex' => '#9a958c', 'sort_order' => 2, 'is_active' => true],
+            ),
+            'black' => FilterValue::firstOrCreate(
+                ['filter_group_id' => $colorGroup->id, 'slug' => 'den'],
+                ['name' => 'Đen', 'name_en' => 'Black', 'color_hex' => '#1a1a1a', 'sort_order' => 3, 'is_active' => true],
+            ),
+        ];
+
         $products = [
             [
                 'product' => [
@@ -27,6 +50,7 @@ class ProductSeeder extends Seeder
                     'stock_quantity'    => 25,
                     'is_active'         => true,
                 ],
+                'color' => 'cream',
                 'trans_en' => [
                     'locale'             => 'en',
                     'name'               => 'Cashmere Lurex Tank Top',
@@ -49,6 +73,7 @@ class ProductSeeder extends Seeder
                     'stock_quantity'    => 18,
                     'is_active'         => true,
                 ],
+                'color' => 'grey',
                 'trans_en' => [
                     'locale'             => 'en',
                     'name'               => 'Crewneck Cashmere Sweater',
@@ -71,6 +96,7 @@ class ProductSeeder extends Seeder
                     'stock_quantity'    => 40,
                     'is_active'         => true,
                 ],
+                'color' => 'black',
                 'trans_en' => [
                     'locale'             => 'en',
                     'name'               => 'Cashmere Scarf',
@@ -101,6 +127,8 @@ class ProductSeeder extends Seeder
                 ['product_id' => $product->id, 'locale' => 'en'],
                 array_merge(['product_id' => $product->id], $data['trans_en']),
             );
+
+            $product->filterValues()->syncWithoutDetaching([$colors[$data['color']]->id]);
         }
     }
 }

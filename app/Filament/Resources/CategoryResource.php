@@ -120,6 +120,7 @@ class CategoryResource extends Resource
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) =>
                                                     $set('translations.vi.slug', Str::slug($state ?? '')))
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
@@ -128,6 +129,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
                                                 ->helperText('Tự động tạo từ tên. Phải unique theo từng ngôn ngữ.')
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.description')
@@ -136,6 +138,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->rows(3)
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             RichEditor::make('translations.vi.rich_content')
@@ -144,6 +147,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-document-text')
                                                 ->hintColor('success')
                                                 ->plugins([MediaRichEditorPlugin::make()])
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
                                         ]),
 
@@ -157,6 +161,7 @@ class CategoryResource extends Resource
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) =>
                                                     $set('translations.en.slug', Str::slug($state ?? '')))
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
@@ -165,6 +170,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
                                                 ->helperText('Auto-generated from name. Must be unique per locale.')
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.description')
@@ -173,6 +179,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->rows(3)
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             RichEditor::make('translations.en.rich_content')
@@ -181,6 +188,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-document-text')
                                                 ->hintColor('success')
                                                 ->plugins([MediaRichEditorPlugin::make()])
+                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
                                         ]),
                                 ])
@@ -218,6 +226,7 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
@@ -235,11 +244,13 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
                                                                 ->label('Meta Keywords (vi)')
                                                                 ->helperText('Phân cách bằng dấu phẩy')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
@@ -287,6 +298,7 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->name);
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
@@ -301,6 +313,7 @@ class CategoryResource extends Resource
                                                                         $set('og_description', $record->meta_description);
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
@@ -352,7 +365,8 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->translation('vi')?->name
                                                                             ?? $livewire->record?->name);
                                                                     }
-                                                                }),
+                                                                })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;']),
 
                                                             Forms\Components\Textarea::make('twitter_description')
                                                                 ->label('Twitter Description (vi)')
@@ -366,6 +380,7 @@ class CategoryResource extends Resource
                                                                         $set('twitter_description', $record->meta_description);
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->columns(2)
@@ -398,6 +413,7 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
@@ -415,11 +431,13 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
                                                                 ->label('Meta Keywords (en)')
                                                                 ->helperText('Comma-separated')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
@@ -467,6 +485,7 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->name);
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
@@ -481,6 +500,7 @@ class CategoryResource extends Resource
                                                                         $set('og_description', $record->meta_description);
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
@@ -532,7 +552,8 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->translation('en')?->name
                                                                             ?? $livewire->record?->name);
                                                                     }
-                                                                }),
+                                                                })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;']),
 
                                                             Forms\Components\Textarea::make('twitter_description')
                                                                 ->label('Twitter Description (en)')
@@ -546,6 +567,7 @@ class CategoryResource extends Resource
                                                                         $set('twitter_description', $record->meta_description);
                                                                     }
                                                                 })
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->columns(2)
@@ -576,6 +598,7 @@ class CategoryResource extends Resource
                                                                 ->hint('Đoạn tóm tắt ngắn cho AI / chatbot hiểu danh mục này')
                                                                 ->rows(4)
                                                                 ->placeholder('Mô tả 2–4 câu về danh mục: sản phẩm nào có trong đó, đối tượng khách hàng, điểm nổi bật...')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
@@ -583,18 +606,21 @@ class CategoryResource extends Resource
                                                                 ->hint('Ứng dụng thực tế — AI dùng để trả lời "danh mục này phù hợp cho ai / dùng ở đâu"')
                                                                 ->rows(3)
                                                                 ->placeholder('VD: Phù hợp cho nhà ở, văn phòng, công trình thương mại...')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
                                                                 ->label('Target Audience (vi)')
                                                                 ->hint('Đối tượng mục tiêu — AI dùng để phân loại và gợi ý')
                                                                 ->placeholder('VD: Kỹ sư điện, nhà thầu, hộ gia đình...')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
                                                                 ->label('LLM Context Hint (vi)')
                                                                 ->hint('Gợi ý thêm cho LLM khi sinh nội dung về danh mục')
                                                                 ->rows(2)
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ]),
 
@@ -606,11 +632,13 @@ class CategoryResource extends Resource
                                                                     Forms\Components\TextInput::make('label')
                                                                         ->label('Nhãn')
                                                                         ->required()
-                                                                        ->placeholder('VD: Số sản phẩm'),
+                                                                        ->placeholder('VD: Số sản phẩm')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;']),
                                                                     Forms\Components\TextInput::make('value')
                                                                         ->label('Giá trị')
                                                                         ->required()
-                                                                        ->placeholder('VD: 120+'),
+                                                                        ->placeholder('VD: 120+')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;']),
                                                                 ])
                                                                 ->columns(2)
                                                                 ->addActionLabel('Thêm fact')
@@ -630,12 +658,14 @@ class CategoryResource extends Resource
                                                                         ->label('Câu hỏi')
                                                                         ->required()
                                                                         ->placeholder('VD: Danh mục này có những sản phẩm gì?')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
                                                                         ->label('Trả lời')
                                                                         ->required()
                                                                         ->rows(3)
                                                                         ->placeholder('Câu trả lời ngắn gọn, rõ ràng...')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                 ])
                                                                 ->addActionLabel('Thêm câu hỏi')
@@ -664,6 +694,7 @@ class CategoryResource extends Resource
                                                                 ->hint('Short summary for AI / chatbot understanding of this category')
                                                                 ->rows(4)
                                                                 ->placeholder('Describe the category in 2–4 sentences: what products, who it\'s for, key highlights...')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
@@ -671,18 +702,21 @@ class CategoryResource extends Resource
                                                                 ->hint('Practical applications — AI uses this to answer "who is this for / where is it used"')
                                                                 ->rows(3)
                                                                 ->placeholder('E.g. Suitable for residential, commercial, and industrial projects...')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
                                                                 ->label('Target Audience (en)')
                                                                 ->hint('Target demographic — AI uses this for classification and recommendations')
                                                                 ->placeholder('E.g. Electricians, contractors, homeowners...')
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
                                                                 ->label('LLM Context Hint (en)')
                                                                 ->hint('Additional context hint for LLMs when generating content about this category')
                                                                 ->rows(2)
+                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ]),
 
@@ -694,11 +728,13 @@ class CategoryResource extends Resource
                                                                     Forms\Components\TextInput::make('label')
                                                                         ->label('Label')
                                                                         ->required()
-                                                                        ->placeholder('E.g. Products count'),
+                                                                        ->placeholder('E.g. Products count')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;']),
                                                                     Forms\Components\TextInput::make('value')
                                                                         ->label('Value')
                                                                         ->required()
-                                                                        ->placeholder('E.g. 120+'),
+                                                                        ->placeholder('E.g. 120+')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;']),
                                                                 ])
                                                                 ->columns(2)
                                                                 ->addActionLabel('Add fact')
@@ -718,12 +754,14 @@ class CategoryResource extends Resource
                                                                         ->label('Question')
                                                                         ->required()
                                                                         ->placeholder('E.g. What products does this category include?')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
                                                                         ->label('Answer')
                                                                         ->required()
                                                                         ->rows(3)
                                                                         ->placeholder('Short, clear answer...')
+                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                 ])
                                                                 ->addActionLabel('Add FAQ')
