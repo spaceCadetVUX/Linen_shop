@@ -19,7 +19,7 @@ class LandingSetup extends Page
     protected static BackedEnum|string|null $navigationIcon  = 'heroicon-o-home';
     protected static \UnitEnum|string|null  $navigationGroup = 'Setting';
     protected static ?string               $navigationLabel = 'Landing Page';
-    protected static ?int                  $navigationSort  = 10;
+    protected static ?int                  $navigationSort  = 20;
 
     protected string $view = 'filament.pages.landing-setup';
 

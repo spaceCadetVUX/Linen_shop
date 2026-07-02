@@ -28,7 +28,7 @@ class ManufacturerResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 40;
 
     public static function getNavigationBadge(): ?string
     {

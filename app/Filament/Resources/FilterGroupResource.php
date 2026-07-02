@@ -23,7 +23,7 @@ class FilterGroupResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 50;
 
     protected static ?string $navigationLabel = 'Filter Groups';
 

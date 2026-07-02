@@ -25,7 +25,7 @@ class PersonalAccessTokenResource extends Resource
 
     protected static ?string $navigationLabel = 'API Tokens (MCP)';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 20;
 
     public static function form(Schema $form): Schema
     {

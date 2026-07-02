@@ -11,7 +11,7 @@ class DeveloperPage extends Page
     protected static BackedEnum|string|null $navigationIcon  = 'heroicon-o-code-bracket';
     protected static \UnitEnum|string|null  $navigationGroup = 'System';
     protected static ?string               $navigationLabel = 'Developer';
-    protected static ?int                  $navigationSort  = 90;
+    protected static ?int                  $navigationSort  = 40;
 
     protected string $view = 'filament.pages.developer';
 

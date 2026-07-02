@@ -24,6 +24,8 @@ class BlogCommentResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Blog';
 
+    protected static ?int $navigationSort = 50;
+
     public static function getNavigationBadge(): ?string
     {
         return (string) static::getModel()::where('is_approved', false)->count();

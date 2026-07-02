@@ -25,7 +25,9 @@ class GeoEntityProfileResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-cpu-chip';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Setting';
+    protected static \UnitEnum|string|null $navigationGroup = 'SEO & GEO';
+
+    protected static ?int $navigationSort = 20;
 
     protected static ?string $navigationLabel = 'GEO Profiles';
 

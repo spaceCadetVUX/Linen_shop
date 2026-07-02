@@ -26,7 +26,7 @@ class AuthorResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Blog';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 40;
 
     public static function form(Schema $schema): Schema
     {

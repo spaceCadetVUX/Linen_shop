@@ -25,7 +25,7 @@ class UserResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'System';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $form): Schema
     {

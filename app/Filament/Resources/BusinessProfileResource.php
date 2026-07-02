@@ -26,6 +26,8 @@ class BusinessProfileResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Setting';
 
+    protected static ?int $navigationSort = 10;
+
     protected static ?string $navigationLabel = 'Business Profile';
 
     // ── Form ──────────────────────────────────────────────────────────────────

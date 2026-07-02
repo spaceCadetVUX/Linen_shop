@@ -29,6 +29,8 @@ class OrderResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Commerce';
 
+    protected static ?int $navigationSort = 10;
+
     public static function getNavigationBadge(): ?string
     {
         return (string) Order::where('status', OrderStatus::Pending->value)->count();

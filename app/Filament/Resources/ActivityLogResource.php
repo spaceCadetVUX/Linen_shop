@@ -27,6 +27,8 @@ class ActivityLogResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'System';
 
+    protected static ?int $navigationSort = 30;
+
     protected static ?string $navigationLabel = 'Activity Log';
 
     // Read-only resource — no form needed

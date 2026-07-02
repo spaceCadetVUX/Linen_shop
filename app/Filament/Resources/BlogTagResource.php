@@ -26,6 +26,8 @@ class BlogTagResource extends Resource
 
     protected static \UnitEnum|string|null $navigationGroup = 'Blog';
 
+    protected static ?int $navigationSort = 30;
+
     public static function getNavigationBadge(): ?string
     {
         return (string) static::getModel()::count();
