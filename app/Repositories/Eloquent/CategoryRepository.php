@@ -36,17 +36,21 @@ class CategoryRepository extends BaseRepository
     // ── Detail ────────────────────────────────────────────────────────────────
 
     /**
-     * Single active category by slug.
+     * Single active category by slug, scoped to the given locale (defaults to
+     * the current app locale) so a slug used by another locale's translation
+     * never resolves to the wrong category.
      * Eager-loads parent, seoMetas and activeSchemas for the detail API response.
      */
-    public function findActiveBySlug(string $slug): ?Category
+    public function findActiveBySlug(string $slug, ?string $locale = null): ?Category
     {
+        $locale ??= app()->getLocale();
+
         /** @var Category|null */
         return $this->query()
             ->with(['parent', 'seoMetas', 'activeSchemas', 'translations'])
-            ->where(function ($q) use ($slug): void {
+            ->where(function ($q) use ($slug, $locale): void {
                 $q->where('slug', $slug)
-                  ->orWhereHas('translations', fn ($t) => $t->where('slug', $slug));
+                  ->orWhereHas('translations', fn ($t) => $t->where('slug', $slug)->where('locale', $locale));
             })
             ->where('is_active', true)
             ->first();

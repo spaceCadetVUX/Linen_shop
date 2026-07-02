@@ -24,9 +24,9 @@ class CategoryService
         );
     }
 
-    public function getBySlug(string $slug): Category
+    public function getBySlug(string $slug, ?string $locale = null): Category
     {
-        $category = $this->categoryRepository->findActiveBySlug($slug);
+        $category = $this->categoryRepository->findActiveBySlug($slug, $locale);
 
         abort_if(! $category, 404, 'Category not found.');
 

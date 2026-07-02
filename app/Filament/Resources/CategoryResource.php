@@ -130,6 +130,19 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
                                                 ->helperText('Tự động tạo từ tên. Phải unique theo từng ngôn ngữ.')
+                                                ->unique(
+                                                    table: 'category_translations',
+                                                    column: 'slug',
+                                                    ignoreRecord: false,
+                                                    modifyRuleUsing: function (\Illuminate\Validation\Rules\Unique $rule, ?Category $record): \Illuminate\Validation\Rules\Unique {
+                                                        $rule->where('locale', 'vi');
+                                                        if ($record) {
+                                                            $rule->ignore($record->getKey(), 'category_id');
+                                                        }
+                                                        return $rule;
+                                                    },
+                                                )
+                                                ->validationMessages(['unique' => 'Slug (vi) này đã được dùng bởi danh mục khác.'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.description')
@@ -167,6 +180,19 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
                                                 ->helperText('Auto-generated from name. Must be unique per locale.')
+                                                ->unique(
+                                                    table: 'category_translations',
+                                                    column: 'slug',
+                                                    ignoreRecord: false,
+                                                    modifyRuleUsing: function (\Illuminate\Validation\Rules\Unique $rule, ?Category $record): \Illuminate\Validation\Rules\Unique {
+                                                        $rule->where('locale', 'en');
+                                                        if ($record) {
+                                                            $rule->ignore($record->getKey(), 'category_id');
+                                                        }
+                                                        return $rule;
+                                                    },
+                                                )
+                                                ->validationMessages(['unique' => 'This slug (en) is already used by another category.'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.description')
