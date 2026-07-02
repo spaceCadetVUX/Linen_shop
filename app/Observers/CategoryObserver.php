@@ -15,6 +15,30 @@ use App\Services\Category\CategoryService;
 
 class CategoryObserver
 {
+    /**
+     * Defense-in-depth against a circular parent chain (A→B→A, or deeper).
+     * The Filament form already filters descendants out of the parent picker,
+     * but this also covers writes from the MCP upsert endpoint and any future
+     * direct Eloquent write that bypasses the form.
+     */
+    public function saving(Category $category): void
+    {
+        if (! $category->exists || ! $category->isDirty('parent_id') || ! $category->parent_id) {
+            return;
+        }
+
+        $blocked = array_map(
+            'strval',
+            [$category->getKey(), ...$category->descendantIds()],
+        );
+
+        if (in_array((string) $category->parent_id, $blocked, true)) {
+            throw new \DomainException(
+                "Category #{$category->getKey()}: parent_id {$category->parent_id} would create a circular parent reference.",
+            );
+        }
+    }
+
     public function saved(Category $category): void
     {
         $morphClass = $category->getMorphClass();

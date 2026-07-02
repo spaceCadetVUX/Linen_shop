@@ -54,7 +54,19 @@ class CategoryResource extends Resource
                         ->schema([
                             Forms\Components\Select::make('parent_id')
                                 ->label('Parent Category')
-                                ->relationship('parent', 'name')
+                                ->options(function (?Category $record): array {
+                                    // Exclude self + all descendants — picking one of them as
+                                    // parent would create a circular reference (also hard-blocked
+                                    // in CategoryObserver::saving() as a backstop).
+                                    $excluded = $record ? [$record->getKey(), ...$record->descendantIds()] : [];
+
+                                    return Category::query()
+                                        ->when($excluded, fn ($q) => $q->whereNotIn('id', $excluded))
+                                        ->orderBy('sort_order')
+                                        ->orderBy('name')
+                                        ->pluck('name', 'id')
+                                        ->all();
+                                })
                                 ->searchable()
                                 ->preload()
                                 ->nullable(),

@@ -104,6 +104,35 @@ class Category extends Model
         return is_null($this->parent_id) || (bool) $this->parent?->is_active;
     }
 
+    /**
+     * All descendant IDs (children, grandchildren, ...), walked iteratively —
+     * cheap at this table's scale, avoids a recursive CTE for a handful of rows.
+     *
+     * @return array<int, int|string>
+     */
+    public function descendantIds(): array
+    {
+        $ids   = [];
+        $queue = [$this->getKey()];
+
+        while ($queue) {
+            $childIds = static::withTrashed()
+                ->where('parent_id', array_shift($queue))
+                ->pluck('id')
+                ->all();
+
+            foreach ($childIds as $id) {
+                if (in_array($id, $ids, true)) {
+                    continue; // already visited — guards against a pre-existing cycle
+                }
+                $ids[]   = $id;
+                $queue[] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────────
 
     /** Parent category (self-referencing). */
