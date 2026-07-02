@@ -86,6 +86,24 @@ class Category extends Model
         return $query->where('is_active', true);
     }
 
+    /**
+     * Whether this category should actually resolve on the storefront.
+     *
+     * A category with `is_active = true` is still unreachable if its parent is
+     * inactive or soft-deleted — `parent()` transparently returns null for a
+     * trashed parent (global SoftDeletingScope), so a plain `is_active` check
+     * on the child alone was letting orphaned children stay directly
+     * accessible via slug even though they'd already vanished from the menu.
+     */
+    public function isPubliclyVisible(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        return is_null($this->parent_id) || (bool) $this->parent?->is_active;
+    }
+
     // ── Relationships ─────────────────────────────────────────────────────────
 
     /** Parent category (self-referencing). */

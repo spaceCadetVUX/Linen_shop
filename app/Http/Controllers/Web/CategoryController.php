@@ -72,7 +72,7 @@ class CategoryController extends Controller
         }
 
         $category = $translation->category;
-        if (! $category || ! $category->is_active) {
+        if (! $category || ! $category->isPubliclyVisible()) {
             abort(404);
         }
 

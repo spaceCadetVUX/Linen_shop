@@ -45,8 +45,8 @@ class CategoryRepository extends BaseRepository
     {
         $locale ??= app()->getLocale();
 
-        /** @var Category|null */
-        return $this->query()
+        /** @var Category|null $category */
+        $category = $this->query()
             ->with(['parent', 'seoMetas', 'activeSchemas', 'translations'])
             ->where(function ($q) use ($slug, $locale): void {
                 $q->where('slug', $slug)
@@ -54,6 +54,10 @@ class CategoryRepository extends BaseRepository
             })
             ->where('is_active', true)
             ->first();
+
+        // Guards against a category whose parent is inactive/soft-deleted —
+        // it must 404 here the same way it's already invisible in the menu tree.
+        return ($category && $category->isPubliclyVisible()) ? $category : null;
     }
 
     // ── Products ──────────────────────────────────────────────────────────────

@@ -21,17 +21,11 @@ class CategoryObserver
 
         if (! $category->is_active) {
             // Inactive category must not appear in sitemap, LLMs docs, or page <head>.
-            SitemapEntry::where('model_type', $morphClass)
-                ->where('model_id', $category->getKey())
-                ->update(['is_active' => false]);
+            $this->deactivateSeoEntries($morphClass, $category->getKey());
 
-            LlmsEntry::where('model_type', $morphClass)
-                ->where('model_id', $category->getKey())
-                ->update(['is_active' => false]);
-
-            JsonldSchema::where('model_type', $morphClass)
-                ->where('model_id', $category->getKey())
-                ->update(['is_active' => false]);
+            // Children require an active parent to resolve (Category::isPubliclyVisible()) —
+            // pull their SEO surface too so sitemap/llms.txt stop listing now-404 URLs.
+            $this->cascadeDeactivateChildren($category);
 
             app(CategoryService::class)->bustTreeCache();
 
@@ -46,6 +40,10 @@ class CategoryObserver
             }
         }
 
+        // Parent just (re)activated — resync SEO for children that are themselves
+        // active but had their SEO surface pulled while this parent was inactive.
+        $this->cascadeResyncActiveChildren($category);
+
         app(CategoryService::class)->bustTreeCache();
     }
 
@@ -56,17 +54,8 @@ class CategoryObserver
     {
         $morphClass = $category->getMorphClass();
 
-        SitemapEntry::where('model_type', $morphClass)
-            ->where('model_id', $category->getKey())
-            ->update(['is_active' => false]);
-
-        LlmsEntry::where('model_type', $morphClass)
-            ->where('model_id', $category->getKey())
-            ->update(['is_active' => false]);
-
-        JsonldSchema::where('model_type', $morphClass)
-            ->where('model_id', $category->getKey())
-            ->update(['is_active' => false]);
+        $this->deactivateSeoEntries($morphClass, $category->getKey());
+        $this->cascadeDeactivateChildren($category);
 
         app(CategoryService::class)->bustTreeCache();
     }
@@ -85,7 +74,62 @@ class CategoryObserver
             }
         }
 
+        $this->cascadeResyncActiveChildren($category);
+
         app(CategoryService::class)->bustTreeCache();
+    }
+
+    /**
+     * Pull the SEO surface (sitemap/llms/json-ld) for one category — does not
+     * touch its own `is_active`/`deleted_at`, only the derived SEO rows.
+     */
+    private function deactivateSeoEntries(string $morphClass, int|string $modelId): void
+    {
+        SitemapEntry::where('model_type', $morphClass)
+            ->where('model_id', $modelId)
+            ->update(['is_active' => false]);
+
+        LlmsEntry::where('model_type', $morphClass)
+            ->where('model_id', $modelId)
+            ->update(['is_active' => false]);
+
+        JsonldSchema::where('model_type', $morphClass)
+            ->where('model_id', $modelId)
+            ->update(['is_active' => false]);
+    }
+
+    /**
+     * Every direct child becomes unreachable while $category is inactive/trashed
+     * (Category::isPubliclyVisible() requires an active, non-trashed parent) —
+     * regardless of the child's own `is_active` flag, which is left untouched.
+     */
+    private function cascadeDeactivateChildren(Category $category): void
+    {
+        $morphClass = $category->getMorphClass();
+
+        Category::where('parent_id', $category->getKey())
+            ->get()
+            ->each(fn (Category $child) => $this->deactivateSeoEntries($morphClass, $child->getKey()));
+    }
+
+    /**
+     * Re-sync SEO for children that are themselves active — they were only
+     * hidden because $category (their parent) was inactive/trashed.
+     */
+    private function cascadeResyncActiveChildren(Category $category): void
+    {
+        Category::where('parent_id', $category->getKey())
+            ->where('is_active', true)
+            ->get()
+            ->each(function (Category $child): void {
+                foreach (config('app.supported_locales') as $locale) {
+                    if ($child->translations()->where('locale', $locale)->exists()) {
+                        dispatch(new SyncJsonldSchema($child, $locale))->onQueue('seo');
+                        dispatch(new SyncSitemapEntry($child, $locale))->onQueue('seo');
+                        dispatch(new SyncLlmsEntry($child, $locale))->onQueue('seo');
+                    }
+                }
+            });
     }
 
     /**
