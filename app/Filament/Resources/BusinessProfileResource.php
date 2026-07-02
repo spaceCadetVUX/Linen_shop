@@ -45,36 +45,30 @@ class BusinessProfileResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('legal_name')
-                                ->label('🇻🇳 Legal Name')
-                                ->placeholder('Công ty Cổ phần...')
-                                ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Legal Name</span>'))
+                                ->placeholder('Công ty Cổ phần...'),
 
                             Forms\Components\TextInput::make('extra.legal_name_en')
-                                ->label('🇬🇧 Legal Name (EN)')
-                                ->placeholder('Company Ltd.')
-                                ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Legal Name (EN)</span>'))
+                                ->placeholder('Company Ltd.'),
 
                             Forms\Components\TextInput::make('tagline')
-                                ->label('🇻🇳 Tagline')
-                                ->placeholder('Khẩu hiệu ngắn')
-                                ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tagline</span>'))
+                                ->placeholder('Khẩu hiệu ngắn'),
 
                             Forms\Components\TextInput::make('extra.tagline_en')
-                                ->label('🇬🇧 Tagline (EN)')
-                                ->placeholder('Short slogan in English')
-                                ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tagline (EN)</span>'))
+                                ->placeholder('Short slogan in English'),
 
                             Forms\Components\Textarea::make('description')
-                                ->label('🇻🇳 Description')
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Description</span>'))
                                 ->rows(4)
-                                ->columnSpanFull()
-                                ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
+                                ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('extra.description_en')
-                                ->label('🇬🇧 Description (EN)')
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description (EN)</span>'))
                                 ->rows(4)
-                                ->columnSpanFull()
-                                ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
+                                ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('logo_path')
                                 ->label('Logo Path / URL')
@@ -198,16 +192,15 @@ class BusinessProfileResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Repeater::make('extra.faq')
-                                ->label('🇻🇳 FAQ — Tiếng Việt (schema.org FAQPage)')
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 FAQ — Tiếng Việt (schema.org FAQPage)</span>'))
                                 ->helperText('Câu hỏi thường gặp — inject JSON-LD FAQPage vào trang chủ /vi/.')
-                                ->extraAttributes(['style' => 'background-color: #dcfce7; padding: 12px; border-radius: 8px;'])
                                 ->schema([
                                     Forms\Components\TextInput::make('question')
-                                        ->label('Câu hỏi')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
                                         ->required()
                                         ->columnSpanFull(),
                                     Forms\Components\Textarea::make('answer')
-                                        ->label('Trả lời')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
                                         ->required()
                                         ->rows(3)
                                         ->columnSpanFull(),
@@ -217,16 +210,15 @@ class BusinessProfileResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Repeater::make('extra.faq_en')
-                                ->label('🇬🇧 FAQ — English (schema.org FAQPage)')
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 FAQ — English (schema.org FAQPage)</span>'))
                                 ->helperText('Frequently asked questions — injected into JSON-LD FAQPage on /en/ homepage.')
-                                ->extraAttributes(['style' => 'background-color: #dbeafe; padding: 12px; border-radius: 8px;'])
                                 ->schema([
                                     Forms\Components\TextInput::make('question')
-                                        ->label('Question')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
                                         ->required()
                                         ->columnSpanFull(),
                                     Forms\Components\Textarea::make('answer')
-                                        ->label('Answer')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
                                         ->required()
                                         ->rows(3)
                                         ->columnSpanFull(),
@@ -244,26 +236,22 @@ class BusinessProfileResource extends Resource
                                 ->description('Dùng khi trang danh sách sản phẩm chưa có SEO meta riêng — đọc qua Setting::get() trong ProductController.')
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.product_catalog_title')
-                                        ->label('🇻🇳 Tiêu đề')
-                                        ->placeholder('Tất cả sản phẩm — LINNÉ')
-                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tiêu đề</span>'))
+                                        ->placeholder('Tất cả sản phẩm — LINNÉ'),
 
                                     Forms\Components\TextInput::make('extra.product_catalog_title_en')
-                                        ->label('🇬🇧 Title')
-                                        ->placeholder('All Products — LINNÉ')
-                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Title</span>'))
+                                        ->placeholder('All Products — LINNÉ'),
 
                                     Forms\Components\Textarea::make('extra.product_catalog_description')
-                                        ->label('🇻🇳 Mô tả')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Mô tả</span>'))
                                         ->rows(2)
-                                        ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.')
-                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
+                                        ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.'),
 
                                     Forms\Components\Textarea::make('extra.product_catalog_description_en')
-                                        ->label('🇬🇧 Description')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('Browse the full LINNÉ collection of minimalist, sustainable linen fashion.')
-                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
+                                        ->placeholder('Browse the full LINNÉ collection of minimalist, sustainable linen fashion.'),
                                 ])
                                 ->columns(2),
 
@@ -271,26 +259,22 @@ class BusinessProfileResource extends Resource
                                 ->description('Dùng khi trang danh sách danh mục chưa có SEO meta riêng — đọc qua Setting::get() trong CategoryController.')
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.category_index_title')
-                                        ->label('🇻🇳 Tiêu đề')
-                                        ->placeholder('Danh mục sản phẩm')
-                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tiêu đề</span>'))
+                                        ->placeholder('Danh mục sản phẩm'),
 
                                     Forms\Components\TextInput::make('extra.category_index_title_en')
-                                        ->label('🇬🇧 Title')
-                                        ->placeholder('Product Categories')
-                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Title</span>'))
+                                        ->placeholder('Product Categories'),
 
                                     Forms\Components\Textarea::make('extra.category_index_description')
-                                        ->label('🇻🇳 Mô tả')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Mô tả</span>'))
                                         ->rows(2)
-                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của LINNÉ.')
-                                        ->extraInputAttributes(['style' => 'background-color: #dcfce7;']),
+                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của LINNÉ.'),
 
                                     Forms\Components\Textarea::make('extra.category_index_description_en')
-                                        ->label('🇬🇧 Description')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('Browse all LINNÉ product categories.')
-                                        ->extraInputAttributes(['style' => 'background-color: #dbeafe;']),
+                                        ->placeholder('Browse all LINNÉ product categories.'),
                                 ])
                                 ->columns(2),
                         ]),

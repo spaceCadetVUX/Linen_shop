@@ -111,14 +111,26 @@ class Product extends Model
      */
     public function toSearchableArray(): array
     {
-        $categoriesLoaded = $this->relationLoaded('categories');
+        $categoriesLoaded   = $this->relationLoaded('categories');
         $filterValuesLoaded = $this->relationLoaded('filterValues');
+        $translationsLoaded = $this->relationLoaded('translations');
 
-        return [
+        // Per-locale searchable text. Falls back to the base products.* columns
+        // when a locale has no translation row yet, so the index never has a
+        // blank field for an existing product.
+        $localized = [];
+        foreach (config('app.supported_locales', ['vi', 'en']) as $locale) {
+            $translation = $translationsLoaded
+                ? $this->translations->firstWhere('locale', $locale)
+                : null;
+
+            $localized["name_{$locale}"]              = $translation->name ?? $this->name;
+            $localized["short_description_{$locale}"] = $translation->short_description ?? $this->short_description;
+        }
+
+        return array_merge([
             'id'                 => $this->id,
-            'name'               => $this->name,
             'sku'                => $this->sku,
-            'short_description'  => $this->short_description,
             'category_ids'       => $categoriesLoaded
                                     ? $this->categories->pluck('id')->all()
                                     : [],
@@ -136,16 +148,17 @@ class Product extends Model
             'stock_quantity'     => $this->stock_quantity,
             'is_active'          => $this->is_active,
             'created_at'         => $this->created_at?->timestamp,
-        ];
+        ], $localized);
     }
 
     /**
-     * Eager-load categories + filterValues when running scout:import to
-     * populate category_ids and filter_value_ids/slugs.
+     * Eager-load categories, filterValues and translations when running
+     * scout:import to populate category_ids, filter_value_ids/slugs and the
+     * per-locale name_{locale}/short_description_{locale} fields.
      */
     public function makeAllSearchableUsing(Builder $query): Builder
     {
-        return $query->with(['categories', 'filterValues']);
+        return $query->with(['categories', 'filterValues', 'translations']);
     }
 
     /**

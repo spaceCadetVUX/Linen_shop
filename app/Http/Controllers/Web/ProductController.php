@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\FilterGroup;
 use App\Models\ProductTranslation;
 use App\Models\Setting;
+use App\Services\Catalog\ProductSearchService;
 use Illuminate\Http\JsonResponse;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
@@ -16,6 +17,10 @@ use Illuminate\Http\RedirectResponse;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private readonly ProductSearchService $productSearchService,
+    ) {}
+
     public function index(string $locale): View
     {
         $keyword   = (string) request()->query('q', '');
@@ -40,38 +45,9 @@ class ProductController extends Controller
             }
         }
 
-        $query = ProductTranslation::where('locale', $locale)
-            ->whereHas('product', fn ($q) => $q->active())
-            ->with([
-                'product.thumbnail',
-                'product.brand',
-                'product.categories' => fn ($q) => $q->orderBy('sort_order'),
-                'product.categories.translations' => fn ($q) => $q->where('locale', $locale),
-            ]);
-
-        // Each active group is AND-ed; values within a group are OR-ed
-        foreach ($filterGroups as $group) {
-            if (empty($activeValueSlugs[$group->slug])) continue;
-            $valueSlugs = $activeValueSlugs[$group->slug];
-            $query->whereHas(
-                'product.filterValues',
-                fn ($q) => $q->where('filter_group_id', $group->id)
-                             ->whereIn('filter_values.slug', $valueSlugs)
-            );
-        }
-
-        if ($brandSlug) {
-            $query->whereHas('product.brand', fn ($q) => $q->where('slug', $brandSlug));
-        }
-
-        if ($keyword) {
-            $query->where(fn ($q) =>
-                $q->where('name', 'ilike', "%{$keyword}%")
-                  ->orWhere('short_description', 'ilike', "%{$keyword}%")
-            );
-        }
-
-        $products = $query->orderBy('id', 'desc')->paginate(24)->withQueryString();
+        $products = $this->productSearchService->search(
+            $locale, $keyword, $filterGroups, $activeValueSlugs, $brandSlug, categoryId: null, perPage: 24,
+        );
 
         $brands = Brand::active()
             ->orderBy('sort_order')

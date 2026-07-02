@@ -63,9 +63,11 @@ class ProductDetailResource extends ProductResource
                     $product = $this->resource;
                     $seo     = $product->seoMeta();
 
-                    // Resolve locale-specific slug from translations (eager-loaded).
-                    $baseSlug    = (string) $product->slug;
-                    $localeSlug  = $product->translation($locale)?->slug ?? $baseSlug;
+                    // Resolve locale-specific slug/name from translations (eager-loaded).
+                    $baseSlug     = (string) $product->slug;
+                    $localeSlug   = $product->translation($locale)?->slug ?? $baseSlug;
+                    $fallbackName = $product->translation($locale)?->name ?? $product->name;
+                    $fallbackDesc = $product->translation($locale)?->short_description ?? $product->short_description;
 
                     // Build hreflang map — one entry per supported locale.
                     $hreflang      = [];
@@ -78,8 +80,8 @@ class ProductDetailResource extends ProductResource
                         ?? LocaleUrl::for('product', $baseSlug, $defaultLocale);
 
                     return [
-                        'meta_title'          => $seo?->meta_title,
-                        'meta_description'    => $seo?->meta_description,
+                        'meta_title'          => filled($seo?->meta_title) ? $seo->meta_title : $fallbackName,
+                        'meta_description'    => filled($seo?->meta_description) ? $seo->meta_description : $fallbackDesc,
                         'meta_keywords'       => $seo?->meta_keywords,
                         'og_title'            => $seo?->og_title,
                         'og_description'      => $seo?->og_description,

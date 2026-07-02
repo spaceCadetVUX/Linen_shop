@@ -36,10 +36,12 @@ use App\Observers\ProductObserver;
 use App\Observers\ProductTranslationObserver;
 use App\Observers\RedirectObserver;
 use App\Observers\ReviewObserver;
+use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Meilisearch\Client as MeilisearchClient;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,7 +50,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->registerMeilisearchClient();
+    }
+
+    // ── Meilisearch client with a tight timeout ───────────────────────────────
+    // Default client has no timeout, so a downed Meilisearch would hang every
+    // request for a long time before ProductSearchService's fallback kicks in.
+    // Fail fast so the SQL fallback (see Services\Catalog\ProductSearchService)
+    // takes over almost immediately instead of the request stalling.
+
+    private function registerMeilisearchClient(): void
+    {
+        $this->app->singleton(MeilisearchClient::class, function () {
+            return new MeilisearchClient(
+                config('scout.meilisearch.host'),
+                config('scout.meilisearch.key'),
+                new GuzzleClient(['connect_timeout' => 0.3, 'timeout' => 1.0]),
+            );
+        });
     }
 
     /**

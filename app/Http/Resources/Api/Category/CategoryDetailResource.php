@@ -21,11 +21,13 @@ class CategoryDetailResource extends CategoryResource
             // ── SEO meta ───────────────────────────────────────────────────────
             'seo' => $this->whenLoaded(
                 'seoMetas',
-                function () use ($locale, $slug) {
-                    $seo = $this->resource->seoMeta();
+                function () use ($locale, $slug, $t) {
+                    $seo          = $this->resource->seoMeta();
+                    $fallbackName = $t?->name ?? $this->resource->name;
+                    $fallbackDesc = $t?->description ?? $this->resource->description;
                     return $seo ? [
-                        'meta_title'          => $seo->meta_title,
-                        'meta_description'    => $seo->meta_description,
+                        'meta_title'          => filled($seo->meta_title) ? $seo->meta_title : $fallbackName,
+                        'meta_description'    => filled($seo->meta_description) ? $seo->meta_description : $fallbackDesc,
                         'meta_keywords'       => $seo->meta_keywords,
                         'og_title'            => $seo->og_title,
                         'og_description'      => $seo->og_description,

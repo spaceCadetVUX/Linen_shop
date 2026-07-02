@@ -144,9 +144,9 @@ return [
         'key' => env('MEILISEARCH_KEY'),
         'index-settings' => [
             'app_products' => [
-                'searchableAttributes' => ['name', 'sku', 'short_description'],
+                'searchableAttributes' => ['name_vi', 'name_en', 'sku', 'short_description_vi', 'short_description_en'],
                 'filterableAttributes' => ['category_ids', 'filter_value_ids', 'price', 'sale_price', 'is_active', 'stock_quantity', '__soft_deleted'],
-                'sortableAttributes'   => ['price', 'created_at', 'name'],
+                'sortableAttributes'   => ['price', 'created_at', 'name_vi', 'name_en'],
             ],
             'app_blog_posts' => [
                 'searchableAttributes' => ['title', 'excerpt'],

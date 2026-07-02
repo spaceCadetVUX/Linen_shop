@@ -78,7 +78,8 @@ class CategoryResource extends Resource
                                 ->hintColor('warning')
                                 ->helperText('URL công khai dùng slug từ tab Content.')
                                 ->required()
-                                ->unique(table: Category::class, column: 'slug', ignoreRecord: true),
+                                ->unique(table: Category::class, column: 'slug', ignoreRecord: true)
+                                ->hidden(),
 
                             Forms\Components\Textarea::make('description')
                                 ->label('Internal Description')
@@ -87,7 +88,8 @@ class CategoryResource extends Resource
                                 ->hintColor('warning')
                                 ->nullable()
                                 ->rows(3)
-                                ->columnSpanFull(),
+                                ->columnSpanFull()
+                                ->hidden(),
 
                             MediaFileUpload::make('image_path')
                                 ->label('Category Image')
@@ -113,82 +115,74 @@ class CategoryResource extends Resource
                                     Tab::make('🇻🇳 Tiếng Việt (vi)')
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.vi.name')
-                                                ->label('Tên hiển thị (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Tên hiển thị (vi)</span>'))
                                                 ->hint('Hiển thị trên trang web cho người dùng Việt Nam')
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) =>
                                                     $set('translations.vi.slug', Str::slug($state ?? '')))
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
-                                                ->label('URL Slug (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">URL Slug (vi)</span>'))
                                                 ->hint('Tạo URL: /vi/categories/{slug}')
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
                                                 ->helperText('Tự động tạo từ tên. Phải unique theo từng ngôn ngữ.')
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.description')
-                                                ->label('Mô tả (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Mô tả (vi)</span>'))
                                                 ->hint('Hiển thị trên trang danh mục — Google đọc để hiểu nội dung')
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->rows(3)
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             RichEditor::make('translations.vi.rich_content')
-                                                ->label('Nội dung phong phú (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Nội dung phong phú (vi)</span>'))
                                                 ->hint('Nội dung dài, có thể chèn ảnh — hiển thị ở phần dưới trang danh mục')
                                                 ->hintIcon('heroicon-o-document-text')
                                                 ->hintColor('success')
                                                 ->plugins([MediaRichEditorPlugin::make()])
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
                                         ]),
 
                                     Tab::make('🇬🇧 English (en)')
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.en.name')
-                                                ->label('Display Name (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Display Name (en)</span>'))
                                                 ->hint('Shown on the website to English-speaking visitors')
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) =>
                                                     $set('translations.en.slug', Str::slug($state ?? '')))
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
-                                                ->label('URL Slug (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">URL Slug (en)</span>'))
                                                 ->hint('Creates URL: /en/categories/{slug}')
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
                                                 ->helperText('Auto-generated from name. Must be unique per locale.')
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.description')
-                                                ->label('Description (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Description (en)</span>'))
                                                 ->hint('Shown on the category page — Google reads this to understand content')
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->rows(3)
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
 
                                             RichEditor::make('translations.en.rich_content')
-                                                ->label('Rich Content (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Rich Content (en)</span>'))
                                                 ->hint('Long-form content with images — displayed at the bottom of the category page')
                                                 ->hintIcon('heroicon-o-document-text')
                                                 ->hintColor('success')
                                                 ->plugins([MediaRichEditorPlugin::make()])
-                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                 ->columnSpanFull(),
                                         ]),
                                 ])
@@ -212,7 +206,7 @@ class CategoryResource extends Resource
                                                     Section::make('Meta Tags')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label('Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title (vi)</span>'))
                                                                 ->live(debounce: 400)
                                                                 ->placeholder('Tự điền từ tên danh mục')
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
@@ -226,11 +220,10 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label('Meta Description (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description (vi)</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
@@ -244,13 +237,11 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label('Meta Keywords (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Keywords (vi)</span>'))
                                                                 ->helperText('Phân cách bằng dấu phẩy')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
@@ -286,7 +277,7 @@ class CategoryResource extends Resource
                                                     Section::make('Open Graph (vi)')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label('OG Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Title (vi)</span>'))
                                                                 ->placeholder('Tự điền từ Meta Title (vi)')
                                                                 ->hint('Tự điền từ Meta Title (vi)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -298,11 +289,10 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->name);
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label('OG Description (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Description (vi)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Tự điền từ Meta Description (vi)')
                                                                 ->hint('Tự điền từ Meta Description (vi)')
@@ -313,7 +303,6 @@ class CategoryResource extends Resource
                                                                         $set('og_description', $record->meta_description);
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
@@ -354,7 +343,7 @@ class CategoryResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label('Twitter Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Title (vi)</span>'))
                                                                 ->placeholder('Tự điền từ Meta Title (vi)')
                                                                 ->hint('Tự điền từ Meta Title (vi)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -365,11 +354,10 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->translation('vi')?->name
                                                                             ?? $livewire->record?->name);
                                                                     }
-                                                                })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;']),
+                                                                }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label('Twitter Description (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Description (vi)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Tự điền từ Meta Description (vi)')
                                                                 ->hint('Tự điền từ Meta Description (vi)')
@@ -380,7 +368,6 @@ class CategoryResource extends Resource
                                                                         $set('twitter_description', $record->meta_description);
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->columns(2)
@@ -399,7 +386,7 @@ class CategoryResource extends Resource
                                                     Section::make('Meta Tags')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label('Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Title (en)</span>'))
                                                                 ->live(debounce: 400)
                                                                 ->placeholder('Auto-filled from category name')
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
@@ -413,11 +400,10 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label('Meta Description (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Description (en)</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
@@ -431,13 +417,11 @@ class CategoryResource extends Resource
                                                                         }
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label('Meta Keywords (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Keywords (en)</span>'))
                                                                 ->helperText('Comma-separated')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
@@ -473,7 +457,7 @@ class CategoryResource extends Resource
                                                     Section::make('Open Graph (en)')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label('OG Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Title (en)</span>'))
                                                                 ->placeholder('Auto-filled from Meta Title (en)')
                                                                 ->hint('Auto-filled from Meta Title (en)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -485,11 +469,10 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->name);
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label('OG Description (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Description (en)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Auto-filled from Meta Description (en)')
                                                                 ->hint('Auto-filled from Meta Description (en)')
@@ -500,7 +483,6 @@ class CategoryResource extends Resource
                                                                         $set('og_description', $record->meta_description);
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
@@ -541,7 +523,7 @@ class CategoryResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label('Twitter Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Title (en)</span>'))
                                                                 ->placeholder('Auto-filled from Meta Title (en)')
                                                                 ->hint('Auto-filled from Meta Title (en)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -552,11 +534,10 @@ class CategoryResource extends Resource
                                                                             ?? $livewire->record?->translation('en')?->name
                                                                             ?? $livewire->record?->name);
                                                                     }
-                                                                })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;']),
+                                                                }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label('Twitter Description (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Description (en)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Auto-filled from Meta Description (en)')
                                                                 ->hint('Auto-filled from Meta Description (en)')
@@ -567,7 +548,6 @@ class CategoryResource extends Resource
                                                                         $set('twitter_description', $record->meta_description);
                                                                     }
                                                                 })
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->columns(2)
@@ -594,33 +574,29 @@ class CategoryResource extends Resource
                                                     Section::make('AI Context')
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label('AI Summary (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">AI Summary (vi)</span>'))
                                                                 ->hint('Đoạn tóm tắt ngắn cho AI / chatbot hiểu danh mục này')
                                                                 ->rows(4)
                                                                 ->placeholder('Mô tả 2–4 câu về danh mục: sản phẩm nào có trong đó, đối tượng khách hàng, điểm nổi bật...')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label('Use Cases (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Use Cases (vi)</span>'))
                                                                 ->hint('Ứng dụng thực tế — AI dùng để trả lời "danh mục này phù hợp cho ai / dùng ở đâu"')
                                                                 ->rows(3)
                                                                 ->placeholder('VD: Phù hợp cho nhà ở, văn phòng, công trình thương mại...')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label('Target Audience (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Target Audience (vi)</span>'))
                                                                 ->hint('Đối tượng mục tiêu — AI dùng để phân loại và gợi ý')
                                                                 ->placeholder('VD: Kỹ sư điện, nhà thầu, hộ gia đình...')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label('LLM Context Hint (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">LLM Context Hint (vi)</span>'))
                                                                 ->hint('Gợi ý thêm cho LLM khi sinh nội dung về danh mục')
                                                                 ->rows(2)
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ]),
 
@@ -630,15 +606,13 @@ class CategoryResource extends Resource
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label('Nhãn')
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Nhãn</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: Số sản phẩm')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;']),
+                                                                        ->placeholder('VD: Số sản phẩm'),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label('Giá trị')
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá trị</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: 120+')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;']),
+                                                                        ->placeholder('VD: 120+'),
                                                                 ])
                                                                 ->columns(2)
                                                                 ->addActionLabel('Thêm fact')
@@ -655,17 +629,15 @@ class CategoryResource extends Resource
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('question')
-                                                                        ->label('Câu hỏi')
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
                                                                         ->required()
                                                                         ->placeholder('VD: Danh mục này có những sản phẩm gì?')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
-                                                                        ->label('Trả lời')
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
                                                                         ->required()
                                                                         ->rows(3)
                                                                         ->placeholder('Câu trả lời ngắn gọn, rõ ràng...')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                 ])
                                                                 ->addActionLabel('Thêm câu hỏi')
@@ -690,33 +662,29 @@ class CategoryResource extends Resource
                                                     Section::make('AI Context')
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label('AI Summary (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">AI Summary (en)</span>'))
                                                                 ->hint('Short summary for AI / chatbot understanding of this category')
                                                                 ->rows(4)
                                                                 ->placeholder('Describe the category in 2–4 sentences: what products, who it\'s for, key highlights...')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label('Use Cases (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Use Cases (en)</span>'))
                                                                 ->hint('Practical applications — AI uses this to answer "who is this for / where is it used"')
                                                                 ->rows(3)
                                                                 ->placeholder('E.g. Suitable for residential, commercial, and industrial projects...')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label('Target Audience (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Target Audience (en)</span>'))
                                                                 ->hint('Target demographic — AI uses this for classification and recommendations')
                                                                 ->placeholder('E.g. Electricians, contractors, homeowners...')
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label('LLM Context Hint (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">LLM Context Hint (en)</span>'))
                                                                 ->hint('Additional context hint for LLMs when generating content about this category')
                                                                 ->rows(2)
-                                                                ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                 ->columnSpanFull(),
                                                         ]),
 
@@ -726,15 +694,13 @@ class CategoryResource extends Resource
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label('Label')
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Label</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. Products count')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;']),
+                                                                        ->placeholder('E.g. Products count'),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label('Value')
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Value</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. 120+')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;']),
+                                                                        ->placeholder('E.g. 120+'),
                                                                 ])
                                                                 ->columns(2)
                                                                 ->addActionLabel('Add fact')
@@ -751,17 +717,15 @@ class CategoryResource extends Resource
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('question')
-                                                                        ->label('Question')
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
                                                                         ->required()
                                                                         ->placeholder('E.g. What products does this category include?')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
-                                                                        ->label('Answer')
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
                                                                         ->required()
                                                                         ->rows(3)
                                                                         ->placeholder('Short, clear answer...')
-                                                                        ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                                                         ->columnSpanFull(),
                                                                 ])
                                                                 ->addActionLabel('Add FAQ')

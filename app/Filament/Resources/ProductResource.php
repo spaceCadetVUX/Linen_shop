@@ -127,7 +127,7 @@ class ProductResource extends Resource
                                     Tab::make('🇻🇳 Tiếng Việt (vi)')
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.vi.name')
-                                                ->label('Tên sản phẩm (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Tên sản phẩm (vi)</span>'))
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(function ($state, Set $set) {
                                                     $set('translations.vi.slug', Str::slug($state ?? ''));
@@ -137,21 +137,21 @@ class ProductResource extends Resource
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
-                                                ->label('Slug (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Slug (vi)</span>'))
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) => $set('slug', $state))
                                                 ->helperText('Auto-generated from name. Must be unique per locale.')
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.short_description')
-                                                ->label('Mô tả ngắn (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Mô tả ngắn (vi)</span>'))
                                                 ->rows(3)
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) => $set('short_description', $state))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\RichEditor::make('translations.vi.description')
-                                                ->label('Mô tả đầy đủ (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Mô tả đầy đủ (vi)</span>'))
                                                 ->columnSpanFull(),
                                         ])
                                         ->columns(2),
@@ -159,24 +159,24 @@ class ProductResource extends Resource
                                     Tab::make('🇬🇧 English (en)')
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.en.name')
-                                                ->label('Product name (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Product name (en)</span>'))
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) =>
                                                     $set('translations.en.slug', Str::slug($state ?? '')))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
-                                                ->label('Slug (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Slug (en)</span>'))
                                                 ->helperText('Auto-generated from name. Must be unique per locale.')
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.short_description')
-                                                ->label('Short description (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Short description (en)</span>'))
                                                 ->rows(3)
                                                 ->columnSpanFull(),
 
                                             Forms\Components\RichEditor::make('translations.en.description')
-                                                ->label('Description (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Description (en)</span>'))
                                                 ->columnSpanFull(),
                                         ])
                                         ->columns(2),
@@ -212,7 +212,7 @@ class ProductResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.vi.price')
-                                        ->label('Giá (vi)')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá (vi)</span>'))
                                         ->numeric()
                                         ->live(onBlur: true)
                                         ->prefix(fn ($get) => match($get('translations.vi.currency')) {
@@ -225,7 +225,7 @@ class ProductResource extends Resource
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('price', $state)),
 
                                     Forms\Components\TextInput::make('translations.vi.sale_price')
-                                        ->label('Giá khuyến mãi (vi)')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá khuyến mãi (vi)</span>'))
                                         ->numeric()
                                         ->live(onBlur: true)
                                         ->prefix(fn ($get) => match($get('translations.vi.currency')) {
@@ -265,7 +265,7 @@ class ProductResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.en.price')
-                                        ->label('Price (en)')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Price (en)</span>'))
                                         ->numeric()
                                         ->prefix(fn ($get) => match($get('translations.en.currency')) {
                                             'EUR' => '€',
@@ -276,7 +276,7 @@ class ProductResource extends Resource
                                         }),
 
                                     Forms\Components\TextInput::make('translations.en.sale_price')
-                                        ->label('Sale Price (en)')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Sale Price (en)</span>'))
                                         ->numeric()
                                         ->prefix(fn ($get) => match($get('translations.en.currency')) {
                                             'EUR' => '€',
@@ -424,25 +424,25 @@ class ProductResource extends Resource
                                 ->label('')
                                 ->schema([
                                     Forms\Components\TextInput::make('name')
-                                        ->label('🇻🇳 Thuộc tính')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Thuộc tính</span>'))
                                         ->placeholder('vd: Vật liệu, Khối lượng, Điện áp')
                                         ->required()
                                         ->live(debounce: 300)
                                         ->columnSpan(1),
 
                                     Forms\Components\TextInput::make('name_en')
-                                        ->label('🇬🇧 Attribute')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Attribute</span>'))
                                         ->placeholder('e.g. Material, Weight, Voltage')
                                         ->columnSpan(1),
 
                                     Forms\Components\TextInput::make('value')
-                                        ->label('🇻🇳 Giá trị')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Giá trị</span>'))
                                         ->placeholder('vd: Nhôm, 500g, 220V')
                                         ->required()
                                         ->columnSpan(1),
 
                                     Forms\Components\TextInput::make('value_en')
-                                        ->label('🇬🇧 Value')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Value</span>'))
                                         ->placeholder('e.g. Aluminum, 500g, 220V')
                                         ->columnSpan(1),
                                 ])
@@ -751,7 +751,7 @@ class ProductResource extends Resource
                                                     Section::make('Meta Tags')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label('Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title (vi)</span>'))
                                                                 ->live(debounce: 400)
                                                                 ->placeholder('Tự điền từ tên sản phẩm')
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
@@ -765,7 +765,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label('Meta Description (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description (vi)</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
@@ -782,7 +782,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label('Meta Keywords (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Keywords (vi)</span>'))
                                                                 ->helperText('Phân cách bằng dấu phẩy')
                                                                 ->columnSpanFull(),
 
@@ -819,7 +819,7 @@ class ProductResource extends Resource
                                                     Section::make('Open Graph (vi)')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label('OG Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Title (vi)</span>'))
                                                                 ->placeholder('Tự điền từ Meta Title (vi)')
                                                                 ->hint('Tự điền từ Meta Title (vi)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -834,7 +834,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label('OG Description (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Description (vi)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Tự điền từ Meta Description (vi)')
                                                                 ->hint('Tự điền từ Meta Description (vi)')
@@ -888,7 +888,7 @@ class ProductResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label('Twitter Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Title (vi)</span>'))
                                                                 ->placeholder('Tự điền từ Meta Title (vi)')
                                                                 ->hint('Tự điền từ Meta Title (vi)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -902,7 +902,7 @@ class ProductResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label('Twitter Description (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Description (vi)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Tự điền từ Meta Description (vi)')
                                                                 ->hint('Tự điền từ Meta Description (vi)')
@@ -931,7 +931,7 @@ class ProductResource extends Resource
                                                     Section::make('Meta Tags')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label('Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Title (en)</span>'))
                                                                 ->live(debounce: 400)
                                                                 ->placeholder('Auto-filled from product name')
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
@@ -948,7 +948,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label('Meta Description (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Description (en)</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
@@ -965,7 +965,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label('Meta Keywords (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Keywords (en)</span>'))
                                                                 ->helperText('Comma separated')
                                                                 ->columnSpanFull(),
 
@@ -1002,7 +1002,7 @@ class ProductResource extends Resource
                                                     Section::make('Open Graph (en)')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label('OG Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Title (en)</span>'))
                                                                 ->placeholder('Auto-filled from Meta Title (en)')
                                                                 ->hint('Auto-filled from Meta Title (en)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -1017,7 +1017,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label('OG Description (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Description (en)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Auto-filled from Meta Description (en)')
                                                                 ->hint('Auto-filled from Meta Description (en)')
@@ -1071,7 +1071,7 @@ class ProductResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label('Twitter Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Title (en)</span>'))
                                                                 ->placeholder('Auto-filled from Meta Title (en)')
                                                                 ->hint('Auto-filled from Meta Title (en)')
                                                                 ->hintIcon('heroicon-o-sparkles')
@@ -1085,7 +1085,7 @@ class ProductResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label('Twitter Description (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Description (en)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('Auto-filled from Meta Description (en)')
                                                                 ->hint('Auto-filled from Meta Description (en)')
@@ -1124,23 +1124,23 @@ class ProductResource extends Resource
                                                         ->description('Dùng bởi ChatGPT, Gemini, Perplexity khi trả lời về sản phẩm này.')
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label('AI Summary (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">AI Summary (vi)</span>'))
                                                                 ->rows(4)
                                                                 ->helperText('2–4 câu mô tả sản phẩm cho AI. Hiển thị đầu tiên trong llms.txt.')
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label('Use Cases (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Use Cases (vi)</span>'))
                                                                 ->rows(3)
                                                                 ->placeholder('vd: Chiếu sáng nội thất, trưng bày bảo tàng, kệ bán lẻ'),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label('Target Audience (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Target Audience (vi)</span>'))
                                                                 ->maxLength(255)
                                                                 ->placeholder('vd: Nhà thiết kế chiếu sáng, nhà thầu điện'),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label('LLM Context Hint (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">LLM Context Hint (vi)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('vd: Cạnh tranh với Philips Hue, đạt CE/RoHS, không chống nước')
                                                                 ->columnSpanFull(),
@@ -1170,12 +1170,12 @@ class ProductResource extends Resource
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('question')
-                                                                ->label('Câu hỏi')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
                                                                 ->required()
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('answer')
-                                                                ->label('Trả lời')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
                                                                 ->rows(2)
                                                                 ->required()
                                                                 ->columnSpanFull(),
@@ -1203,23 +1203,23 @@ class ProductResource extends Resource
                                                         ->description('Used by ChatGPT, Gemini, Perplexity when answering questions about this product.')
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label('AI Summary (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">AI Summary (en)</span>'))
                                                                 ->rows(4)
                                                                 ->helperText('2–4 sentences describing this product for AI engines. Shown first in llms.txt.')
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label('Use Cases (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Use Cases (en)</span>'))
                                                                 ->rows(3)
                                                                 ->placeholder('e.g. Indoor accent lighting, museum displays, retail shelving'),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label('Target Audience (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Target Audience (en)</span>'))
                                                                 ->maxLength(255)
                                                                 ->placeholder('e.g. Lighting designers, electrical contractors'),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label('LLM Context Hint (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">LLM Context Hint (en)</span>'))
                                                                 ->rows(2)
                                                                 ->placeholder('e.g. Competes with Philips Hue, CE/RoHS certified, not waterproof')
                                                                 ->columnSpanFull(),
@@ -1249,12 +1249,12 @@ class ProductResource extends Resource
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('question')
-                                                                ->label('Question')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
                                                                 ->required()
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('answer')
-                                                                ->label('Answer')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
                                                                 ->rows(2)
                                                                 ->required()
                                                                 ->columnSpanFull(),
