@@ -9,7 +9,8 @@ services:
       - .:/backend:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - php-fpm
+      php-fpm:
+        condition: service_healthy
     restart: unless-stopped
 
   # ─── PHP-FPM (Laravel) ──────────────────────────────────────────────────────
@@ -25,6 +26,12 @@ services:
       redis:
         condition: service_healthy
     entrypoint: ["/backend/docker/scripts/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 180s
     restart: unless-stopped
     env_file:
       - .env

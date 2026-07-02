@@ -145,12 +145,12 @@ return [
         'index-settings' => [
             'app_products' => [
                 'searchableAttributes' => ['name', 'sku', 'short_description'],
-                'filterableAttributes' => ['category_ids', 'price', 'sale_price', 'is_active', 'stock_quantity'],
+                'filterableAttributes' => ['category_ids', 'price', 'sale_price', 'is_active', 'stock_quantity', '__soft_deleted'],
                 'sortableAttributes'   => ['price', 'created_at', 'name'],
             ],
             'app_blog_posts' => [
                 'searchableAttributes' => ['title', 'excerpt'],
-                'filterableAttributes' => ['status', 'blog_category_id'],
+                'filterableAttributes' => ['status', 'blog_category_id', '__soft_deleted'],
                 'sortableAttributes'   => ['published_at'],
             ],
         ],
