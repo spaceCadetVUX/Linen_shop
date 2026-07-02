@@ -11,7 +11,6 @@ use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\SitemapController;
-use App\Http\Controllers\Web\SolutionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -64,16 +63,6 @@ Route::prefix('vi')
 
         Route::get('/', [HomeController::class, 'index'])
             ->name('vi.index');
-
-        // ── Giải pháp (static marketing pages) ───────────────────────────────
-        Route::get('giai-phap/dali-casambi', [SolutionController::class, 'dali'])
-            ->name('vi.dali-casambi');
-
-        Route::get('giai-phap/wireless-casambi', [SolutionController::class, 'wireless'])
-            ->name('vi.wireless-casambi');
-
-        Route::get('giai-phap/theo-vai-tro', [SolutionController::class, 'byRole'])
-            ->name('vi.solutions-by-role');
 
         // ── Giới thiệu ────────────────────────────────────────────────────────
         Route::get('gioi-thieu', [AboutController::class, 'show'])
@@ -148,16 +137,6 @@ Route::prefix('en')
 
         Route::get('/', [HomeController::class, 'index'])
             ->name('en.index');
-
-        // ── Solutions (static marketing pages) ───────────────────────────────
-        Route::get('solutions/dali-casambi', [SolutionController::class, 'dali'])
-            ->name('en.dali-casambi');
-
-        Route::get('solutions/wireless-casambi', [SolutionController::class, 'wireless'])
-            ->name('en.wireless-casambi');
-
-        Route::get('solutions/by-role', [SolutionController::class, 'byRole'])
-            ->name('en.solutions-by-role');
 
         // ── About ─────────────────────────────────────────────────────────────
         Route::get('about', [AboutController::class, 'show'])

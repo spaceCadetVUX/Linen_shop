@@ -228,6 +228,57 @@ class BusinessProfileResource extends Resource
                                 ->columnSpanFull(),
                         ]),
 
+                    // ── Page Fallbacks ────────────────────────────────────────
+                    Tab::make('Page Fallbacks')
+                        ->icon('heroicon-o-language')
+                        ->schema([
+                            Section::make('Product Catalog (/cua-hang, /shop)')
+                                ->description('Dùng khi trang danh sách sản phẩm chưa có SEO meta riêng — đọc qua Setting::get() trong ProductController.')
+                                ->schema([
+                                    Forms\Components\TextInput::make('extra.product_catalog_title')
+                                        ->label('🇻🇳 Tiêu đề')
+                                        ->placeholder('Tất cả sản phẩm — LINNÉ'),
+
+                                    Forms\Components\TextInput::make('extra.product_catalog_title_en')
+                                        ->label('🇬🇧 Title')
+                                        ->placeholder('All Products — LINNÉ'),
+
+                                    Forms\Components\Textarea::make('extra.product_catalog_description')
+                                        ->label('🇻🇳 Mô tả')
+                                        ->rows(2)
+                                        ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.'),
+
+                                    Forms\Components\Textarea::make('extra.product_catalog_description_en')
+                                        ->label('🇬🇧 Description')
+                                        ->rows(2)
+                                        ->placeholder('Browse the full LINNÉ collection of minimalist, sustainable linen fashion.'),
+                                ])
+                                ->columns(2),
+
+                            Section::make('Category Index (/danh-muc, /categories)')
+                                ->description('Dùng khi trang danh sách danh mục chưa có SEO meta riêng — đọc qua Setting::get() trong CategoryController.')
+                                ->schema([
+                                    Forms\Components\TextInput::make('extra.category_index_title')
+                                        ->label('🇻🇳 Tiêu đề')
+                                        ->placeholder('Danh mục sản phẩm'),
+
+                                    Forms\Components\TextInput::make('extra.category_index_title_en')
+                                        ->label('🇬🇧 Title')
+                                        ->placeholder('Product Categories'),
+
+                                    Forms\Components\Textarea::make('extra.category_index_description')
+                                        ->label('🇻🇳 Mô tả')
+                                        ->rows(2)
+                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của LINNÉ.'),
+
+                                    Forms\Components\Textarea::make('extra.category_index_description_en')
+                                        ->label('🇬🇧 Description')
+                                        ->rows(2)
+                                        ->placeholder('Browse all LINNÉ product categories.'),
+                                ])
+                                ->columns(2),
+                        ]),
+
                     // ── JSON-LD ───────────────────────────────────────────────
                     Tab::make('JSON-LD')
                         ->icon('heroicon-o-code-bracket')

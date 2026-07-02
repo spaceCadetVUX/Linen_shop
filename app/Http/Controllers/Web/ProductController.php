@@ -87,11 +87,11 @@ class ProductController extends Controller
         $fallbackImage = $ogRaw ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/' . ltrim($ogRaw, '/'))) : null;
 
         $fallbackTitle = $locale === 'vi'
-            ? 'Tất cả sản phẩm — KNX, DALI-2, Casambi, Matter Smarthome'
-            : 'All Products — KNX, DALI-2, Casambi, Matter Smarthome';
+            ? (Setting::get('product_catalog_title') ?: 'Tất cả sản phẩm — LINNÉ')
+            : (Setting::get('product_catalog_title_en') ?: 'All Products — LINNÉ');
         $fallbackDescription = $locale === 'vi'
-            ? 'Khám phá toàn bộ danh mục thiết bị tự động hóa tòa nhà: KNX, DALI-2, Casambi, Matter, BACnet, Modbus tại KNXStore.vn.'
-            : 'Browse the full catalog of building automation devices: KNX, DALI-2, Casambi, Matter, BACnet, Modbus at KNXStore.vn.';
+            ? (Setting::get('product_catalog_description') ?: 'Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.')
+            : (Setting::get('product_catalog_description_en') ?: 'Browse the full LINNÉ collection of minimalist, sustainable linen fashion.');
 
         return view('pages.product.index', compact(
             'locale', 'products', 'filterGroups', 'brands',

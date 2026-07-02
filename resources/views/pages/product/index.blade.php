@@ -8,35 +8,25 @@
 
 <x-ui.breadcrumb :items="[
     ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale . '.index')],
-    ['label' => $translation->name, 'url' => null],
+    ['label' => $locale === 'vi' ? 'Cửa hàng' : 'Shop', 'url' => null],
 ]" />
 
 {{-- ============================================================
-     CATEGORY BANNER
+     PLP BANNER — text-only (no per-catalog hero image on this route,
+     .plp-banner-info is flex:1 so it fills full width without the img col)
      ============================================================ --}}
 <section class="plp-banner">
-  <div class="plp-banner-img-col">
-    <img
-      src="{{ $fallbackImage ?? asset('assets/img/placeholder-category.jpg') }}"
-      alt="{{ $translation->name }} — LINNÉ"
-      class="plp-banner-img"
-    >
-  </div>
   <div class="plp-banner-info">
-    <h1 class="plp-banner-title">{{ $translation->name }}</h1>
-    @if($translation->description)
-      <div class="plp-banner-divider"></div>
-      <p class="plp-banner-desc">{{ $translation->description }}</p>
-    @endif
+    <h1 class="plp-banner-title">{{ $locale === 'vi' ? 'Tất cả sản phẩm' : 'All Products' }}</h1>
     <p class="plp-banner-sub">{{ $products->total() }} sản phẩm</p>
   </div>
 </section>
 
 {{-- ============================================================
      FILTER TOOLBAR
-     TODO: plp-cats pills + plp-fmodal (color/size/price) are still
-     static mockup — real filter data is in $filterGroups/$brands,
-     not wired into the UI yet. Sort dropdown has no server-side sort.
+     TODO: plp-fmodal (color/size/price) is still static mockup —
+     real filter data is in $filterGroups/$brands, not wired yet.
+     Sort dropdown has no server-side sort.
      ============================================================ --}}
 <div class="plp-toolbar-wrap">
   <div class="plp-toolbar">
@@ -73,10 +63,10 @@
 </div>
 
 {{-- ============================================================
-     PRODUCT GRID
+     PRODUCT GRID — shared component, same as pages/category/show.blade.php
      ============================================================ --}}
 <section class="plp-grid-section shop-section" id="plpGridSection">
-  <x-product.grid :products="$products" empty-message="Chưa có sản phẩm nào trong danh mục này." />
+  <x-product.grid :products="$products" empty-message="Chưa có sản phẩm nào." />
 </section>
 
 {{-- ============================================================

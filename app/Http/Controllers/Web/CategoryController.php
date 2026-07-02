@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\CategoryTranslation;
 use App\Models\FilterGroup;
 use App\Models\ProductTranslation;
+use App\Models\Setting;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
 use App\Support\LocaleUrl;
@@ -34,10 +35,12 @@ class CategoryController extends Controller
             ->get()
             ->filter(fn ($tr) => $tr->category !== null);
 
-        $fallbackTitle = $locale === 'vi' ? 'Danh mục sản phẩm' : 'Product Categories';
+        $fallbackTitle = $locale === 'vi'
+            ? (Setting::get('category_index_title') ?: 'Danh mục sản phẩm')
+            : (Setting::get('category_index_title_en') ?: 'Product Categories');
         $fallbackDescription = $locale === 'vi'
-            ? 'Khám phá tất cả danh mục sản phẩm chiếu sáng thông minh Casambi.'
-            : 'Browse all Casambi smart lighting product categories.';
+            ? (Setting::get('category_index_description') ?: 'Khám phá tất cả danh mục sản phẩm của LINNÉ.')
+            : (Setting::get('category_index_description_en') ?: 'Browse all LINNÉ product categories.');
 
         return view('pages.category.index', compact(
             'locale', 'categories', 'fallbackTitle', 'fallbackDescription'
