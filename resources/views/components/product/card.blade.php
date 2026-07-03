@@ -14,7 +14,6 @@
     // No distinct hover image wired yet (would need `product.images` eager-loaded — avoid N+1 here).
     $imgHover   = $imgPrimary;
     $name       = $product->name;
-    $meta       = $product->short_description ?? '';  // always render the element — CSS hides it (opacity:0), shows on hover
 
     $price      = $product->price ?? $productModel->price;
     $salePriceRaw = $product->sale_price ?? $productModel->sale_price;
@@ -54,9 +53,6 @@
   <div class="shop-card-info">
 
     <a href="{{ $url }}" class="shop-card-name">{{ $name }}</a>
-
-    {{-- Always rendered — position:absolute, opacity:0 by default, visible on hover --}}
-    <p class="shop-card-meta">{{ $meta }}</p>
 
     {{-- Price: show sale price as current, original price struck through --}}
     @if($productModel->show_price)

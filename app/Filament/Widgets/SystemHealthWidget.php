@@ -51,28 +51,32 @@ class SystemHealthWidget extends Widget
             $ms = round((microtime(true) - $start) * 1000);
 
             return [
-                'name'        => 'Meilisearch',
+                'name' => 'Meilisearch',
                 'description' => 'Search engine cho trang sản phẩm & danh mục',
-                'status'      => $degraded ? 'degraded' : 'online',
+                'status' => $degraded ? 'degraded' : 'online',
                 'statusLabel' => $degraded ? 'Fallback SQL' : 'Đang chạy',
-                'metric'      => $degraded
+                'headline' => "{$ms} ms",
+                'headlineLabel' => $degraded
                     ? 'Health OK — vẫn trong cửa sổ fallback 30s do lỗi gần đây'
-                    : "Phản hồi {$ms}ms",
-                'icon'        => 'heroicon-o-magnifying-glass',
+                    : 'Thời gian phản hồi',
+                'stats' => [],
+                'icon' => 'heroicon-o-magnifying-glass',
                 // config('scout.meilisearch.host') is the internal Docker hostname
                 // (only reachable from other containers) — swap in the browser-
                 // reachable host so the link actually opens for the admin.
-                'url'         => str_replace('meilisearch', request()->getHost(), rtrim(config('scout.meilisearch.host'), '/')),
+                'url' => str_replace('meilisearch', request()->getHost(), rtrim(config('scout.meilisearch.host'), '/')),
             ];
         } catch (\Throwable $e) {
             return [
-                'name'        => 'Meilisearch',
+                'name' => 'Meilisearch',
                 'description' => 'Search engine cho trang sản phẩm & danh mục',
-                'status'      => 'offline',
+                'status' => 'offline',
                 'statusLabel' => 'Không kết nối được',
-                'metric'      => 'Đang tự động fallback sang SQL',
-                'icon'        => 'heroicon-o-magnifying-glass',
-                'url'         => null,
+                'headline' => '—',
+                'headlineLabel' => 'Đang tự động fallback sang SQL',
+                'stats' => [],
+                'icon' => 'heroicon-o-magnifying-glass',
+                'url' => null,
             ];
         }
     }
@@ -92,17 +96,21 @@ class SystemHealthWidget extends Widget
         $failed = DB::table('failed_jobs')->count();
 
         return [
-            'name'        => 'Horizon',
+            'name' => 'Horizon',
             'description' => 'Queue worker (Redis)',
-            'status'      => $status,
+            'status' => $status,
             'statusLabel' => match ($status) {
-                'online'   => 'Đang chạy',
+                'online' => 'Đang chạy',
                 'degraded' => 'Tạm dừng',
-                'offline'  => 'Không hoạt động',
+                'offline' => 'Không hoạt động',
             },
-            'metric'      => "{$pending} job đang chờ · {$failed} job lỗi",
-            'icon'        => 'heroicon-o-queue-list',
-            'url'         => '/horizon',
+            'headline' => (string) $pending,
+            'headlineLabel' => 'Job đang chờ xử lý',
+            'stats' => [
+                ['label' => 'Lỗi', 'value' => $failed, 'tone' => $failed > 0 ? 'danger' : 'gray'],
+            ],
+            'icon' => 'heroicon-o-queue-list',
+            'url' => '/horizon',
         ];
     }
 }

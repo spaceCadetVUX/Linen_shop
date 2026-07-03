@@ -15,7 +15,7 @@
         <span id="menuLabel">Menu</span>
       </button>
       <nav class="nav-quick" aria-label="Quick navigation">
-        <a href="{{ url('/collections') }}" class="nav-quick-link">Bộ sưu tập</a>
+        <a href="{{ $megaMenuCollectionUrl }}" class="nav-quick-link">{{ $megaMenuCollectionLabel }}</a>
         <a href="{{ url('/blog') }}" class="nav-quick-link">Journal</a>
         <a href="{{ url('/about') }}" class="nav-quick-link">Về LINNÉ</a>
       </nav>
@@ -103,7 +103,7 @@
 
     {{-- Col 2: Bộ sưu tập — category links with data-mega-cat for dynamic col 3 --}}
     <div class="mega-col mega-col--collection">
-      <h3 class="mega-col-title">Bộ sưu tập</h3>
+      <a href="{{ $megaMenuCollectionUrl }}" class="mega-col-title mega-col-title--link">{{ $megaMenuCollectionLabel }}</a>
 
       <div class="mega-group">
         <div class="mega-group-hd">

@@ -6,21 +6,22 @@ use App\Auth\EncryptedUserProvider;
 use App\Forms\Actions\MediaAttachFilesAction;
 use App\Models\Author;
 use App\Models\BlogCategory;
+use App\Models\BlogCategoryTranslation;
 use App\Models\BlogPost;
+use App\Models\BlogPostTranslation;
 use App\Models\BlogTag;
 use App\Models\Brand;
 use App\Models\BusinessProfile;
 use App\Models\Cart;
 use App\Models\Category;
+use App\Models\CategoryTranslation;
 use App\Models\Manufacturer;
 use App\Models\Product;
+use App\Models\ProductTranslation;
 use App\Models\Review;
 use App\Models\Seo\Redirect;
+use App\Models\Setting;
 use App\Models\User;
-use App\Models\BlogCategoryTranslation;
-use App\Models\BlogPostTranslation;
-use App\Models\CategoryTranslation;
-use App\Models\ProductTranslation;
 use App\Observers\AuthorObserver;
 use App\Observers\BlogCategoryObserver;
 use App\Observers\BlogCategoryTranslationObserver;
@@ -40,6 +41,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Meilisearch\Client as MeilisearchClient;
 
@@ -94,12 +96,27 @@ class AppServiceProvider extends ServiceProvider
 
     private function registerViewComposers(): void
     {
-        \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
-            $raw = \App\Models\Setting::get('favicon');
+        View::composer('layouts.app', function ($view) {
+            $raw = Setting::get('favicon');
 
             $view->with('faviconUrl', $raw
-                ? (str_starts_with($raw, 'http') ? $raw : asset('storage/' . ltrim($raw, '/')))
+                ? (str_starts_with($raw, 'http') ? $raw : asset('storage/'.ltrim($raw, '/')))
                 : asset('favicon.ico'));
+        });
+
+        // Mega Menu labels are admin-configurable (Setting → Mega Menu, extra.mega_menu)
+        // and must reach the shared header partial without a query in Blade (CLAUDE.md rule).
+        View::composer('partials.header', function ($view) {
+            $megaMenu = (array) (BusinessProfile::instance()->extra['mega_menu'] ?? []);
+            $locale = app()->getLocale();
+            $isEn = $locale === 'en';
+
+            $view->with('megaMenuCollectionLabel', $isEn
+                ? ($megaMenu['collection_label_en'] ?? 'Collections')
+                : ($megaMenu['collection_label'] ?? 'Bộ sưu tập'));
+
+            // "Bộ sưu tập" quick-nav link → shop listing (no real Category data mapped yet).
+            $view->with('megaMenuCollectionUrl', route("{$locale}.product.shop"));
         });
     }
 
@@ -143,14 +160,14 @@ class AppServiceProvider extends ServiceProvider
     private function registerMorphMap(): void
     {
         Relation::morphMap([
-            'product'       => Product::class,
-            'blog_post'     => BlogPost::class,
-            'category'      => Category::class,
+            'product' => Product::class,
+            'blog_post' => BlogPost::class,
+            'category' => Category::class,
             'blog_category' => BlogCategory::class,
-            'blog_tag'      => BlogTag::class,
-            'brand'         => Brand::class,
-            'manufacturer'  => Manufacturer::class,
-            'author'        => Author::class,
+            'blog_tag' => BlogTag::class,
+            'brand' => Brand::class,
+            'manufacturer' => Manufacturer::class,
+            'author' => Author::class,
         ]);
     }
 }
