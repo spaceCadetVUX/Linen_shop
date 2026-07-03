@@ -4,6 +4,13 @@
 @section('meta-description', $fallbackDescription)
 @section('body-class', 'page-pd')
 
+@php
+    // Featured = newest post, only on page 1 without search/filter
+    // (otherwise the first result would vanish from the grid and confuse paging)
+    $featured  = $blogs->onFirstPage() && ! $searchTerm && ! $category ? $blogs->first() : null;
+    $gridPosts = $featured ? $blogs->getCollection()->slice(1) : $blogs->getCollection();
+@endphp
+
 @section('content')
 
     <!-- ==============================  JOURNAL PAGE  ============================== -->
@@ -11,139 +18,84 @@
 
       <!-- Header -->
       <div class="jnl-hd">
-        <p class="jnl-hd-eyebrow">LINNÉ · Nhật ký thời trang</p>
+        <p class="jnl-hd-eyebrow">LINNÉ · {{ $locale === 'vi' ? 'Nhật ký thời trang' : 'Fashion journal' }}</p>
         <h1 class="jnl-hd-title"><em>Journal</em></h1>
       </div>
 
       <!-- Featured article -->
-      <article class="jnl-featured">
-        <a href="#" class="jnl-featured-img-link">
-          <div class="jnl-featured-img-wrap">
-            <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160"
-                 alt="Mặc gì khi đi làm?" class="jnl-featured-img">
-          </div>
-        </a>
-        <div class="jnl-featured-body">
-          <div class="jnl-featured-meta">
-            <span class="jnl-tag">Phong cách</span>
-            <span class="jnl-date">12 tháng 6, 2026</span>
-          </div>
-          <h2 class="jnl-featured-title">Mặc gì khi đi làm?</h2>
-          <p class="jnl-featured-excerpt">Chọn trang phục phù hợp khi đi làm đôi khi là một thử thách. Bạn cần vừa chuyên nghiệp, vừa thoải mái, và vẫn giữ được phong cách riêng. Dưới đây là những gợi ý từ LINNÉ giúp bạn mặc đẹp mỗi ngày đến văn phòng.</p>
-          <a href="#" class="jnl-featured-cta">Đọc bài viết
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-            </svg>
+      @if($featured)
+        @php
+          $featuredUrl = $featured->category_slug
+              ? route($locale . '.blog.show', ['category_slug' => $featured->category_slug, 'slug' => $featured->slug])
+              : '#';
+          $featuredImg = $featured->featured_image
+              ? asset($featured->featured_image)
+              : asset('assets/img/placeholder-category.jpg');
+        @endphp
+        <article class="jnl-featured">
+          <a href="{{ $featuredUrl }}" class="jnl-featured-img-link">
+            <div class="jnl-featured-img-wrap">
+              <img src="{{ $featuredImg }}" alt="{{ $featured->title }}" class="jnl-featured-img">
+            </div>
           </a>
-        </div>
-      </article>
+          <div class="jnl-featured-body">
+            <div class="jnl-featured-meta">
+              @if($featured->category)
+                <span class="jnl-tag">{{ $featured->category }}</span>
+              @endif
+              @if($featured->formatted_published_date)
+                <span class="jnl-date">{{ $featured->formatted_published_date }}</span>
+              @endif
+            </div>
+            <h2 class="jnl-featured-title">{{ $featured->title }}</h2>
+            <p class="jnl-featured-excerpt">{{ $featured->excerpt }}</p>
+            <a href="{{ $featuredUrl }}" class="jnl-featured-cta">{{ $locale === 'vi' ? 'Đọc bài viết' : 'Read article' }}
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </a>
+          </div>
+        </article>
+      @endif
 
       <!-- Divider -->
       <div class="jnl-divider">
-        <span class="jnl-divider-label">Tất cả bài viết</span>
+        <span class="jnl-divider-label">
+          @if($category)
+            {{ $category }}
+          @elseif($searchTerm)
+            {{ $locale === 'vi' ? 'Kết quả cho' : 'Results for' }} “{{ $searchTerm }}”
+          @else
+            {{ $locale === 'vi' ? 'Tất cả bài viết' : 'All articles' }}
+          @endif
+        </span>
       </div>
 
       <!-- Articles grid -->
-      <div class="jnl-grid journal-grid">
+      @if($gridPosts->isNotEmpty())
+        <div class="jnl-grid journal-grid">
+          @foreach($gridPosts as $post)
+            <x-blog.card :post="$post" :locale="$locale" class="jnl-card" />
+          @endforeach
+        </div><!-- /.jnl-grid -->
+      @elseif(! $featured)
+        <p style="text-align:center; padding: 8px var(--pad-x) 0; color: var(--ash);">
+          {{ $locale === 'vi' ? 'Chưa có bài viết nào.' : 'No articles yet.' }}
+        </p>
+      @endif
 
-        <article class="journal-card jnl-card">
-          <a href="#" class="journal-card-img-link">
-            <div class="journal-card-img-wrap">
-              <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=2160"
-                   alt="Chọn độ dài váy phù hợp" class="journal-card-img">
-            </div>
-          </a>
-          <div class="journal-card-body">
-            <div class="jnl-card-meta"><span class="jnl-tag">Phong cách</span><span class="jnl-date">05/06/2026</span></div>
-            <h3 class="journal-card-title">Chọn độ dài váy phù hợp</h3>
-            <p class="journal-card-excerpt">Độ dài váy phù hợp có thể tôn lên vóc dáng của bạn một cách tinh tế...</p>
-            <a href="#" class="journal-card-cta">Đọc thêm</a>
-          </div>
-        </article>
-
-        <article class="journal-card jnl-card">
-          <a href="#" class="journal-card-img-link">
-            <div class="journal-card-img-wrap">
-              <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160"
-                   alt="Blazer và phong cách văn phòng" class="journal-card-img">
-            </div>
-          </a>
-          <div class="journal-card-body">
-            <div class="jnl-card-meta"><span class="jnl-tag">Xu hướng</span><span class="jnl-date">28/05/2026</span></div>
-            <h3 class="journal-card-title">Blazer và phong cách văn phòng</h3>
-            <p class="journal-card-excerpt">Blazer là một item không thể thiếu trong tủ đồ thời trang...</p>
-            <a href="#" class="journal-card-cta">Đọc thêm</a>
-          </div>
-        </article>
-
-        <article class="journal-card jnl-card">
-          <a href="#" class="journal-card-img-link">
-            <div class="journal-card-img-wrap">
-              <img src="https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=2160"
-                   alt="Chăm sóc vải linen đúng cách" class="journal-card-img">
-            </div>
-          </a>
-          <div class="journal-card-body">
-            <div class="jnl-card-meta"><span class="jnl-tag">Chất liệu</span><span class="jnl-date">20/05/2026</span></div>
-            <h3 class="journal-card-title">Chăm sóc vải linen đúng cách</h3>
-            <p class="journal-card-excerpt">Vải linen bền đẹp hơn nếu bạn biết cách giặt và bảo quản đúng cách...</p>
-            <a href="#" class="journal-card-cta">Đọc thêm</a>
-          </div>
-        </article>
-
-        <article class="journal-card jnl-card">
-          <a href="#" class="journal-card-img-link">
-            <div class="journal-card-img-wrap">
-              <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Black.jpg?v=1779070489&width=2160"
-                   alt="5 cách phối đồ với áo cổ tròn" class="journal-card-img">
-            </div>
-          </a>
-          <div class="journal-card-body">
-            <div class="jnl-card-meta"><span class="jnl-tag">Phong cách</span><span class="jnl-date">14/05/2026</span></div>
-            <h3 class="journal-card-title">5 cách phối đồ với áo cổ tròn</h3>
-            <p class="journal-card-excerpt">Áo cổ tròn tưởng đơn giản nhưng lại cực kỳ đa năng khi biết cách phối...</p>
-            <a href="#" class="journal-card-cta">Đọc thêm</a>
-          </div>
-        </article>
-
-        <article class="journal-card jnl-card">
-          <a href="#" class="journal-card-img-link">
-            <div class="journal-card-img-wrap">
-              <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Black4.jpg?v=1779070489&width=2160"
-                   alt="Màu trung tính: đơn giản mà tinh tế" class="journal-card-img">
-            </div>
-          </a>
-          <div class="journal-card-body">
-            <div class="jnl-card-meta"><span class="jnl-tag">Xu hướng</span><span class="jnl-date">07/05/2026</span></div>
-            <h3 class="journal-card-title">Màu trung tính: đơn giản mà tinh tế</h3>
-            <p class="journal-card-excerpt">Neutral tone không bao giờ lỗi mốt — bí quyết nằm ở cách bạn layering...</p>
-            <a href="#" class="journal-card-cta">Đọc thêm</a>
-          </div>
-        </article>
-
-        <article class="journal-card jnl-card">
-          <a href="#" class="journal-card-img-link">
-            <div class="journal-card-img-wrap">
-              <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Black-Sand_80abcf68-ce45-46c1-8665-8419cb22e876.jpg?v=1781216042&width=2160"
-                   alt="Gợi ý tủ đồ tối giản cho nàng bận rộn" class="journal-card-img">
-            </div>
-          </a>
-          <div class="journal-card-body">
-            <div class="jnl-card-meta"><span class="jnl-tag">Phong cách</span><span class="jnl-date">24/04/2026</span></div>
-            <h3 class="journal-card-title">Gợi ý tủ đồ tối giản cho nàng bận rộn</h3>
-            <p class="journal-card-excerpt">Capsule wardrobe không cần nhiều — chỉ cần đúng, bạn có thể mặc mãi không hết...</p>
-            <a href="#" class="journal-card-cta">Đọc thêm</a>
-          </div>
-        </article>
-
-      </div><!-- /.jnl-grid -->
-
-      <!-- Load more -->
-      <div class="jnl-load-more">
-        <button class="jnl-load-btn">Xem thêm bài viết</button>
-      </div>
+      <!-- Pagination — reuses .jnl-load-btn styling (line-height inline: anchor lacks button's auto vertical centering) -->
+      @if($blogs->hasPages())
+        <div class="jnl-load-more">
+          @if($blogs->previousPageUrl())
+            <a href="{{ $blogs->previousPageUrl() }}" class="jnl-load-btn" style="line-height:44px;">← {{ $locale === 'vi' ? 'Trang trước' : 'Previous' }}</a>
+          @endif
+          @if($blogs->hasMorePages())
+            <a href="{{ $blogs->nextPageUrl() }}" class="jnl-load-btn" style="line-height:44px;">{{ $locale === 'vi' ? 'Xem thêm bài viết' : 'More articles' }} →</a>
+          @endif
+        </div>
+      @endif
 
     </div><!-- /.jnl-page -->
 
 @endsection
-

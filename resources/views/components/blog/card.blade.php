@@ -1,41 +1,52 @@
 @props([
-    'post',  // Eloquent model: title, slug, thumbnail, excerpt, published_at, category (->name, ->slug)
+    'post',    // decorated BlogPost from BlogController: title, slug, excerpt,
+               // category (string name), category_slug, featured_image ('storage/...'),
+               // formatted_published_date
+    'locale' => null,
 ])
 
 @php
-    $url        = url('/blog/' . $post->slug);
-    $categoryUrl = $post->category ? url('/blog/category/' . $post->category->slug) : null;
-    $categoryName = $post->category->name ?? null;
-    $date       = $post->published_at->format('d/m/Y');
+    $locale ??= app()->getLocale();
+
+    $url = $post->category_slug
+        ? route($locale . '.blog.show', ['category_slug' => $post->category_slug, 'slug' => $post->slug])
+        : '#';
+    $categoryUrl = $post->category_slug
+        ? route($locale . '.blog.category', $post->category_slug)
+        : null;
+    $image = $post->featured_image
+        ? asset($post->featured_image)
+        : asset('assets/img/placeholder-category.jpg');
 @endphp
 
-<article class="journal-card">
+<article {{ $attributes->merge(['class' => 'journal-card']) }}>
 
   <a href="{{ $url }}" class="journal-card-img-link">
     <div class="journal-card-img-wrap">
-      <img src="{{ $post->thumbnail }}" alt="{{ $post->title }}" class="journal-card-img">
+      <img src="{{ $image }}" alt="{{ $post->title }}" class="journal-card-img" loading="lazy">
     </div>
   </a>
 
   <div class="journal-card-body">
 
     <div class="jnl-card-meta">
-      @if($categoryName)
-        {{-- Link to category if available, plain span otherwise --}}
+      @if($post->category)
         @if($categoryUrl)
-          <a href="{{ $categoryUrl }}" class="jnl-tag">{{ $categoryName }}</a>
+          <a href="{{ $categoryUrl }}" class="jnl-tag">{{ $post->category }}</a>
         @else
-          <span class="jnl-tag">{{ $categoryName }}</span>
+          <span class="jnl-tag">{{ $post->category }}</span>
         @endif
       @endif
-      <span class="jnl-date">{{ $date }}</span>
+      @if($post->formatted_published_date)
+        <span class="jnl-date">{{ $post->formatted_published_date }}</span>
+      @endif
     </div>
 
     <a href="{{ $url }}" class="journal-card-title">{{ $post->title }}</a>
 
     <p class="journal-card-excerpt">{{ $post->excerpt }}</p>
 
-    <a href="{{ $url }}" class="journal-card-cta">Đọc thêm</a>
+    <a href="{{ $url }}" class="journal-card-cta">{{ $locale === 'vi' ? 'Đọc thêm' : 'Read more' }}</a>
 
   </div>
 
