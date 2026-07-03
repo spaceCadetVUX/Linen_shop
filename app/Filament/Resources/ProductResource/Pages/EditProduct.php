@@ -3,12 +3,15 @@
 namespace App\Filament\Resources\ProductResource\Pages;
 
 use App\Filament\Resources\ProductResource;
+use App\Filament\Resources\ProductResource\Pages\Concerns\ManagesProductRelations;
 use App\Models\FilterGroup;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditProduct extends EditRecord
 {
+    use ManagesProductRelations;
+
     protected static string $resource = ProductResource::class;
 
     protected function getHeaderActions(): array
@@ -65,12 +68,17 @@ class EditProduct extends EditRecord
 
         if (filled($vi['name'] ?? null)) {
             $data['name']              = $vi['name'];
-            $data['slug']              = $vi['slug'] ?? $data['slug'] ?? null;
+            $data['slug']              = filled($vi['slug'] ?? null) ? $vi['slug'] : \Illuminate\Support\Str::slug($vi['name']);
             $data['short_description'] = $vi['short_description'] ?? null;
             $data['description']       = $vi['description'] ?? null;
-            $data['price']             = $vi['price'] ?? $data['price'] ?? 0;
-            $data['sale_price']        = $vi['sale_price'] ?? null;
+            // price / stock_quantity NOT NULL trên products — bỏ trống → giữ giá trị an toàn
+            $data['price']             = filled($vi['price'] ?? null) ? $vi['price'] : 0;
+            $data['sale_price']        = filled($vi['sale_price'] ?? null) ? $vi['sale_price'] : null;
             $data['currency']          = $vi['currency'] ?? 'VND';
+        }
+
+        if (array_key_exists('stock_quantity', $data) && ! filled($data['stock_quantity'])) {
+            $data['stock_quantity'] = 0;
         }
 
         return $data;
@@ -80,41 +88,5 @@ class EditProduct extends EditRecord
     {
         $this->saveTranslations();
         $this->saveFilterValues();
-    }
-
-    private function saveFilterValues(): void
-    {
-        $allSelectedIds = [];
-
-        foreach (FilterGroup::active()->pluck('id') as $groupId) {
-            $selected = $this->data["filter_group_{$groupId}"] ?? [];
-            array_push($allSelectedIds, ...$selected);
-        }
-
-        $this->getRecord()->filterValues()->sync($allSelectedIds);
-    }
-
-    private function saveTranslations(): void
-    {
-        $record           = $this->getRecord();
-        $translationsData = $this->data['translations'] ?? [];
-
-        foreach (config('app.supported_locales') as $locale) {
-            $localeData = $translationsData[$locale] ?? [];
-
-            if (empty($localeData['name'])) {
-                continue;
-            }
-
-            $numericFields = ['price', 'sale_price'];
-
-            $updateData = collect($localeData)
-                ->only(['name', 'slug', 'short_description', 'description', 'price', 'sale_price', 'currency'])
-                ->map(fn ($v, $k) => (in_array($k, $numericFields) && $v === '') ? null : $v)
-                ->filter(fn ($v, $k) => in_array($k, $numericFields) ? $v !== '' : ($v !== null && $v !== ''))
-                ->toArray();
-
-            $record->translations()->updateOrCreate(['locale' => $locale], $updateData);
-        }
     }
 }

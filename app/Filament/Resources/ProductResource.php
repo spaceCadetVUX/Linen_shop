@@ -33,8 +33,10 @@ use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Validation\Rules\Unique;
 use Illuminate\Support\Facades\Storage;
 use App\Support\LocaleUrl;
 use Illuminate\Support\Str;
@@ -132,6 +134,7 @@ class ProductResource extends Resource
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.vi.name')
                                                 ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Tên sản phẩm (vi)</span>'))
+                                                ->required()
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(function ($state, Set $set) {
                                                     $set('translations.vi.slug', Str::slug($state ?? ''));
@@ -142,9 +145,14 @@ class ProductResource extends Resource
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
                                                 ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Slug (vi)</span>'))
+                                                ->required()
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) => $set('slug', $state))
                                                 ->helperText('Auto-generated from name. Must be unique per locale.')
+                                                ->rules([
+                                                    fn (?Product $record) => self::uniqueTranslationSlugRule('vi', $record),
+                                                    fn (?Product $record) => self::uniqueProductSlugRule($record),
+                                                ])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.short_description')
@@ -172,6 +180,10 @@ class ProductResource extends Resource
                                             Forms\Components\TextInput::make('translations.en.slug')
                                                 ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Slug (en)</span>'))
                                                 ->helperText('Auto-generated from name. Must be unique per locale.')
+                                                ->requiredWith('translations.en.name')
+                                                ->rules([
+                                                    fn (?Product $record) => self::uniqueTranslationSlugRule('en', $record),
+                                                ])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.short_description')
@@ -297,6 +309,7 @@ class ProductResource extends Resource
                                     Forms\Components\TextInput::make('stock_quantity')
                                         ->label('Stock Quantity')
                                         ->numeric()
+                                        ->default(0)
                                         ->required(fn (Get $get): bool => (bool) $get('is_active'))
                                         ->columnSpanFull(),
                                 ]),
@@ -403,13 +416,7 @@ class ProductResource extends Resource
                                         ->hint('e.g. PT30S = 30s, PT2M30S = 2m30s, PT1H = 1h')
                                         ->hintIcon('heroicon-o-clock')
                                         ->hintColor('info')
-                                        ->columnSpan(1),
-
-                                    Forms\Components\TextInput::make('sort_order')
-                                        ->label('Sort Order')
-                                        ->numeric()
-                                        ->default(0)
-                                        ->columnSpan(1),
+                                        ->columnSpan(2),
                                 ])
                                 ->orderColumn('sort_order')
                                 ->reorderable()
@@ -1691,6 +1698,39 @@ class ProductResource extends Resource
         ];
     }
 
+    // ── Slug validation rules ─────────────────────────────────────────────────
+
+    /**
+     * Unique (locale, slug) trên product_translations — bỏ qua row của chính product đang edit.
+     */
+    private static function uniqueTranslationSlugRule(string $locale, ?Product $record): Unique
+    {
+        $rule = (new Unique('product_translations', 'slug'))->where('locale', $locale);
+
+        if ($record) {
+            $rule->ignore($record->id, 'product_id');
+        }
+
+        return $rule;
+    }
+
+    /**
+     * Unique trên products.slug (bao gồm cả soft-deleted vì DB unique index không loại trừ).
+     */
+    private static function uniqueProductSlugRule(?Product $record): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($record): void {
+            $exists = Product::withTrashed()
+                ->where('slug', $value)
+                ->when($record, fn (Builder $q) => $q->whereKeyNot($record->getKey()))
+                ->exists();
+
+            if ($exists) {
+                $fail('Slug này đã được dùng bởi sản phẩm khác (kể cả sản phẩm đã xóa mềm).');
+            }
+        };
+    }
+
     // ── SEO char counter helpers ──────────────────────────────────────────────
 
     /**
@@ -1699,7 +1739,7 @@ class ProductResource extends Resource
     private static function charCounter(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
-        return "{$len} / {$max} chars";
+        return "{$len} / {$min}–{$max} chars";
     }
 
     private static function charCounterColor(?string $state, int $min, int $max): string
