@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 class ManufacturerResource extends Resource
@@ -103,7 +104,7 @@ class ManufacturerResource extends Resource
                         ->icon('heroicon-o-magnifying-glass')
                         ->schema([
                             Forms\Components\TextInput::make('meta_title')
-                                ->label('Meta Title')
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title</span>'))
                                 ->maxLength(70)
                                 ->placeholder('Auto-filled from manufacturer name')
                                 ->hint('Auto-filled from manufacturer name')
@@ -118,7 +119,7 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('meta_description')
-                                ->label('Meta Description')
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description</span>'))
                                 ->rows(3)
                                 ->maxLength(160)
                                 ->placeholder('Auto-filled from manufacturer description')
@@ -134,7 +135,7 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('canonical_url')
-                                ->label('Canonical URL')
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Canonical URL</span>'))
                                 ->url()
                                 ->placeholder('Auto-generated from slug')
                                 ->hint('Auto-generated from slug')
@@ -148,7 +149,7 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Select::make('robots')
-                                ->label('Robots')
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Robots</span>'))
                                 ->options([
                                     'index,follow'     => 'index, follow (default)',
                                     'noindex,follow'   => 'noindex,follow',
@@ -173,7 +174,7 @@ class ManufacturerResource extends Resource
                         ->icon('heroicon-o-language')
                         ->schema([
                             Forms\Components\TextInput::make('canonical_url')
-                                ->label('Canonical URL (en)')
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Canonical URL (en)</span>'))
                                 ->url()
                                 ->placeholder('Auto-generated from slug — /en/manufacturers/{slug}')
                                 ->hint('Auto-generated from slug')
@@ -187,7 +188,7 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Select::make('robots')
-                                ->label('Robots')
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Robots</span>'))
                                 ->options([
                                     'index,follow'     => 'index, follow (default)',
                                     'noindex,follow'   => 'noindex,follow',

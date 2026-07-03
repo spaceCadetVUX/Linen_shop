@@ -193,7 +193,7 @@ class ProductResource extends Resource
                             Section::make('🇻🇳 Giá Việt Nam')
                                 ->schema([
                                     Forms\Components\Select::make('translations.vi.currency')
-                                        ->label('Đơn vị tiền (vi)')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Đơn vị tiền (vi)</span>'))
                                         ->options([
                                             'VND' => '🇻🇳 VND — Vietnamese Đồng',
                                             'USD' => '🇺🇸 USD — US Dollar',
@@ -250,7 +250,7 @@ class ProductResource extends Resource
                             Section::make('🇬🇧 English Pricing')
                                 ->schema([
                                     Forms\Components\Select::make('translations.en.currency')
-                                        ->label('Currency (en)')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Currency (en)</span>'))
                                         ->options([
                                             'VND' => '🇻🇳 VND — Vietnamese Đồng',
                                             'USD' => '🇺🇸 USD — US Dollar',
@@ -789,7 +789,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label('Canonical URL (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Canonical URL (vi)</span>'))
                                                                 ->url()
                                                                 ->placeholder('Tự tạo từ slug (vi)')
                                                                 ->hint('Tự tạo từ slug (vi)')
@@ -806,7 +806,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label('Robots')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Robots</span>'))
                                                                 ->options([
                                                                     'index,follow'     => 'index, follow (default)',
                                                                     'noindex,follow'   => 'noindex,follow',
@@ -850,7 +850,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label('OG Image URL')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Image URL</span>'))
                                                                 ->url()
                                                                 ->placeholder('Tự điền từ ảnh đầu tiên')
                                                                 ->hint('Tự điền từ ảnh đầu tiên')
@@ -868,7 +868,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label('OG Type')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Type</span>'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -881,7 +881,7 @@ class ProductResource extends Resource
                                                     Section::make('Twitter Card (vi)')
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label('Card Type')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Card Type</span>'))
                                                                 ->options([
                                                                     'summary'             => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
@@ -972,7 +972,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label('Canonical URL (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Canonical URL (en)</span>'))
                                                                 ->url()
                                                                 ->placeholder('Auto-generated from slug')
                                                                 ->hint('Auto-generated from slug')
@@ -989,7 +989,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label('Robots')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Robots</span>'))
                                                                 ->options([
                                                                     'index,follow'     => 'index, follow (default)',
                                                                     'noindex,follow'   => 'noindex,follow',
@@ -1033,7 +1033,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label('OG Image URL')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Image URL</span>'))
                                                                 ->url()
                                                                 ->placeholder('Auto-filled from first product image')
                                                                 ->hint('Auto-filled from first product image')
@@ -1051,7 +1051,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label('OG Type')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Type</span>'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -1064,7 +1064,7 @@ class ProductResource extends Resource
                                                     Section::make('Twitter Card (en)')
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label('Card Type')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Card Type</span>'))
                                                                 ->options([
                                                                     'summary'             => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
@@ -1303,10 +1303,10 @@ class ProductResource extends Resource
                                         ->schema([
                                             Forms\Components\Repeater::make('llmsEntriesVi')
                                                 ->relationship()
-                                                ->label('Entries (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Entries (vi)</span>'))
                                                 ->schema([
                                                     Placeholder::make('llms_preview')
-                                                        ->label('Preview (llms.txt output)')
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Preview (llms.txt output)</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record) {
                                                                 return new HtmlString('<em class="text-gray-400">Not generated yet — save the product to trigger sync.</em>');
@@ -1321,11 +1321,11 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Published to llms.txt')
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Published to llms.txt</span>'))
                                                         ->helperText('Toggle off to exclude this entry from the AI document.')
                                                         ->inline(false),
                                                     Placeholder::make('updated_at')
-                                                        ->label('Last synced')
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Last synced</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
                                                             : '—'
@@ -1359,10 +1359,10 @@ class ProductResource extends Resource
                                         ->schema([
                                             Forms\Components\Repeater::make('llmsEntriesEn')
                                                 ->relationship()
-                                                ->label('Entries (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Entries (en)</span>'))
                                                 ->schema([
                                                     Placeholder::make('llms_preview')
-                                                        ->label('Preview (llms.txt output)')
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Preview (llms.txt output)</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record) {
                                                                 return new HtmlString('<em class="text-gray-400">Not generated yet — save the product to trigger sync.</em>');
@@ -1377,11 +1377,11 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Published to llms.txt')
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Published to llms.txt</span>'))
                                                         ->helperText('Toggle off to exclude this entry from the AI document.')
                                                         ->inline(false),
                                                     Placeholder::make('updated_at')
-                                                        ->label('Last synced')
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Last synced</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
                                                             : '—'
@@ -1441,7 +1441,7 @@ class ProductResource extends Resource
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasVi')
                                                 ->relationship()
-                                                ->label('Schemas (vi)')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Schemas (vi)</span>'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -1456,7 +1456,7 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
-                                                        ->label('Payload (what Google reads)')
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Payload (what Google reads)</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the product to generate.</em>');
@@ -1466,10 +1466,10 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Active (inject into page <head>)')
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Active (inject into page &lt;head&gt;)</span>'))
                                                         ->inline(false),
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label('Last generated')
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Last generated</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
                                                             : '—'
@@ -1509,7 +1509,7 @@ class ProductResource extends Resource
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasEn')
                                                 ->relationship()
-                                                ->label('Schemas (en)')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Schemas (en)</span>'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -1524,7 +1524,7 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
-                                                        ->label('Payload (what Google reads)')
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Payload (what Google reads)</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the product to generate.</em>');
@@ -1534,10 +1534,10 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Active (inject into page <head>)')
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Active (inject into page &lt;head&gt;)</span>'))
                                                         ->inline(false),
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label('Last generated')
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Last generated</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
                                                             : '—'
