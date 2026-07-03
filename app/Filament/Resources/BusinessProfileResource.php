@@ -36,6 +36,7 @@ class BusinessProfileResource extends Resource
     {
         return $schema->schema([
             Tabs::make('Tabs')
+                ->persistTabInQueryString()
                 ->tabs([
 
                     // ── Identity ──────────────────────────────────────────────
@@ -232,8 +233,19 @@ class BusinessProfileResource extends Resource
 
                     // ── Page Fallbacks ────────────────────────────────────────
                     Tab::make('Page Fallbacks')
+                        ->id('page-fallbacks')
                         ->icon('heroicon-o-language')
                         ->schema([
+                            Section::make('Homepage (/)')
+                                ->description('Dùng khi trang chủ chưa có tagline — đọc qua Setting::get(\'meta_description\') trong HomeController. Một giá trị chung cho cả vi/en.')
+                                ->schema([
+                                    Forms\Components\Textarea::make('extra.meta_description')
+                                        ->label('Meta Description')
+                                        ->rows(2)
+                                        ->placeholder('LINNÉ — Thời trang linen tối giản, bền vững.')
+                                        ->columnSpanFull(),
+                                ]),
+
                             Section::make('Product Catalog (/cua-hang, /shop)')
                                 ->description('Dùng khi trang danh sách sản phẩm chưa có SEO meta riêng — đọc qua Setting::get() trong ProductController.')
                                 ->schema([

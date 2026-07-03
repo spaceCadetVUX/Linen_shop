@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\CategoryResource\Pages;
 
+use App\Filament\Resources\BusinessProfileResource;
 use App\Filament\Resources\CategoryResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -13,6 +14,13 @@ class ListCategories extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('categoryFallbackSettings')
+                ->label('Category Fallback Settings')
+                ->icon('heroicon-o-cog-6-tooth')
+                ->color('gray')
+                ->url(BusinessProfileResource::getUrl() . '?tab=page-fallbacks')
+                ->openUrlInNewTab(),
+
             Actions\CreateAction::make(),
         ];
     }
