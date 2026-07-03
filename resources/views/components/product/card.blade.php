@@ -9,10 +9,10 @@
     $productModel = $product->product;
 
     $url        = \App\Support\LocaleUrl::for('product', $product->slug, $product->locale);
-    $imgPrimary = $productModel->thumbnail?->url;
-    $imgAlt     = $productModel->thumbnail?->alt_text ?: $product->name;
-    // No distinct hover image wired yet (would need `product.images` eager-loaded — avoid N+1 here).
-    $imgHover   = $imgPrimary;
+    [$cardPrimaryImage, $cardHoverImage] = $productModel->cardImages();
+    $imgPrimary = $cardPrimaryImage?->url;
+    $imgAlt     = $cardPrimaryImage?->alt_text ?: $product->name;
+    $imgHover   = $cardHoverImage?->url ?? $imgPrimary;
     $name       = $product->name;
 
     $price      = $product->price ?? $productModel->price;

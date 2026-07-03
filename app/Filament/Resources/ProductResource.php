@@ -4,12 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Enums\OgType;
 use App\Filament\Resources\ProductResource\Pages;
-use App\Models\Brand;
 use App\Models\Category;
 use App\Models\FilterGroup;
-use App\Models\Manufacturer;
 use App\Models\Product;
+use App\Models\ProductImage;
+use App\Services\Audit\ProductAuditService;
+use App\Services\Product\VariantGeneratorService;
+use App\Services\Seo\JsonldService;
+use App\Services\Seo\LlmsGeneratorService;
+use App\Support\LocaleUrl;
 use BackedEnum;
+use Closure;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -21,8 +27,8 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Forms;
 use Filament\Forms\Components\Placeholder;
 use Filament\Notifications\Notification;
-use Illuminate\Support\HtmlString;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -33,13 +39,13 @@ use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Validation\Rules\Unique;
 use Illuminate\Support\Facades\Storage;
-use App\Support\LocaleUrl;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Unique;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductResource extends Resource
 {
@@ -84,7 +90,8 @@ class ProductResource extends Resource
                                     if (empty($ids)) {
                                         return [];
                                     }
-                                    return \App\Models\Category::whereIn('id', $ids)
+
+                                    return Category::whereIn('id', $ids)
                                         ->orderBy('sort_order')
                                         ->pluck('name', 'id')
                                         ->toArray();
@@ -173,8 +180,7 @@ class ProductResource extends Resource
                                             Forms\Components\TextInput::make('translations.en.name')
                                                 ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Product name (en)</span>'))
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) =>
-                                                    $set('translations.en.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
@@ -231,7 +237,7 @@ class ProductResource extends Resource
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá (vi)</span>'))
                                         ->numeric()
                                         ->live(onBlur: true)
-                                        ->prefix(fn ($get) => match($get('translations.vi.currency')) {
+                                        ->prefix(fn ($get) => match ($get('translations.vi.currency')) {
                                             'USD' => '$', 'EUR' => '€',
                                             'JPY', 'KRW', 'CNY' => '¥',
                                             'SGD' => 'S$', 'THB' => '฿',
@@ -244,7 +250,7 @@ class ProductResource extends Resource
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá khuyến mãi (vi)</span>'))
                                         ->numeric()
                                         ->live(onBlur: true)
-                                        ->prefix(fn ($get) => match($get('translations.vi.currency')) {
+                                        ->prefix(fn ($get) => match ($get('translations.vi.currency')) {
                                             'USD' => '$', 'EUR' => '€',
                                             'JPY', 'KRW', 'CNY' => '¥',
                                             'SGD' => 'S$', 'THB' => '฿',
@@ -283,7 +289,7 @@ class ProductResource extends Resource
                                     Forms\Components\TextInput::make('translations.en.price')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Price (en)</span>'))
                                         ->numeric()
-                                        ->prefix(fn ($get) => match($get('translations.en.currency')) {
+                                        ->prefix(fn ($get) => match ($get('translations.en.currency')) {
                                             'EUR' => '€',
                                             'JPY', 'KRW', 'CNY' => '¥',
                                             'SGD' => 'S$', 'THB' => '฿',
@@ -294,7 +300,7 @@ class ProductResource extends Resource
                                     Forms\Components\TextInput::make('translations.en.sale_price')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Sale Price (en)</span>'))
                                         ->numeric()
-                                        ->prefix(fn ($get) => match($get('translations.en.currency')) {
+                                        ->prefix(fn ($get) => match ($get('translations.en.currency')) {
                                             'EUR' => '€',
                                             'JPY', 'KRW', 'CNY' => '¥',
                                             'SGD' => 'S$', 'THB' => '฿',
@@ -326,21 +332,21 @@ class ProductResource extends Resource
                                         ->label('Image')
                                         ->disk('public')
                                         ->visibility('public')
-                                        ->directory(fn () => 'products/' . now()->format('Y/m'))
+                                        ->directory(fn () => 'products/'.now()->format('Y/m'))
                                         ->getUploadedFileNameForStorageUsing(function ($file): string {
-                                            $dir  = 'products/' . now()->format('Y/m');
+                                            $dir = 'products/'.now()->format('Y/m');
                                             $name = Str::slug(
                                                 pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)
                                             );
-                                            $ext  = strtolower($file->getClientOriginalExtension());
+                                            $ext = strtolower($file->getClientOriginalExtension());
 
                                             // Fallback if slug is empty (e.g. all special chars)
                                             if (empty($name)) {
-                                                $name = 'image-' . now()->format('YmdHis');
+                                                $name = 'image-'.now()->format('YmdHis');
                                             }
 
                                             $filename = "{$name}.{$ext}";
-                                            $counter  = 1;
+                                            $counter = 1;
 
                                             while (Storage::disk('public')->exists("{$dir}/{$filename}")) {
                                                 $filename = "{$name}-{$counter}.{$ext}";
@@ -362,6 +368,31 @@ class ProductResource extends Resource
                                         ->label('Alt Text')
                                         ->columnSpan(1),
 
+                                    Forms\Components\Checkbox::make('is_card_priority')
+                                        ->label('Ưu tiên hiển thị trên Product Card')
+                                        ->helperText('Chọn tối đa 2 ảnh. Ảnh có thứ tự (index) nhỏ hơn sẽ là ảnh chính, ảnh còn lại là ảnh hover.')
+                                        ->live()
+                                        ->afterStateUpdated(function (bool $state, Set $set, ?Forms\Components\Checkbox $component) {
+                                            if (! $state || ! $component) {
+                                                return;
+                                            }
+
+                                            $checked = collect($component->getParentRepeater()?->getRawState() ?? [])
+                                                ->pluck('is_card_priority')
+                                                ->filter()
+                                                ->count();
+
+                                            if ($checked > 2) {
+                                                $set('is_card_priority', false);
+
+                                                Notification::make()
+                                                    ->title('Chỉ được chọn tối đa 2 ảnh ưu tiên')
+                                                    ->warning()
+                                                    ->send();
+                                            }
+                                        })
+                                        ->columnSpanFull(),
+
                                 ])
                                 ->orderColumn('sort_order')
                                 ->reorderable()
@@ -380,7 +411,7 @@ class ProductResource extends Resource
                                     Forms\Components\FileUpload::make('path')
                                         ->label('Video File')
                                         ->disk('public')
-                                        ->directory(fn () => 'products/' . now()->format('Y/m'))
+                                        ->directory(fn () => 'products/'.now()->format('Y/m'))
                                         ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/ogg'])
                                         ->required()
                                         ->columnSpan(1),
@@ -388,7 +419,7 @@ class ProductResource extends Resource
                                     Forms\Components\FileUpload::make('thumbnail_path')
                                         ->label('Thumbnail')
                                         ->disk('public')
-                                        ->directory(fn () => 'products/' . now()->format('Y/m'))
+                                        ->directory(fn () => 'products/'.now()->format('Y/m'))
                                         ->image()
                                         ->imagePreviewHeight('100')
                                         ->columnSpan(1),
@@ -457,9 +488,8 @@ class ProductResource extends Resource
                                         ->placeholder('e.g. Aluminum, 500g, 220V')
                                         ->columnSpan(1),
                                 ])
-                                ->itemLabel(fn (array $state): ?string =>
-                                    filled($state['name'] ?? '')
-                                        ? ($state['name'] . (filled($state['value'] ?? '') ? ': ' . $state['value'] : ''))
+                                ->itemLabel(fn (array $state): ?string => filled($state['name'] ?? '')
+                                        ? ($state['name'].(filled($state['value'] ?? '') ? ': '.$state['value'] : ''))
                                         : null
                                 )
                                 ->collapsed()
@@ -487,27 +517,26 @@ class ProductResource extends Resource
 
                             if ($groups->isEmpty()) {
                                 return [
-                                    Forms\Components\Placeholder::make('no_filter_groups')
+                                    Placeholder::make('no_filter_groups')
                                         ->label('')
                                         ->content('Chưa có filter group nào. Tạo tại Catalog → Filter Groups.'),
                                 ];
                             }
 
-                            return $groups->map(fn (FilterGroup $group) =>
-                                Section::make($group->name . ($group->name_en ? " / {$group->name_en}" : ''))
-                                    ->compact()
-                                    ->schema([
-                                        Forms\Components\CheckboxList::make("filter_group_{$group->id}")
-                                            ->label('')
-                                            ->options(
-                                                $group->activeValues->mapWithKeys(fn ($v) => [
-                                                    $v->id => $v->name . ($v->name_en ? " / {$v->name_en}" : ''),
-                                                ])->toArray()
-                                            )
-                                            ->columns(3)
-                                            ->columnSpanFull()
-                                            ->gridDirection('row'),
-                                    ])
+                            return $groups->map(fn (FilterGroup $group) => Section::make($group->name.($group->name_en ? " / {$group->name_en}" : ''))
+                                ->compact()
+                                ->schema([
+                                    Forms\Components\CheckboxList::make("filter_group_{$group->id}")
+                                        ->label('')
+                                        ->options(
+                                            $group->activeValues->mapWithKeys(fn ($v) => [
+                                                $v->id => $v->name.($v->name_en ? " / {$v->name_en}" : ''),
+                                            ])->toArray()
+                                        )
+                                        ->columns(3)
+                                        ->columnSpanFull()
+                                        ->gridDirection('row'),
+                                ])
                             )->all();
                         }),
 
@@ -549,9 +578,8 @@ class ProductResource extends Resource
                                                 ->columns(1)
                                                 ->columnSpan(3),
                                         ])
-                                        ->itemLabel(fn (array $state): ?string =>
-                                            filled($state['name'] ?? '')
-                                                ? '⚙ ' . $state['name']
+                                        ->itemLabel(fn (array $state): ?string => filled($state['name'] ?? '')
+                                                ? '⚙ '.$state['name']
                                                 : null
                                         )
                                         ->collapsed()
@@ -564,8 +592,8 @@ class ProductResource extends Resource
                                 ]),
 
                             // ── Generate button ───────────────────────────────
-                            \Filament\Schemas\Components\Actions::make([
-                                \Filament\Actions\Action::make('generate_variants')
+                            Actions::make([
+                                Action::make('generate_variants')
                                     ->label('Generate Combinations')
                                     // ->icon('heroicon-o-bolt')
                                     ->color('primary')
@@ -582,10 +610,11 @@ class ProductResource extends Resource
                                                 ->body('Please save the product before generating variant combinations.')
                                                 ->warning()
                                                 ->send();
+
                                             return;
                                         }
 
-                                        $result = app(\App\Services\Product\VariantGeneratorService::class)
+                                        $result = app(VariantGeneratorService::class)
                                             ->generate($product);
 
                                         if ($result['error']) {
@@ -594,6 +623,7 @@ class ProductResource extends Resource
                                                 ->body($result['error'])
                                                 ->danger()
                                                 ->send();
+
                                             return;
                                         }
 
@@ -650,7 +680,8 @@ class ProductResource extends Resource
                                                         ->sortBy(fn ($v) => $v->optionType?->sort_order ?? 0)
                                                         ->map(function ($v): string {
                                                             $typeName = e($v->optionType?->name ?? '');
-                                                            $val      = e($v->value);
+                                                            $val = e($v->value);
+
                                                             return "<span style='display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:9999px;font-size:0.75rem;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;'>
                                                                         <span style='color:#93c5fd;font-size:0.65rem;'>{$typeName}</span>
                                                                         <strong>{$val}</strong>
@@ -681,7 +712,8 @@ class ProductResource extends Resource
                                                     if (! $productId) {
                                                         return [];
                                                     }
-                                                    return \App\Models\ProductImage::where('product_id', $productId)
+
+                                                    return ProductImage::where('product_id', $productId)
                                                         ->orderBy('sort_order')
                                                         ->get()
                                                         ->mapWithKeys(fn ($img) => [
@@ -817,9 +849,9 @@ class ProductResource extends Resource
                                                             Forms\Components\Select::make('robots')
                                                                 ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Robots</span>'))
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow (default)',
-                                                                    'noindex,follow'   => 'noindex,follow',
-                                                                    'index,nofollow'   => 'index,nofollow',
+                                                                    'index,follow' => 'index, follow (default)',
+                                                                    'noindex,follow' => 'noindex,follow',
+                                                                    'index,nofollow' => 'index,nofollow',
                                                                     'noindex,nofollow' => 'noindex,nofollow',
                                                                 ])
                                                                 ->default('index,follow')
@@ -892,7 +924,7 @@ class ProductResource extends Resource
                                                             Forms\Components\Select::make('twitter_card')
                                                                 ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Card Type</span>'))
                                                                 ->options([
-                                                                    'summary'             => 'Summary',
+                                                                    'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
                                                                 ])
                                                                 ->default('summary_large_image')
@@ -1000,9 +1032,9 @@ class ProductResource extends Resource
                                                             Forms\Components\Select::make('robots')
                                                                 ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Robots</span>'))
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow (default)',
-                                                                    'noindex,follow'   => 'noindex,follow',
-                                                                    'index,nofollow'   => 'index,nofollow',
+                                                                    'index,follow' => 'index, follow (default)',
+                                                                    'noindex,follow' => 'noindex,follow',
+                                                                    'index,nofollow' => 'index,nofollow',
                                                                     'noindex,nofollow' => 'noindex,nofollow',
                                                                 ])
                                                                 ->default('index,follow')
@@ -1075,7 +1107,7 @@ class ProductResource extends Resource
                                                             Forms\Components\Select::make('twitter_card')
                                                                 ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Card Type</span>'))
                                                                 ->options([
-                                                                    'summary'             => 'Summary',
+                                                                    'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
                                                                 ])
                                                                 ->default('summary_large_image')
@@ -1320,13 +1352,25 @@ class ProductResource extends Resource
                                                             if (! $record) {
                                                                 return new HtmlString('<em class="text-gray-400">Not generated yet — save the product to trigger sync.</em>');
                                                             }
-                                                            $lines   = [];
-                                                            $lines[] = '## ' . e($record->title);
-                                                            $lines[] = 'URL: ' . e($record->url);
-                                                            if (filled($record->summary)) { $lines[] = ''; $lines[] = 'Summary: ' . e($record->summary); }
-                                                            if (filled($record->key_facts_text)) { $lines[] = ''; $lines[] = 'Key Facts:'; $lines[] = e($record->key_facts_text); }
-                                                            if (filled($record->faq_text)) { $lines[] = ''; $lines[] = 'FAQ:'; $lines[] = e($record->faq_text); }
-                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.8rem;line-height:1.6;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;color:#334155;">' . implode("\n", $lines) . '</pre>');
+                                                            $lines = [];
+                                                            $lines[] = '## '.e($record->title);
+                                                            $lines[] = 'URL: '.e($record->url);
+                                                            if (filled($record->summary)) {
+                                                                $lines[] = '';
+                                                                $lines[] = 'Summary: '.e($record->summary);
+                                                            }
+                                                            if (filled($record->key_facts_text)) {
+                                                                $lines[] = '';
+                                                                $lines[] = 'Key Facts:';
+                                                                $lines[] = e($record->key_facts_text);
+                                                            }
+                                                            if (filled($record->faq_text)) {
+                                                                $lines[] = '';
+                                                                $lines[] = 'FAQ:';
+                                                                $lines[] = e($record->faq_text);
+                                                            }
+
+                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.8rem;line-height:1.6;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;color:#334155;">'.implode("\n", $lines).'</pre>');
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
@@ -1336,7 +1380,7 @@ class ProductResource extends Resource
                                                     Placeholder::make('updated_at')
                                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Last synced</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
@@ -1346,8 +1390,8 @@ class ProductResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_llms_vi')
+                                            Actions::make([
+                                                Action::make('regenerate_llms_vi')
                                                     ->label('Regenerate vi')
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
@@ -1356,8 +1400,10 @@ class ProductResource extends Resource
                                                     ->modalDescription('This will re-pull data from GEO/AI (vi) tab and overwrite the current entry. Proceed?')
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
-                                                        if (! $product?->exists) { return; }
-                                                        app(\App\Services\Seo\LlmsGeneratorService::class)->upsertEntry($product, null, 'vi');
+                                                        if (! $product?->exists) {
+                                                            return;
+                                                        }
+                                                        app(LlmsGeneratorService::class)->upsertEntry($product, null, 'vi');
                                                         Notification::make()->title('LLMs entry (vi) regenerated')->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
@@ -1376,13 +1422,25 @@ class ProductResource extends Resource
                                                             if (! $record) {
                                                                 return new HtmlString('<em class="text-gray-400">Not generated yet — save the product to trigger sync.</em>');
                                                             }
-                                                            $lines   = [];
-                                                            $lines[] = '## ' . e($record->title);
-                                                            $lines[] = 'URL: ' . e($record->url);
-                                                            if (filled($record->summary)) { $lines[] = ''; $lines[] = 'Summary: ' . e($record->summary); }
-                                                            if (filled($record->key_facts_text)) { $lines[] = ''; $lines[] = 'Key Facts:'; $lines[] = e($record->key_facts_text); }
-                                                            if (filled($record->faq_text)) { $lines[] = ''; $lines[] = 'FAQ:'; $lines[] = e($record->faq_text); }
-                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.8rem;line-height:1.6;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;color:#334155;">' . implode("\n", $lines) . '</pre>');
+                                                            $lines = [];
+                                                            $lines[] = '## '.e($record->title);
+                                                            $lines[] = 'URL: '.e($record->url);
+                                                            if (filled($record->summary)) {
+                                                                $lines[] = '';
+                                                                $lines[] = 'Summary: '.e($record->summary);
+                                                            }
+                                                            if (filled($record->key_facts_text)) {
+                                                                $lines[] = '';
+                                                                $lines[] = 'Key Facts:';
+                                                                $lines[] = e($record->key_facts_text);
+                                                            }
+                                                            if (filled($record->faq_text)) {
+                                                                $lines[] = '';
+                                                                $lines[] = 'FAQ:';
+                                                                $lines[] = e($record->faq_text);
+                                                            }
+
+                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.8rem;line-height:1.6;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;color:#334155;">'.implode("\n", $lines).'</pre>');
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
@@ -1392,7 +1450,7 @@ class ProductResource extends Resource
                                                     Placeholder::make('updated_at')
                                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Last synced</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
@@ -1402,8 +1460,8 @@ class ProductResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_llms_en')
+                                            Actions::make([
+                                                Action::make('regenerate_llms_en')
                                                     ->label('Regenerate en')
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
@@ -1412,8 +1470,10 @@ class ProductResource extends Resource
                                                     ->modalDescription('This will re-pull data from GEO/AI (en) tab and overwrite the current entry. Proceed?')
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
-                                                        if (! $product?->exists) { return; }
-                                                        app(\App\Services\Seo\LlmsGeneratorService::class)->upsertEntry($product, null, 'en');
+                                                        if (! $product?->exists) {
+                                                            return;
+                                                        }
+                                                        app(LlmsGeneratorService::class)->upsertEntry($product, null, 'en');
                                                         Notification::make()->title('LLMs entry (en) regenerated')->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
@@ -1455,13 +1515,16 @@ class ProductResource extends Resource
                                                     Placeholder::make('schema_header')
                                                         ->label('')
                                                         ->content(function ($record): HtmlString {
-                                                            if (! $record) { return new HtmlString(''); }
-                                                            $type  = $record->schema_type?->value ?? '—';
+                                                            if (! $record) {
+                                                                return new HtmlString('');
+                                                            }
+                                                            $type = $record->schema_type?->value ?? '—';
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
-                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>" . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "{$auto}</div>");
+
+                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."{$auto}</div>");
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
@@ -1471,7 +1534,8 @@ class ProductResource extends Resource
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the product to generate.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">' . e($json) . '</pre>');
+
+                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'.e($json).'</pre>');
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
@@ -1480,12 +1544,11 @@ class ProductResource extends Resource
                                                     Placeholder::make('schema_updated_at')
                                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Last generated</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -1496,8 +1559,8 @@ class ProductResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_jsonld_vi')
+                                            Actions::make([
+                                                Action::make('regenerate_jsonld_vi')
                                                     ->label('Regenerate vi')
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
@@ -1506,8 +1569,10 @@ class ProductResource extends Resource
                                                     ->modalDescription('Re-generate all Auto schemas for the Vietnamese locale. Manual schemas will not be affected.')
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
-                                                        if (! $product?->exists) { return; }
-                                                        app(\App\Services\Seo\JsonldService::class)->syncForModel($product, 'vi');
+                                                        if (! $product?->exists) {
+                                                            return;
+                                                        }
+                                                        app(JsonldService::class)->syncForModel($product, 'vi');
                                                         Notification::make()->title('JSON-LD (vi) regenerated')->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
@@ -1523,13 +1588,16 @@ class ProductResource extends Resource
                                                     Placeholder::make('schema_header')
                                                         ->label('')
                                                         ->content(function ($record): HtmlString {
-                                                            if (! $record) { return new HtmlString(''); }
-                                                            $type  = $record->schema_type?->value ?? '—';
+                                                            if (! $record) {
+                                                                return new HtmlString('');
+                                                            }
+                                                            $type = $record->schema_type?->value ?? '—';
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
-                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>" . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "{$auto}</div>");
+
+                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."{$auto}</div>");
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
@@ -1539,7 +1607,8 @@ class ProductResource extends Resource
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the product to generate.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">' . e($json) . '</pre>');
+
+                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'.e($json).'</pre>');
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
@@ -1548,12 +1617,11 @@ class ProductResource extends Resource
                                                     Placeholder::make('schema_updated_at')
                                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Last generated</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -1564,8 +1632,8 @@ class ProductResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_jsonld_en')
+                                            Actions::make([
+                                                Action::make('regenerate_jsonld_en')
                                                     ->label('Regenerate en')
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
@@ -1574,8 +1642,10 @@ class ProductResource extends Resource
                                                     ->modalDescription('Re-generate all Auto schemas for the English locale. Manual schemas will not be affected.')
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
-                                                        if (! $product?->exists) { return; }
-                                                        app(\App\Services\Seo\JsonldService::class)->syncForModel($product, 'en');
+                                                        if (! $product?->exists) {
+                                                            return;
+                                                        }
+                                                        app(JsonldService::class)->syncForModel($product, 'en');
                                                         Notification::make()->title('JSON-LD (en) regenerated')->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
@@ -1649,22 +1719,22 @@ class ProductResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
-                \Filament\Actions\Action::make('toggleActive')
+                Action::make('toggleActive')
                     ->label(fn (Product $record) => $record->is_active ? 'Hide' : 'Show')
                     ->icon(fn (Product $record) => $record->is_active ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
                     ->color(fn (Product $record) => $record->is_active ? 'warning' : 'success')
                     ->action(fn (Product $record) => $record->update(['is_active' => ! $record->is_active])),
 
-                \Filament\Actions\Action::make('audit')
+                Action::make('audit')
                     ->label('Audit')
                     ->icon('heroicon-o-clipboard-document-check')
                     ->color('info')
-                    ->action(function (Product $record): \Symfony\Component\HttpFoundation\StreamedResponse {
-                        $content  = app(\App\Services\Audit\ProductAuditService::class)->buildReport($record);
-                        $filename = $record->slug . '-audit-' . now()->format('Ymd-Hi') . '.md';
+                    ->action(function (Product $record): StreamedResponse {
+                        $content = app(ProductAuditService::class)->buildReport($record);
+                        $filename = $record->slug.'-audit-'.now()->format('Ymd-Hi').'.md';
 
                         return response()->streamDownload(
-                            fn () => print($content),
+                            fn () => print ($content),
                             $filename,
                             ['Content-Type' => 'text/markdown; charset=utf-8'],
                         );
@@ -1692,9 +1762,9 @@ class ProductResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListProducts::route('/'),
+            'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
-            'edit'   => Pages\EditProduct::route('/{record}/edit'),
+            'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
     }
 
@@ -1739,14 +1809,20 @@ class ProductResource extends Resource
     private static function charCounter(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
+
         return "{$len} / {$min}–{$max} chars";
     }
 
     private static function charCounterColor(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
-        if ($len === 0) return 'gray';
-        if ($len < $min || $len > $max) return 'warning';
+        if ($len === 0) {
+            return 'gray';
+        }
+        if ($len < $min || $len > $max) {
+            return 'warning';
+        }
+
         return 'success';
     }
 }

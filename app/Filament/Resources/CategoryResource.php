@@ -7,7 +7,10 @@ use App\Filament\Resources\CategoryResource\Pages;
 use App\Forms\Components\MediaFileUpload;
 use App\Forms\Plugins\MediaRichEditorPlugin;
 use App\Models\Category;
+use App\Services\Seo\JsonldService;
+use App\Support\LocaleUrl;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -16,6 +19,7 @@ use Filament\Forms;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -28,6 +32,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Unique;
 
 class CategoryResource extends Resource
 {
@@ -56,13 +61,16 @@ class CategoryResource extends Resource
                         ->schema([
                             Forms\Components\Select::make('parent_id')
                                 ->label('Parent Category')
+                                ->helperText('Tối đa 2 cấp — chỉ danh mục gốc (chưa có parent) mới được chọn làm parent.')
                                 ->options(function (?Category $record): array {
-                                    // Exclude self + all descendants — picking one of them as
-                                    // parent would create a circular reference (also hard-blocked
-                                    // in CategoryObserver::saving() as a backstop).
+                                    // Only root categories (no parent of their own) can be picked as
+                                    // parent — enforces a hard 2-level max. Also exclude self + all
+                                    // descendants to avoid a circular reference (both hard-blocked in
+                                    // CategoryObserver::saving() as a backstop).
                                     $excluded = $record ? [$record->getKey(), ...$record->descendantIds()] : [];
 
                                     return Category::query()
+                                        ->whereNull('parent_id')
                                         ->when($excluded, fn ($q) => $q->whereNotIn('id', $excluded))
                                         ->orderBy('sort_order')
                                         ->orderBy('name')
@@ -81,8 +89,7 @@ class CategoryResource extends Resource
                                 ->helperText('Tên ngắn gọn để nhận biết danh mục trong hệ thống.')
                                 ->required()
                                 ->live(debounce: 500)
-                                ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                                    $set('slug', Str::slug($state ?? ''))
+                                ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                                 ),
 
                             Forms\Components\TextInput::make('slug')
@@ -134,8 +141,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) =>
-                                                    $set('translations.vi.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.vi.slug', Str::slug($state ?? '')))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
@@ -148,11 +154,12 @@ class CategoryResource extends Resource
                                                     table: 'category_translations',
                                                     column: 'slug',
                                                     ignoreRecord: false,
-                                                    modifyRuleUsing: function (\Illuminate\Validation\Rules\Unique $rule, ?Category $record): \Illuminate\Validation\Rules\Unique {
+                                                    modifyRuleUsing: function (Unique $rule, ?Category $record): Unique {
                                                         $rule->where('locale', 'vi');
                                                         if ($record) {
                                                             $rule->ignore($record->getKey(), 'category_id');
                                                         }
+
                                                         return $rule;
                                                     },
                                                 )
@@ -184,8 +191,7 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) =>
-                                                    $set('translations.en.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
@@ -198,11 +204,12 @@ class CategoryResource extends Resource
                                                     table: 'category_translations',
                                                     column: 'slug',
                                                     ignoreRecord: false,
-                                                    modifyRuleUsing: function (\Illuminate\Validation\Rules\Unique $rule, ?Category $record): \Illuminate\Validation\Rules\Unique {
+                                                    modifyRuleUsing: function (Unique $rule, ?Category $record): Unique {
                                                         $rule->where('locale', 'en');
                                                         if ($record) {
                                                             $rule->ignore($record->getKey(), 'category_id');
                                                         }
+
                                                         return $rule;
                                                     },
                                                 )
@@ -295,7 +302,7 @@ class CategoryResource extends Resource
                                                                     if (empty($state)) {
                                                                         $slug = $livewire->record?->translation('vi')?->slug ?? $livewire->record?->slug;
                                                                         if ($slug) {
-                                                                            $set('canonical_url', \App\Support\LocaleUrl::for('category', $slug, 'vi'));
+                                                                            $set('canonical_url', LocaleUrl::for('category', $slug, 'vi'));
                                                                         }
                                                                     }
                                                                 })
@@ -304,9 +311,9 @@ class CategoryResource extends Resource
                                                             Forms\Components\Select::make('robots')
                                                                 ->label('Robots')
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow (default)',
-                                                                    'noindex,follow'   => 'noindex,follow',
-                                                                    'index,nofollow'   => 'index,nofollow',
+                                                                    'index,follow' => 'index, follow (default)',
+                                                                    'noindex,follow' => 'noindex,follow',
+                                                                    'index,nofollow' => 'index,nofollow',
                                                                     'noindex,nofollow' => 'noindex,nofollow',
                                                                 ])
                                                                 ->default('index,follow')
@@ -376,7 +383,7 @@ class CategoryResource extends Resource
                                                             Forms\Components\Select::make('twitter_card')
                                                                 ->label('Card Type')
                                                                 ->options([
-                                                                    'summary'             => 'Summary',
+                                                                    'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
                                                                 ])
                                                                 ->default('summary_large_image')
@@ -475,7 +482,7 @@ class CategoryResource extends Resource
                                                                     if (empty($state)) {
                                                                         $slug = $livewire->record?->translation('en')?->slug ?? $livewire->record?->slug;
                                                                         if ($slug) {
-                                                                            $set('canonical_url', \App\Support\LocaleUrl::for('category', $slug, 'en'));
+                                                                            $set('canonical_url', LocaleUrl::for('category', $slug, 'en'));
                                                                         }
                                                                     }
                                                                 })
@@ -484,9 +491,9 @@ class CategoryResource extends Resource
                                                             Forms\Components\Select::make('robots')
                                                                 ->label('Robots')
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow (default)',
-                                                                    'noindex,follow'   => 'noindex,follow',
-                                                                    'index,nofollow'   => 'index,nofollow',
+                                                                    'index,follow' => 'index, follow (default)',
+                                                                    'noindex,follow' => 'noindex,follow',
+                                                                    'index,nofollow' => 'index,nofollow',
                                                                     'noindex,nofollow' => 'noindex,nofollow',
                                                                 ])
                                                                 ->default('index,follow')
@@ -556,7 +563,7 @@ class CategoryResource extends Resource
                                                             Forms\Components\Select::make('twitter_card')
                                                                 ->label('Card Type')
                                                                 ->options([
-                                                                    'summary'             => 'Summary',
+                                                                    'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
                                                                 ])
                                                                 ->default('summary_large_image')
@@ -816,15 +823,16 @@ class CategoryResource extends Resource
                                                             if (! $record) {
                                                                 return new HtmlString('');
                                                             }
-                                                            $type  = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
+                                                            $type = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
+
                                                             return new HtmlString("
                                                                 <div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'>
                                                                     <span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>
-                                                                    " . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "
+                                                                    ".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."
                                                                     {$auto}
                                                                 </div>
                                                             ");
@@ -838,10 +846,11 @@ class CategoryResource extends Resource
                                                                 return new HtmlString('<em class="text-gray-400">Chưa có payload — lưu danh mục để tạo.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
                                                             return new HtmlString(
                                                                 '<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'
-                                                                . e($json)
-                                                                . '</pre>'
+                                                                .e($json)
+                                                                .'</pre>'
                                                             );
                                                         })
                                                         ->columnSpanFull(),
@@ -853,12 +862,11 @@ class CategoryResource extends Resource
                                                     Placeholder::make('schema_updated_at')
                                                         ->label('Cập nhật lần cuối')
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -869,8 +877,8 @@ class CategoryResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_jsonld_vi')
+                                            Actions::make([
+                                                Action::make('regenerate_jsonld_vi')
                                                     ->label('Regenerate vi')
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
@@ -879,8 +887,10 @@ class CategoryResource extends Resource
                                                     ->modalDescription('Re-generate all Auto schemas for the Vietnamese locale. Manual schemas will not be affected.')
                                                     ->action(function ($livewire): void {
                                                         $category = $livewire->record;
-                                                        if (! $category?->exists) { return; }
-                                                        app(\App\Services\Seo\JsonldService::class)->syncForModel($category, 'vi');
+                                                        if (! $category?->exists) {
+                                                            return;
+                                                        }
+                                                        app(JsonldService::class)->syncForModel($category, 'vi');
                                                         Notification::make()->title('JSON-LD (vi) đã được regenerate')->success()->send();
                                                         redirect(CategoryResource::getUrl('edit', ['record' => $category]));
                                                     }),
@@ -899,15 +909,16 @@ class CategoryResource extends Resource
                                                             if (! $record) {
                                                                 return new HtmlString('');
                                                             }
-                                                            $type  = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
+                                                            $type = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
+
                                                             return new HtmlString("
                                                                 <div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'>
                                                                     <span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>
-                                                                    " . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "
+                                                                    ".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."
                                                                     {$auto}
                                                                 </div>
                                                             ");
@@ -921,10 +932,11 @@ class CategoryResource extends Resource
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the category to generate.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
                                                             return new HtmlString(
                                                                 '<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'
-                                                                . e($json)
-                                                                . '</pre>'
+                                                                .e($json)
+                                                                .'</pre>'
                                                             );
                                                         })
                                                         ->columnSpanFull(),
@@ -936,12 +948,11 @@ class CategoryResource extends Resource
                                                     Placeholder::make('schema_updated_at')
                                                         ->label('Last updated')
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -952,8 +963,8 @@ class CategoryResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_jsonld_en')
+                                            Actions::make([
+                                                Action::make('regenerate_jsonld_en')
                                                     ->label('Regenerate en')
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
@@ -962,8 +973,10 @@ class CategoryResource extends Resource
                                                     ->modalDescription('Re-generate all Auto schemas for the English locale. Manual schemas will not be affected.')
                                                     ->action(function ($livewire): void {
                                                         $category = $livewire->record;
-                                                        if (! $category?->exists) { return; }
-                                                        app(\App\Services\Seo\JsonldService::class)->syncForModel($category, 'en');
+                                                        if (! $category?->exists) {
+                                                            return;
+                                                        }
+                                                        app(JsonldService::class)->syncForModel($category, 'en');
                                                         Notification::make()->title('JSON-LD (en) regenerated')->success()->send();
                                                         redirect(CategoryResource::getUrl('edit', ['record' => $category]));
                                                     }),
@@ -1028,9 +1041,9 @@ class CategoryResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListCategories::route('/'),
+            'index' => Pages\ListCategories::route('/'),
             'create' => Pages\CreateCategory::route('/create'),
-            'edit'   => Pages\EditCategory::route('/{record}/edit'),
+            'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
     }
 
@@ -1039,14 +1052,20 @@ class CategoryResource extends Resource
     private static function charCounter(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
+
         return "{$len} / {$max} chars";
     }
 
     private static function charCounterColor(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
-        if ($len === 0) return 'gray';
-        if ($len < $min || $len > $max) return 'warning';
+        if ($len === 0) {
+            return 'gray';
+        }
+        if ($len < $min || $len > $max) {
+            return 'warning';
+        }
+
         return 'success';
     }
 }

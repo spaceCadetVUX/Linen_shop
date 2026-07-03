@@ -8,11 +8,11 @@ use App\Models\FilterGroup;
 use App\Models\ProductTranslation;
 use App\Models\Setting;
 use App\Services\Catalog\ProductSearchService;
-use Illuminate\Http\JsonResponse;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
 use App\Support\LocaleUrl;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 
 class ProductController extends Controller
@@ -23,7 +23,7 @@ class ProductController extends Controller
 
     public function index(string $locale): View
     {
-        $keyword   = (string) request()->query('q', '');
+        $keyword = (string) request()->query('q', '');
         $brandSlug = (string) request()->query('brand', '');
 
         // Load filter groups with their active values
@@ -59,8 +59,8 @@ class ProductController extends Controller
             'en' => route('en.product.shop'),
         ]);
 
-        $ogRaw         = Setting::get('default_og_image');
-        $fallbackImage = $ogRaw ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/' . ltrim($ogRaw, '/'))) : null;
+        $ogRaw = Setting::get('default_og_image');
+        $fallbackImage = $ogRaw ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/'.ltrim($ogRaw, '/'))) : null;
 
         $fallbackTitle = $locale === 'vi'
             ? (Setting::get('product_catalog_title') ?: 'Tất cả sản phẩm — LINNÉ')
@@ -73,12 +73,12 @@ class ProductController extends Controller
             'locale', 'products', 'filterGroups', 'brands',
             'activeValueSlugs', 'brandSlug', 'keyword'
         ) + [
-            'seoMeta'             => null,
-            'fallbackTitle'       => $fallbackTitle,
+            'seoMeta' => null,
+            'fallbackTitle' => $fallbackTitle,
             'fallbackDescription' => $fallbackDescription,
-            'fallbackImage'       => $fallbackImage,
-            'ogType'              => 'website',
-            'jsonldSchemas'       => [],
+            'fallbackImage' => $fallbackImage,
+            'ogType' => 'website',
+            'jsonldSchemas' => [],
         ]);
     }
 
@@ -92,34 +92,34 @@ class ProductController extends Controller
 
         $query = ProductTranslation::where('locale', $locale)
             ->where(fn ($w) => $w
-                ->where('name', 'ilike', '%' . $q . '%')
-                ->orWhere('slug', 'ilike', '%' . $q . '%')
+                ->where('name', 'ilike', '%'.$q.'%')
+                ->orWhere('slug', 'ilike', '%'.$q.'%')
             )
             ->whereHas('product', fn ($p) => $p->where('is_active', true))
             ->with(['product.thumbnail', 'product.brand'])
             ->limit(8);
 
         $translations = $query->get();
-        $total        = ProductTranslation::where('locale', $locale)
+        $total = ProductTranslation::where('locale', $locale)
             ->where(fn ($w) => $w
-                ->where('name', 'ilike', '%' . $q . '%')
-                ->orWhere('slug', 'ilike', '%' . $q . '%')
+                ->where('name', 'ilike', '%'.$q.'%')
+                ->orWhere('slug', 'ilike', '%'.$q.'%')
             )
             ->whereHas('product', fn ($p) => $p->where('is_active', true))
             ->count();
 
         $products = $translations->map(fn ($t) => [
-            'name'      => $t->name,
-            'url'       => route($locale . '.product.show', $t->slug),
+            'name' => $t->name,
+            'url' => route($locale.'.product.show', $t->slug),
             'image_url' => $t->product->thumbnail?->url ?? null,
-            'brand'     => $t->product->brand?->name,
-            'sku'       => $t->product->sku ?? null,
+            'brand' => $t->product->brand?->name,
+            'sku' => $t->product->sku ?? null,
         ]);
 
         return response()->json([
             'products' => $products,
-            'total'    => $total,
-            'hasMore'  => $total > 8,
+            'total' => $total,
+            'hasMore' => $total > 8,
         ]);
     }
 
@@ -164,23 +164,22 @@ class ProductController extends Controller
         }
 
         // Related products: same category, same locale, exclude self, limit 8
-        $firstCategory   = $product->categories->first();
+        $firstCategory = $product->categories->first();
         $relatedProducts = collect();
         if ($firstCategory) {
             $relatedIds = ProductTranslation::where('locale', $locale)
                 ->where('id', '!=', $translation->id)
-                ->whereHas('product', fn ($q) =>
-                    $q->active()
-                      ->whereHas('categories', fn ($q2) => $q2->where('categories.id', $firstCategory->id))
+                ->whereHas('product', fn ($q) => $q->active()
+                    ->whereHas('categories', fn ($q2) => $q2->where('categories.id', $firstCategory->id))
                 )
-                ->with(['product.thumbnail'])
+                ->with(['product.images'])
                 ->limit(8)
                 ->get();
             $relatedProducts = $relatedIds;
         }
 
-        $alternateUrls       = app(SeoService::class)->alternateUrls($product);
-        $seoMeta             = $product->seoMeta($locale);
+        $alternateUrls = app(SeoService::class)->alternateUrls($product);
+        $seoMeta = $product->seoMeta($locale);
         $jsonldSchemas = app(JsonldService::class)->getActiveSchemas($product, $locale)
             ->pluck('payload')
             ->toArray();
@@ -201,39 +200,40 @@ class ProductController extends Controller
                     );
                 }
                 $schema['offers'] = $offers;
+
                 return $schema;
             }, $jsonldSchemas);
         }
-        $fallbackTitle       = $translation->name;
+        $fallbackTitle = $translation->name;
         $fallbackDescription = $translation->short_description ?? '';
-        $fallbackImage       = $product->thumbnail
+        $fallbackImage = $product->thumbnail
             ? url($product->thumbnail->url)
             : null;
-        $ogType              = 'product';
+        $ogType = 'product';
 
         view()->share('alternateUrls', $alternateUrls);
 
         // Build variants JSON for frontend selector
         $variantsData = $product->variants->map(fn ($v) => [
-            'id'         => $v->id,
-            'sku'        => $v->sku,
-            'price'      => (float) ($v->sale_price && $v->sale_price < $v->price ? $v->sale_price : $v->price),
+            'id' => $v->id,
+            'sku' => $v->sku,
+            'price' => (float) ($v->sale_price && $v->sale_price < $v->price ? $v->sale_price : $v->price),
             'base_price' => (float) $v->price,
             'sale_price' => $v->sale_price ? (float) $v->sale_price : null,
-            'stock'      => $v->stock_quantity,
-            'image_url'  => $v->image?->url,
-            'options'    => $v->optionValues->map(fn ($ov) => [
-                'type_id'  => $ov->option_type_id,
+            'stock' => $v->stock_quantity,
+            'image_url' => $v->image?->url,
+            'options' => $v->optionValues->map(fn ($ov) => [
+                'type_id' => $ov->option_type_id,
                 'value_id' => $ov->id,
-                'value'    => $ov->value,
+                'value' => $ov->value,
             ])->values()->all(),
         ])->values()->all();
 
         $optionTypesData = $product->optionTypes->map(fn ($t) => [
-            'id'     => $t->id,
-            'name'   => $t->name,
+            'id' => $t->id,
+            'name' => $t->name,
             'values' => $t->values->map(fn ($v) => [
-                'id'    => $v->id,
+                'id' => $v->id,
                 'value' => $v->value,
             ])->values()->all(),
         ])->values()->all();

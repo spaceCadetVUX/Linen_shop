@@ -847,6 +847,11 @@ img    { display: block; }
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
+.mega-products-empty {
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--stone);
+}
 .mega-product-card {
   display: block;
   text-decoration: none;

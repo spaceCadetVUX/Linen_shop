@@ -16,25 +16,36 @@ use App\Services\Category\CategoryService;
 class CategoryObserver
 {
     /**
-     * Defense-in-depth against a circular parent chain (A→B→A, or deeper).
-     * The Filament form already filters descendants out of the parent picker,
-     * but this also covers writes from the MCP upsert endpoint and any future
-     * direct Eloquent write that bypasses the form.
+     * Defense-in-depth against a circular parent chain (A→B→A, or deeper) and
+     * against nesting past the 2-level max (root → child only). The Filament
+     * form already filters both cases out of the parent picker, but this also
+     * covers writes from the MCP upsert endpoint and any future direct
+     * Eloquent write that bypasses the form.
      */
     public function saving(Category $category): void
     {
-        if (! $category->exists || ! $category->isDirty('parent_id') || ! $category->parent_id) {
+        if (! $category->isDirty('parent_id') || ! $category->parent_id) {
             return;
         }
 
-        $blocked = array_map(
-            'strval',
-            [$category->getKey(), ...$category->descendantIds()],
-        );
+        if ($category->exists) {
+            $blocked = array_map(
+                'strval',
+                [$category->getKey(), ...$category->descendantIds()],
+            );
 
-        if (in_array((string) $category->parent_id, $blocked, true)) {
+            if (in_array((string) $category->parent_id, $blocked, true)) {
+                throw new \DomainException(
+                    "Category #{$category->getKey()}: parent_id {$category->parent_id} would create a circular parent reference.",
+                );
+            }
+        }
+
+        $parent = Category::withTrashed()->find($category->parent_id);
+
+        if ($parent && $parent->parent_id) {
             throw new \DomainException(
-                "Category #{$category->getKey()}: parent_id {$category->parent_id} would create a circular parent reference.",
+                "Category parent_id {$category->parent_id} is itself a child category — nesting is capped at 2 levels.",
             );
         }
     }
@@ -163,7 +174,7 @@ class CategoryObserver
     public function forceDeleting(Category $category): void
     {
         $morphClass = $category->getMorphClass();
-        $modelId    = $category->getKey();
+        $modelId = $category->getKey();
 
         SeoMeta::where('model_type', $morphClass)->where('model_id', $modelId)->delete();
         GeoEntityProfile::where('model_type', $morphClass)->where('model_id', $modelId)->delete();

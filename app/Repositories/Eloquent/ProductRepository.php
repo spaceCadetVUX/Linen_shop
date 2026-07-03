@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\FilterGroup;
 use App\Models\Product;
 use App\Models\ProductTranslation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -22,7 +23,7 @@ class ProductRepository extends BaseRepository
      * This is the source of truth for the query shape — ProductSearchService's
      * Meilisearch path must return equivalent results for the same inputs.
      *
-     * @param  EloquentCollection<int, \App\Models\FilterGroup>  $filterGroups  active groups with activeValues loaded
+     * @param  EloquentCollection<int, FilterGroup>  $filterGroups  active groups with activeValues loaded
      * @param  array<string, array<int, string>>  $activeValueSlugs  [group_slug => [value_slug, ...]]
      */
     public function searchWithFiltersSql(
@@ -42,7 +43,7 @@ class ProductRepository extends BaseRepository
                 }
             })
             ->with([
-                'product.thumbnail',
+                'product.images',
                 'product.brand',
                 'product.categories' => fn ($q) => $q->orderBy('sort_order'),
                 'product.categories.translations' => fn ($q) => $q->where('locale', $locale),
@@ -57,7 +58,7 @@ class ProductRepository extends BaseRepository
             $query->whereHas(
                 'product.filterValues',
                 fn ($q) => $q->where('filter_group_id', $group->id)
-                             ->whereIn('filter_values.slug', $valueSlugs)
+                    ->whereIn('filter_values.slug', $valueSlugs)
             );
         }
 
@@ -91,7 +92,7 @@ class ProductRepository extends BaseRepository
         $translations = ProductTranslation::where('locale', $locale)
             ->whereIn('product_id', $orderedProductIds)
             ->with([
-                'product.thumbnail',
+                'product.images',
                 'product.brand',
                 'product.categories' => fn ($q) => $q->orderBy('sort_order'),
                 'product.categories.translations' => fn ($q) => $q->where('locale', $locale),
@@ -139,12 +140,12 @@ class ProductRepository extends BaseRepository
         }
 
         match ($filters['sort'] ?? null) {
-            'price_asc'  => $query->orderBy('price', 'asc'),
+            'price_asc' => $query->orderBy('price', 'asc'),
             'price_desc' => $query->orderBy('price', 'desc'),
-            'name_asc'   => $query->orderBy('name', 'asc'),
-            'name_desc'  => $query->orderBy('name', 'desc'),
-            'newest'     => $query->orderBy('created_at', 'desc'),
-            default      => $query->orderBy('name', 'asc'),
+            'name_asc' => $query->orderBy('name', 'asc'),
+            'name_desc' => $query->orderBy('name', 'desc'),
+            'newest' => $query->orderBy('created_at', 'desc'),
+            default => $query->orderBy('name', 'asc'),
         };
 
         return $query->paginate($perPage);

@@ -125,6 +125,14 @@ return [
     |
     */
 
-    'serializable_classes' => false,
+    // Whitelisted, not `true` blanket-allow — CategoryService::getTree() is the
+    // only place in the app that caches Eloquent objects directly (category tree,
+    // used by the header mega menu and the /api/v1/categories endpoint). Add a
+    // class here only when a new Cache::remember() call needs to store it.
+    'serializable_classes' => [
+        \Illuminate\Database\Eloquent\Collection::class,
+        \App\Models\Category::class,
+        \App\Models\CategoryTranslation::class,
+    ],
 
 ];

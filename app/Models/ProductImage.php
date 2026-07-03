@@ -19,6 +19,23 @@ class ProductImage extends Model
                 Storage::disk('public')->delete($image->path);
             }
         });
+
+        // Defense-in-depth: cap "card priority" images at 2 per product,
+        // regardless of entry point (Filament UI cap is JS-side via ->live()).
+        static::saving(function (ProductImage $image): void {
+            if (! $image->is_card_priority) {
+                return;
+            }
+
+            $alreadyPriority = static::where('product_id', $image->product_id)
+                ->where('is_card_priority', true)
+                ->when($image->exists, fn ($q) => $q->where('id', '!=', $image->id))
+                ->count();
+
+            if ($alreadyPriority >= 2) {
+                $image->is_card_priority = false;
+            }
+        });
     }
 
     protected $fillable = [
@@ -27,6 +44,7 @@ class ProductImage extends Model
         'alt_text',
         'sort_order',
         'price',
+        'is_card_priority',
     ];
 
     // ── Casts ─────────────────────────────────────────────────────────────────
@@ -35,7 +53,8 @@ class ProductImage extends Model
     {
         return [
             'sort_order' => 'integer',
-            'price'      => 'decimal:2',
+            'price' => 'decimal:2',
+            'is_card_priority' => 'boolean',
         ];
     }
 

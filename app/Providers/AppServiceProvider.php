@@ -115,8 +115,20 @@ class AppServiceProvider extends ServiceProvider
                 ? ($megaMenu['collection_label_en'] ?? 'Collections')
                 : ($megaMenu['collection_label'] ?? 'Bộ sưu tập'));
 
-            // "Bộ sưu tập" quick-nav link → shop listing (no real Category data mapped yet).
+            // "Bộ sưu tập" quick-nav link → shop listing (fallback while categories are empty).
             $view->with('megaMenuCollectionUrl', route("{$locale}.product.shop"));
+
+            // Column 2 groups/links + column 3 hover-preview products, from real Category data.
+            $megaMenuGroups = app(\App\Services\Category\CategoryService::class)->getMegaMenuData($locale);
+            $view->with('megaMenuGroups', $megaMenuGroups);
+
+            $productsByCat = [];
+            foreach ($megaMenuGroups as $group) {
+                foreach ($group['children'] as $child) {
+                    $productsByCat[$child['mega_cat']] = $child['products'];
+                }
+            }
+            $view->with('megaMenuProductsByCat', $productsByCat);
         });
     }
 

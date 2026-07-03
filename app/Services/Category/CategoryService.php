@@ -3,7 +3,9 @@
 namespace App\Services\Category;
 
 use App\Models\Category;
+use App\Models\Product;
 use App\Repositories\Eloquent\CategoryRepository;
+use App\Support\LocaleUrl;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -41,5 +43,42 @@ class CategoryService
     public function bustTreeCache(): void
     {
         Cache::forget(self::TREE_CACHE_KEY);
+    }
+
+    /**
+     * Root category → active children → up to 4 active products each, shaped
+     * for the header mega menu (column 2 groups/links + column 3 hover preview).
+     *
+     * Reuses the cached tree for the group/link structure; products are loaded
+     * fresh per request (not part of the tree cache) since a boutique catalog
+     * this size makes that cheap and keeps stock in sync without a cache bust.
+     */
+    public function getMegaMenuData(string $locale): array
+    {
+        $tree = $this->getTree();
+
+        $tree->loadMissing([
+            'children.products' => fn ($q) => $q->where('products.is_active', true),
+            'children.products.thumbnail',
+            'children.products.translations',
+        ]);
+
+        return $tree->map(fn (Category $root) => [
+            'name'     => $root->translation($locale)?->name ?? $root->name,
+            'children' => $root->children->map(fn (Category $child) => [
+                'label'    => $child->translation($locale)?->name ?? $child->name,
+                'mega_cat' => $child->slug,
+                'url'      => LocaleUrl::for('category', $child->translation($locale)?->slug ?? $child->slug, $locale),
+                'products' => $child->products->take(4)
+                    ->map(fn (Product $product) => [
+                        'name'  => $product->translation($locale)?->name ?? $product->name,
+                        'image' => $product->thumbnail?->url,
+                        'url'   => LocaleUrl::for('product', $product->translation($locale)?->slug ?? $product->slug, $locale),
+                    ])
+                    ->filter(fn (array $p) => filled($p['image']))
+                    ->values()
+                    ->all(),
+            ])->values()->all(),
+        ])->values()->all();
     }
 }

@@ -237,6 +237,7 @@ cache                    sessions
 | `path` | varchar(500) | NOT NULL | Relative path from storage root |
 | `alt_text` | varchar(255) | nullable | SEO alt text |
 | `sort_order` | integer | NOT NULL, default 0 | |
+| `is_card_priority` | boolean | NOT NULL, default false | Max 2 per product (enforced in `ProductImage::booted()`). Used to pick primary/hover image on storefront product card — see `Product::cardImages()` |
 | `created_at` | timestamp | NOT NULL | |
 | `updated_at` | timestamp | NOT NULL | |
 

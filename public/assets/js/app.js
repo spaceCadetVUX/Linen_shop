@@ -109,40 +109,26 @@ updateNav();
 }());
 
 /* ---------- Mega menu: col 3 dynamic products ---------- */
+/* DATA comes from #megaWrap[data-mega-products] — a { [categorySlug]: [{name,image,url}] }
+   map rendered server-side from real Category/Product data (see CategoryService::getMegaMenuData). */
 (function () {
   if (window.innerWidth <= 768) return;
 
-  var grid    = document.getElementById('megaProductGrid');
-  var eyebrow = document.getElementById('megaProductsEyebrow');
-  if (!grid) return;
+  var megaWrap = document.getElementById('megaWrap');
+  var grid     = document.getElementById('megaProductGrid');
+  var eyebrow  = document.getElementById('megaProductsEyebrow');
+  var empty    = document.getElementById('megaProductsEmpty');
+  if (!megaWrap || !grid) return;
 
   var cards = Array.prototype.slice.call(grid.querySelectorAll('.mega-product-card'));
   if (!cards.length) return;
 
-  var B  = 'https://elleandriley.com/cdn/shop/files/';
-  var qPB  = 'Slim_tee_Pale_Blue.jpg?v=1778216637&width=600';
-  var qPM2 = 'Slim_Tee_BrownMelange2.jpg?v=1778217470&width=600';
-  var qPM  = 'Slim_Tee_BrownMelange.jpg?v=1778217470&width=600';
-  var qBi  = 'Slim_Tee_Birch.jpg?v=1778217589&width=600';
-  var qSc  = 'Bandana-Scarf-Sand-Cream3.jpg?v=1781216151&width=600';
-  var qCa  = 'Cashmere_Crew_Camel3.jpg?v=1779070696&width=600';
-
-  var DATA = {
-    'ao-linen':      [{ img: qPB,  name: 'Áo linen cổ chữ V' },   { img: qPM2, name: 'Áo blouse thắt nơ' },    { img: qBi,  name: 'Áo linen oversized' },    { img: qCa,  name: 'Áo cashmere camel' }],
-    'ao-blouse':     [{ img: qPM2, name: 'Áo blouse thắt nơ' },   { img: qPB,  name: 'Áo blouse xanh nhạt' },  { img: qPM,  name: 'Áo blouse nâu' },          { img: qBi,  name: 'Áo blouse trắng' }],
-    'ao-phong':      [{ img: qPB,  name: 'Áo phông xanh nhạt' },  { img: qPM,  name: 'Áo phông nâu' },         { img: qBi,  name: 'Áo phông trắng' },         { img: qCa,  name: 'Áo phông camel' }],
-    'ao-khoac':      [{ img: qCa,  name: 'Áo khoác cashmere' },   { img: qBi,  name: 'Áo khoác linen trắng' }, { img: qPM2, name: 'Cardigan nâu đậm' },        { img: qPB,  name: 'Áo khoác xanh nhạt' }],
-    'quan-au':       [{ img: qPM,  name: 'Quần âu nâu' },         { img: qBi,  name: 'Quần âu trắng' },        { img: qCa,  name: 'Quần âu camel' },           { img: qPB,  name: 'Quần âu xanh' }],
-    'wide-leg':      [{ img: qPM2, name: 'Wide leg nâu đậm' },    { img: qPB,  name: 'Wide leg xanh nhạt' },   { img: qCa,  name: 'Wide leg camel' },          { img: qBi,  name: 'Wide leg trắng' }],
-    'vay-midi':      [{ img: qSc,  name: 'Váy midi sand' },       { img: qPB,  name: 'Váy midi xanh nhạt' },   { img: qPM,  name: 'Váy midi nâu' },            { img: qBi,  name: 'Váy midi trắng' }],
-    'vay-maxi':      [{ img: qBi,  name: 'Váy maxi trắng' },      { img: qPM2, name: 'Váy maxi nâu đậm' },    { img: qPB,  name: 'Váy maxi xanh' },           { img: qCa,  name: 'Váy maxi camel' }],
-    'set-quan':      [{ img: qPB,  name: 'Set linen xanh nhạt' }, { img: qBi,  name: 'Set linen trắng' },      { img: qPM,  name: 'Set linen nâu' },           { img: qCa,  name: 'Set linen camel' }],
-    'set-vay':       [{ img: qPM2, name: 'Set blouse + váy nâu' },{ img: qSc,  name: 'Set blouse + váy sand' },{ img: qBi,  name: 'Set blouse trắng' },        { img: qPB,  name: 'Set blouse xanh' }],
-    'set-oversized': [{ img: qCa,  name: 'Set oversized camel' },  { img: qPM,  name: 'Set oversized nâu' },   { img: qPB,  name: 'Set oversized xanh' },      { img: qBi,  name: 'Set oversized trắng' }],
-    'tui-tote':      [{ img: qSc,  name: 'Túi tote sand' },       { img: qBi,  name: 'Túi tote trắng' },       { img: qPB,  name: 'Túi tote xanh' },           { img: qCa,  name: 'Túi tote camel' }],
-    'mu-linen':      [{ img: qSc,  name: 'Mũ linen sand' },       { img: qPB,  name: 'Mũ linen xanh' },        { img: qBi,  name: 'Mũ linen trắng' },          { img: qPM,  name: 'Mũ linen nâu' }],
-    'khan':          [{ img: qSc,  name: 'Khăn bandana sand' },   { img: qCa,  name: 'Khăn cashmere camel' },  { img: qPB,  name: 'Túi đeo xanh nhạt' },       { img: qBi,  name: 'Túi đeo trắng' }],
-  };
+  var DATA = {};
+  try {
+    DATA = JSON.parse(megaWrap.dataset.megaProducts || '{}');
+  } catch (e) {
+    DATA = {};
+  }
 
   var currentCat = null;
   var swapTimer  = null;
@@ -150,8 +136,7 @@ updateNav();
   function swap(cat, label) {
     if (cat === currentCat) return;
     currentCat = cat;
-    var products = DATA[cat];
-    if (!products) return;
+    var products = DATA[cat] || [];
 
     clearTimeout(swapTimer);
 
@@ -163,13 +148,21 @@ updateNav();
 
     /* Phase 2: after fade-out completes, update content then animate in */
     swapTimer = setTimeout(function () {
+      var hasProducts = products.length > 0;
+      grid.hidden = !hasProducts;
+      if (empty) empty.hidden = hasProducts;
+
       cards.forEach(function (card, i) {
-        var p    = products[i];
+        var p = products[i];
+        card.style.display = p ? '' : 'none';
+        if (!p) return;
+
         var img  = card.querySelector('.mega-product-img');
         var name = card.querySelector('.mega-product-name');
-        img.src  = B + p.img;
+        img.src  = p.image;
         img.alt  = p.name;
         name.textContent = p.name;
+        card.href = p.url;
       });
       if (eyebrow) eyebrow.textContent = label;
 

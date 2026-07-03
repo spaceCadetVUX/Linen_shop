@@ -4,8 +4,6 @@ namespace App\Models;
 
 use App\Traits\HasActivityLog;
 use App\Traits\HasGeoProfile;
-use Spatie\Activitylog\Models\Concerns\LogsActivity;
-use Spatie\Activitylog\Support\LogOptions;
 use App\Traits\HasJsonldSchemas;
 use App\Traits\HasLlmsEntry;
 use App\Traits\HasMedia;
@@ -21,26 +19,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 class Product extends Model
 {
+    use HasActivityLog;
     use HasFactory;
-    use HasUuids;
-    use SoftDeletes;
-    use Searchable;
-    use HasSeoMeta;
     use HasGeoProfile;
     use HasJsonldSchemas;
-    use HasSitemapEntry;
     use HasLlmsEntry;
     use HasMedia;
-    use HasActivityLog;
+    use HasSeoMeta;
+    use HasSitemapEntry;
+    use HasUuids;
     use LogsActivity;
+    use Searchable;
+    use SoftDeletes;
 
     // ── PK config ─────────────────────────────────────────────────────────────
 
-    protected $keyType    = 'string';
-    public    $incrementing = false;
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 
     // ── Mass assignment ───────────────────────────────────────────────────────
 
@@ -82,16 +83,16 @@ class Product extends Model
     protected function casts(): array
     {
         return [
-            'price'          => 'decimal:2',
-            'sale_price'     => 'decimal:2',
-            'is_active'            => 'boolean',
-            'show_price'           => 'boolean',
-            'show_original_price'  => 'boolean',
-            'faq_items_vi'   => 'array',
-            'faq_items_en'   => 'array',
-            'deleted_at'     => 'datetime',
+            'price' => 'decimal:2',
+            'sale_price' => 'decimal:2',
+            'is_active' => 'boolean',
+            'show_price' => 'boolean',
+            'show_original_price' => 'boolean',
+            'faq_items_vi' => 'array',
+            'faq_items_en' => 'array',
+            'deleted_at' => 'datetime',
             'mcp_drafted_at' => 'datetime',
-            'mcp_token_id'   => 'integer',
+            'mcp_token_id' => 'integer',
         ];
     }
 
@@ -102,7 +103,7 @@ class Product extends Model
      */
     public function searchableAs(): string
     {
-        return config('scout.prefix') . 'products';
+        return config('scout.prefix').'products';
     }
 
     /**
@@ -111,7 +112,7 @@ class Product extends Model
      */
     public function toSearchableArray(): array
     {
-        $categoriesLoaded   = $this->relationLoaded('categories');
+        $categoriesLoaded = $this->relationLoaded('categories');
         $filterValuesLoaded = $this->relationLoaded('filterValues');
         $translationsLoaded = $this->relationLoaded('translations');
 
@@ -124,30 +125,30 @@ class Product extends Model
                 ? $this->translations->firstWhere('locale', $locale)
                 : null;
 
-            $localized["name_{$locale}"]              = $translation->name ?? $this->name;
+            $localized["name_{$locale}"] = $translation->name ?? $this->name;
             $localized["short_description_{$locale}"] = $translation->short_description ?? $this->short_description;
         }
 
         return array_merge([
-            'id'                 => $this->id,
-            'sku'                => $this->sku,
-            'category_ids'       => $categoriesLoaded
+            'id' => $this->id,
+            'sku' => $this->sku,
+            'category_ids' => $categoriesLoaded
                                     ? $this->categories->pluck('id')->all()
                                     : [],
-            'categories'         => $categoriesLoaded
+            'categories' => $categoriesLoaded
                                     ? $this->categories->pluck('name')->all()
                                     : [],
-            'filter_value_ids'   => $filterValuesLoaded
+            'filter_value_ids' => $filterValuesLoaded
                                     ? $this->filterValues->pluck('id')->all()
                                     : [],
             'filter_value_slugs' => $filterValuesLoaded
                                     ? $this->filterValues->pluck('slug')->all()
                                     : [],
-            'price'              => (float) $this->price,
-            'sale_price'         => $this->sale_price ? (float) $this->sale_price : null,
-            'stock_quantity'     => $this->stock_quantity,
-            'is_active'          => $this->is_active,
-            'created_at'         => $this->created_at?->timestamp,
+            'price' => (float) $this->price,
+            'sale_price' => $this->sale_price ? (float) $this->sale_price : null,
+            'stock_quantity' => $this->stock_quantity,
+            'is_active' => $this->is_active,
+            'created_at' => $this->created_at?->timestamp,
         ], $localized);
     }
 
@@ -210,6 +211,32 @@ class Product extends Model
     public function thumbnail(): HasOne
     {
         return $this->hasOne(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /**
+     * [primary, hover] ProductImage cho product card (shop grid, category, related).
+     * Yêu cầu `images` đã được eager-loaded (quan hệ đã orderBy sort_order sẵn).
+     *
+     * - 2 ảnh is_card_priority → dùng đúng 2 ảnh đó, thứ tự theo sort_order.
+     * - 1 ảnh is_card_priority → primary = ảnh mặc định (sort_order nhỏ nhất), hover = ảnh được chọn.
+     * - 0 ảnh is_card_priority → primary/hover = 2 ảnh đầu theo sort_order (hành vi mặc định cũ).
+     *
+     * @return array{0: ?ProductImage, 1: ?ProductImage}
+     */
+    public function cardImages(): array
+    {
+        $images = $this->images;
+        $priority = $images->where('is_card_priority', true)->values();
+
+        if ($priority->count() >= 2) {
+            return [$priority[0], $priority[1]];
+        }
+
+        if ($priority->count() === 1) {
+            return [$images->first(), $priority[0]];
+        }
+
+        return [$images->get(0), $images->get(1) ?? $images->get(0)];
     }
 
     public function videos(): HasMany
