@@ -1,101 +1,193 @@
-# TODO — Về nhà kiểm tra
+---
+Báo cáo lỗi — Product Create/Edit (Filament Admin)
 
-> Ghi lại lúc 2026-07-02, máy hiện tại không start được services để test. Checklist dưới đây làm khi có máy chạy được Docker/Meilisearch.
+🔴 Bug 1 — Thiếu required → crash 500 (NOT NULL violation)
+
+Vị trí:
+- app/Filament/Resources/ProductResource.php:131 — field translations.vi.name không có ->required()
+- app/Filament/Resources/ProductResource.php:226 — price chỉ required khi is_active = true
+- app/Filament/Resources/ProductResource.php:298 — stock_quantity cùng pattern
+- app/Filament/Resources/ProductResource/Pages/CreateProduct.php:16-20 — gán thẳng $vi['name'] ?? null, $vi['price'] ?? null vào data
+
+Ràng buộc DB (0007_create_products_table.php):
+
+┌─────────────────────────┬───────────────────────────────────┐
+│           Cột           │            Constraint             │
+├─────────────────────────┼───────────────────────────────────┤
+│ products.name           │ NOT NULL (dòng 22)                │
+├─────────────────────────┼───────────────────────────────────┤
+│ products.slug           │ NOT NULL + UNIQUE (dòng 23)       │
+├─────────────────────────┼───────────────────────────────────┤
+│ products.price          │ NOT NULL, decimal(12,2) (dòng 30) │
+├─────────────────────────┼───────────────────────────────────┤
+│ products.stock_quantity │ NOT NULL, default 0 (dòng 33)     │
+└─────────────────────────┴───────────────────────────────────┘
+
+Kịch bản tái hiện:
+1. Vào Create Product, tắt toggle is_active (tạo draft)
+2. Bỏ trống tên vi / giá / stock → form validation pass (vì required chỉ áp khi active)
+3. Bấm Create → Product::create(['name' => null, 'price' => null, ...]) → PostgreSQL SQLSTATE 23502 not-null violation → màn hình lỗi 500, không có thông báo validation nào
+
+Bản chất: default 0 của stock_quantity không cứu được vì Filament gửi null tường minh trong INSERT — default chỉ áp dụng khi cột bị bỏ khỏi câu lệnh.
+
+Fix đề xuất: ->required() vô điều kiện cho translations.vi.name + translations.vi.slug; trong mutateFormDataBeforeCreate coalesce price ?? 0, stock_quantity ?? 0 cho draft.
 
 ---
+🔴 Bug 2 — Không validate unique slug → crash 500 khi trùng
 
-## 1. Kiểm tra Meilisearch
+Vị trí:
+- ProductResource.php:141-146 — translations.vi.slug: chỉ có helperText "Must be unique per locale", không có rule nào
+- ProductResource.php:170-173 — translations.en.slug: tương tự
+- So sánh: sku (dòng 111) có ->unique(..., ignoreRecord: true) — làm đúng, nhưng slug thì không
 
-**Mục tiêu:** xác nhận Meilisearch đã chạy + đã index sản phẩm chưa, để làm filter (màu sắc, giá...) qua search engine thay vì raw SQL.
+Ràng buộc DB:
+- products.slug → UNIQUE (0007, dòng 23)
+- product_translations (locale, slug) → UNIQUE composite (2026_04_26_002, dòng 40)
 
-### Bước 1 — Container có chạy không
-```bash
-docker compose up -d meilisearch
-docker compose ps meilisearch
-```
-Service đã khai trong `docker-compose.yml` (image `getmeili/meilisearch:v1.7`, port `7700:7700`, volume `meilisearch_data`) — chỉ chưa test start được trên máy hiện tại.
+Kịch bản tái hiện:
+1. Đã có sản phẩm "Khăn lụa tơ tằm" (slug khan-lua-to-tam)
+2. Tạo sản phẩm mới cùng tên → slug auto-generate y hệt
+3. Save → SQLSTATE 23505 unique violation → 500. Với luồng Create, product chưa kịp tạo; với luồng Edit (đổi tên trùng), lỗi nổ giữa chừng sau khi một phần data đã ghi.
 
-### Bước 2 — Health check
-```bash
-curl http://127.0.0.1:7700/health
-# kỳ vọng: {"status":"available"}
-```
-
-### Bước 3 — Tạo `.env` thật (hiện repo chỉ có `.env.example`, chưa có `.env`)
-Copy `.env.example` → `.env`, đảm bảo có:
-```bash
-MEILISEARCH_HOST=http://meilisearch:7700   # hoặc http://127.0.0.1:7700 nếu chạy app ngoài Docker
-MEILISEARCH_KEY=
-SCOUT_DRIVER=meilisearch
-```
-Đồng thời set `QUEUE_CONNECTION` và `CACHE_STORE` (mặc định trong `config/queue.php`/`config/cache.php` là `redis` — nếu Redis local chưa cài client PHP, tinker/artisan sẽ lỗi `Class "Redis" not found`, gặp nhiều lần trong session hôm nay). Nếu máy nhà có Redis chạy thật thì để mặc định `redis` là đúng nhất — không cần đổi.
-
-### Bước 4 — Index dữ liệu
-```bash
-php artisan scout:import "App\Models\Product"
-```
-`Product::toSearchableArray()` (app/Models/Product.php) đã có sẵn, index sẵn: `name`, `sku`, `short_description`, `category_ids`, `categories`, `price`, `sale_price`, `stock_quantity`, `is_active`, `created_at`. **Chưa index** `color_hex`/filter values — cần bổ sung nếu định chuyển filter màu sang Meilisearch.
-
-### Bước 5 — Test search thử
-```bash
-php artisan tinker --execute="print_r(App\Models\Product::search('linen')->raw());"
-```
+Fix đề xuất: unique rule 2 tầng — top-level slug check bảng products (ignore record hiện tại), per-locale slug check product_translations với điều kiện locale + ignore translation row của chính product đó (cần closure rule vì là composite unique).
 
 ---
+🔴 Bug 3 — Filter chọn lúc Create bị mất im lặng (silent data loss)
 
-## 2. Bối cảnh — tại sao đang bàn Meilisearch
+Vị trí:
+- ProductResource.php:471-503 — Tab Filters render CheckboxList tên filter_group_{id} (field thường, không phải relationship)
+- EditProduct.php:79-95 — afterSave() gọi saveFilterValues() → sync vào pivot product_filter_values
+- CreateProduct.php:27-47 — afterCreate() chỉ save translations, không có saveFilterValues()
 
-Đang tính hướng "pro" cho filter sản phẩm (màu sắc, giá, category, brand) — thay vì query SQL `whereHas` nhiều tầng (chậm dần khi catalog lớn), dùng Meilisearch filter/facet API (hỗ trợ range số + facet count có sẵn). Đây là bước **chưa làm**, mới dừng ở mức bàn hướng đi. Việc trước mắt (đã làm xong) chỉ là filter theo `FilterGroup`/`FilterValue` qua SQL thường.
+Kịch bản tái hiện:
+1. Create Product → tab Filters → tick 5 giá trị filter → Save
+2. Không lỗi, không cảnh báo
+3. Mở lại Edit → tab Filters trống toàn bộ. Product không xuất hiện trong faceted search trên storefront (Meilisearch filter_value_ids = [])
 
----
+Bản chất: giá trị filter_group_X nằm trong $this->data nhưng không ai đọc; khi truyền vào Product::create() bị $fillable whitelist lọc bỏ → mất không dấu vết.
 
-## 3. Tóm tắt đã làm trong session hôm nay (2026-07-02)
-
-### Đã xong, đã test:
-- **`resources/views/components/product/card.blade.php`** — fix nối data thật (trước là mockup field ảo: `thumbnail` string, `badge`, `swatches`...). Test cả VI/EN.
-- **`resources/views/components/ui/breadcrumb.blade.php`** — component breadcrumb dùng chung, mới tạo.
-- **`resources/views/components/product/grid.blade.php`** — component grid dùng chung (card + pagination + empty-state), tránh viết lặp giữa các trang PLP.
-- **`resources/views/pages/category/show.blade.php`** — trang category + sản phẩm, nối thật `CategoryController::show()`.
-- **`resources/views/pages/category/index.blade.php`** — danh sách category, nối thật `CategoryController::index()`. Có thêm CSS `.cat-index-*` mới trong `app.css` (trang này chưa từng có mockup).
-- **`resources/views/pages/product/index.blade.php`** — trang "Tất cả sản phẩm" (PLP), nối thật `ProductController::index()`.
-- **Xóa file orphan:** `pages/shop/index.blade.php`, `pages/shop/category.blade.php` (đã có bản thay thế thật).
-- **Dọn tàn dư KNXStore cũ:** xóa hẳn `SolutionController.php` + route `giai-phap/*`/`solutions/*` + entry sitemap liên quan. Sửa text fallback SEO (`ProductController`, `CategoryController`, `HomeController`) từ "KNX/DALI-2/Casambi" sang LINNÉ.
-- **Fix bug mismatch key trong `app/Models/Setting.php`:** `site_tagline_en` giờ đọc đúng `extra.tagline_en`, `default_og_image` đọc đúng `extra.og_image` (trước đó 2 field admin này không bao giờ có tác dụng).
-- **Thêm tab "Page Fallbacks" trong `BusinessProfileResource.php`** — admin tự chỉnh title/description fallback cho trang Product Catalog + Category Index, không cần sửa code.
-- **Filter màu sắc:** migration `add_color_hex_to_filter_values_table` (cột `color_hex` varchar(7) nullable trên `filter_values`), `ColorPicker` trong `FilterGroupResource.php`. Đã test lưu/đọc `#e63946` thành công.
-- Chạy thêm các migration pending liên quan (product show_price/show_original_price, filter_groups/filter_values/product_filter_values/slug) — **KHÔNG** chạy migration `add_sort_order_and_rich_content_to_blog_categories` vì lỗi quyền Postgres `must be owner of table blog_category_translations` (cần fix owner DB riêng, chưa đụng).
-
-### Còn thiếu / chưa làm (theo độ ưu tiên gợi ý):
-1. **PDP thật (`pages/product/show.blade.php`)** — chưa build. `pages/product/detail.blade.php` vẫn là mockup gốc (giữ lại làm tham chiếu thiết kế — gallery, variant-selector, accordion). 2 component liên quan còn rỗng: `components/product/gallery.blade.php`, `components/product/variant-selector.blade.php`.
-2. **`pages/blog/show.blade.php`** — chưa build, `BlogController::show()` phức tạp nhất (nhiều quan hệ: author, category, tags, GEO/FAQ).
-3. **`pages/page/about.blade.php`, `pages/page/show.blade.php`** — chưa build. Mockup `pages/static/about.blade.php` có sẵn nhưng ~95% là copy tĩnh (không data-driven), chỉ cần dời file + gắn seo/breadcrumb ở đầu.
-4. **Filter UI thật cho PLP/category** — hiện `plp-fmodal` (màu/size/giá) vẫn là mockup tĩnh 100%, chưa đọc `$filterGroups`/`$brands` thật. Cũng chưa render swatch từ `color_hex` mới thêm.
-5. **Price range filter** — chưa làm, đã bàn hướng (whereBetween đơn giản, hoặc Meilisearch facet nếu muốn "pro").
-6. **`cart/`, `checkout/`, `account/*`** — chưa có Controller nào cả, mockup thuần frontend.
-7. Leftover nhỏ: `about-fq-role` trong `pages/static/about.blade.php` có text giỡn "Người code trang này muốn trĩ" — nhớ đổi trước khi lên thật.
-8. `Setting::get('meta_description')` — chưa có field admin tương ứng (không phải bug, chỉ là chưa build field), fallback description trang chủ luôn dùng tagline/text cứng.
-9. File `pages/shop/*` đã xóa xong, không còn tồn đọng.
+Fix đề xuất: copy logic saveFilterValues() sang CreateProduct::afterCreate() (hoặc extract ra trait/method chung cho cả 2 page).
 
 ---
+🔴 Bug 4 — sale_price mất khi Create, sau đó bị xóa luôn ở lần Edit kế tiếp
 
-## 4. Trạng thái Git
+Vị trí: CreateProduct.php:42
+->only(['name', 'slug', 'short_description', 'description', 'price', 'currency'])
+//  ← thiếu 'sale_price', dù cột đã tồn tại từ migration 2026_05_16
+So sánh: EditProduct::saveTranslations() dòng 112 có sale_price trong danh sách.
 
-**Đã tự commit trong lúc làm** (không phải Claude commit, bạn đã commit thủ công song song) — `git log` gần nhất:
-```
-9c7c608 remove unused                        ← xóa pages/shop/*, SolutionController, routes Solutions
-0fffcd8 setting fix                          ← Setting.php key mismatch fix, HomeController/ProductController/CategoryController fallback text
-4080ed5 add fallback edit + remove old assets ← BusinessProfileResource tab "Page Fallbacks"
-7b053df cat                                  ← category/show.blade.php, category/index.blade.php
-f165d5e mapping product card                 ← card.blade.php fix, grid.blade.php, breadcrumb.blade.php, product/index.blade.php
-bcdadbd mapping Editorial Grid
-```
+Chuỗi hậu quả (tệ hơn mất đơn thuần):
+1. Create: nhập sale_price vi = 450.000₫ → products.sale_price được lưu (qua mutateFormDataBeforeCreate:21) nhưng product_translations.sale_price = NULL
+2. Mở Edit: mutateFormDataBeforeFill() (EditProduct.php:43-46) đổ form từ translation row → field "Giá khuyến mãi (vi)" hiển thị trống
+3. Admin sửa bất kỳ field nào khác rồi Save → mutateFormDataBeforeSave:72: $data['sale_price'] = $vi['sale_price'] ?? null → products.sale_price bị ghi đè thành NULL
+4. Kết quả: giá khuyến mãi biến mất khỏi cả DB lẫn storefront mà không ai chủ động xóa
 
-**Còn CHƯA commit** (working tree hiện tại, `git status --short`):
-```
- M app/Filament/Resources/FilterGroupResource.php   ← ColorPicker cho filter màu
- M app/Models/FilterValue.php                       ← color_hex vào fillable
-?? database/migrations/2026_07_02_094447_add_color_hex_to_filter_values_table.php
-?? doc/TODO-ve-nha-check.md                         ← file này
-```
+Fix đề xuất: thêm 'sale_price' vào only() tại CreateProduct.php:42.
 
-Nhớ `git status`/`git diff` review lại phần filter màu trước khi commit khi về nhà.
+---
+🟡 Bug 5 — Primary Category bị clear vô điều kiện
+
+Vị trí: ProductResource.php:68-72
+->afterStateUpdated(function (Set $set, ?array $state) {
+    // Clear primary if it's no longer in the selected list  ← comment nói một đằng
+    $set('primary_category_id', null);                        // ← code làm một nẻo
+})
+
+Kịch bản: Edit product đã có Primary Category = "Khăn trải bàn". Thêm 1 category phụ vào list → primary lập tức bị null. Nếu admin không để ý chọn lại → primary_category_id = NULL → BreadcrumbList JSON-LD mất cấp danh mục.
+
+Fix đề xuất:
+->afterStateUpdated(function (Set $set, Get $get, ?array $state) {
+    if (! in_array($get('primary_category_id'), $state ?? [])) {
+        $set('primary_category_id', null);
+    }
+})
+
+---
+🟢 Điểm phụ (không khẩn cấp)
+
+┌─────┬──────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  #  │                        Vị trí                        │                                                    Vấn đề                                                    │
+├─────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 6   │ ProductResource.php:406-412 (Videos)                 │ Input sort_order nhập tay + ->orderColumn('sort_order') drag-drop cùng quản lý một cột → drag-drop ghi đè    │
+│     │                                                      │ giá trị nhập tay                                                                                             │
+├─────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 7   │ EditProduct.php:111-115                              │ Xóa trắng short_description/description không persist — filter loại giá trị rỗng nên updateOrCreate giữ giá  │
+│     │                                                      │ trị cũ                                                                                                       │
+├─────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 8   │ ProductResource.php:1697-1701                        │ charCounter() nhận $min nhưng không dùng — hint không hiển thị trạng thái "quá ngắn" dù charCounterColor có  │
+│     │                                                      │ xử lý                                                                                                        │
+├─────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 9   │ SEO tab (Group                                       │ Nghi vấn tạo row seo_meta rỗng (chỉ có locale) ngay cả khi admin không nhập gì lúc Create — cần verify       │
+│     │ ->relationship('seoMetaVi'/'seoMetaEn'))             │ runtime, chưa khẳng định                                                                                     │
+└─────┴──────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+---
+Tóm tắt mức độ
+
+┌─────────────────────────────┬───────────┬────────────┬────────────────────────┐
+│             Bug             │   Loại    │   Mức độ   │   Trang bị ảnh hưởng   │
+├─────────────────────────────┼───────────┼────────────┼────────────────────────┤
+│ 1. Thiếu required           │ Crash 500 │ Cao        │ Create + Edit          │
+├─────────────────────────────┼───────────┼────────────┼────────────────────────┤
+│ 2. Slug không unique        │ Crash 500 │ Cao        │ Create + Edit          │
+├─────────────────────────────┼───────────┼────────────┼────────────────────────┤
+│ 3. Filter mất lúc create    │ Data loss │ Cao        │ Create                 │
+├─────────────────────────────┼───────────┼────────────┼────────────────────────┤
+│ 4. sale_price mất → bị wipe │ Data loss │ Cao        │ Create → lan sang Edit │
+├─────────────────────────────┼───────────┼────────────┼────────────────────────┤
+│ 5. Primary category clear   │ UX / SEO  │ Trung bình │ Create + Edit          │
+└─────────────────────────────┴───────────┴────────────┴────────────────────────┘
+
+
+
+SQLSTATE[42501]: Insufficient privilege: must be owner of table page_translations
+
+  I checked ownership directly: the app connects as Postgres role app, but page_translations is owned by postgres (a different role) — while the pages table I just created is    
+  correctly owned by app. This is a pre-existing inconsistency in this DB (that table was created outside the normal app-role migration flow at some point), not something wrong  
+  with my migration SQL. I don't have superuser credentials to fix ownership myself, and I didn't want to guess at privilege escalation.
+
+  Current state: pages table exists (empty). page_translations is untouched (still old flat shape, unaffected by my model changes yet). Nothing is broken — this is a clean, safe 
+  stopping point.
+
+  To unblock, someone with Postgres superuser access needs to run once:
+  ALTER TABLE page_translations OWNER TO app;
+  After that, re-run:
+  php artisan migrate --path=database/migrations/2026_07_03_120001_restructure_page_translations_table.php --force
+  php artisan db:seed --class=PageTranslationSeeder
+
+  Want me to wait for you to fix the ownership and then continue (seed + browser verification), or would you rather run those two commands yourself once unblocked?
+
+✻ Cooked for 16m 9s
+
+❯ /model
+  ⎿  Set model to Fable 5 and saved as your default for new sessions
+
+❯ ose two commands yourself once unblocked?
+
+  ✻ Cooked for 16m 9s
+
+    7 tasks (6 done, 1 in progress, 0 open)
+    ◼ Run migrate, seed, and verify end-to-end
+    ✔ Create pages + restructure page_translations migrations
+    ✔ Add Page model, update PageTranslation model
+    ✔ Update PageController::show() for new schema
+    ✔ Build PageResource Filament CRUD with vi/en tabs
+     … +2 completed
+
+● Still paused at the same spot — waiting on your call about the page_translations ownership fix. To recap the two options:
+
+  1. You run it: as a Postgres superuser, execute ALTER TABLE page_translations OWNER TO app;, then tell me to continue and I'll run the remaining migration + seeder +
+  verification.
+  2. Or if you have superuser credentials you're comfortable sharing into the environment (e.g. a psql command I can run), I can do the whole thing.
+
+  Just let me know how you'd like to proceed.
+
+✻ Crunched for 14s
+
+  7 tasks (6 done, 1 in progress, 0 open)
+  ◼ Run migrate, seed, and verify end-to-end
+  ✔ Create pages + restructure page_translations migrations
+  ✔ Add Page model, update PageTranslation model
+  ✔ Update PageController::show() for new schema
+  ✔ Build PageResource Filament CRUD with vi/en tabs
+   … +2 completed

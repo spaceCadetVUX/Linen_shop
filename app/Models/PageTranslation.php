@@ -4,40 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PageTranslation extends Model
 {
-    // Standalone — không có parent model, không dùng FK
     protected $fillable = [
-        'page_key',
+        'page_id',
         'locale',
         'title',
         'slug',
         'body',
         'meta_title',
         'meta_description',
-        'is_active',
     ];
 
-    protected function casts(): array
+    public function page(): BelongsTo
     {
-        return [
-            'is_active' => 'boolean',
-        ];
-    }
-
-    public function scopeActive(Builder $query): Builder
-    {
-        return $query->where('is_active', true);
+        return $this->belongsTo(Page::class);
     }
 
     public function scopeForLocale(Builder $query, string $locale): Builder
     {
         return $query->where('locale', $locale);
-    }
-
-    public function scopeByKey(Builder $query, string $key): Builder
-    {
-        return $query->where('page_key', $key);
     }
 }

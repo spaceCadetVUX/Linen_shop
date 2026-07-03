@@ -13,11 +13,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RoleSeeder::class,           // 1. roles must exist before user assignment
-            AdminUserSeeder::class,      // 2. admin user + Spatie role assignment
-            JsonldTemplateSeeder::class, // 3. base JSON-LD templates
-            SitemapIndexSeeder::class,   // 4. sitemap child index registry
-            LlmsDocumentSeeder::class,   // 5. llms.txt document registry
+            RoleSeeder::class,             // 1. roles must exist before user assignment
+            AdminUserSeeder::class,        // 2. admin user + Spatie role assignment
+            JsonldTemplateSeeder::class,   // 3. base JSON-LD templates
+            SitemapIndexSeeder::class,     // 4. sitemap child index registry
+            LlmsDocumentSeeder::class,     // 5. llms.txt document registry
+            PageTranslationSeeder::class,  // 6. placeholder legal/static pages
         ]);
     }
 }

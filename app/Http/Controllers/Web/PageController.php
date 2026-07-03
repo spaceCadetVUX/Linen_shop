@@ -14,13 +14,13 @@ class PageController extends Controller
     {
         $translation = PageTranslation::where('locale', $locale)
             ->where('slug', $slug)
-            ->where('is_active', true)
+            ->whereHas('page', fn ($q) => $q->where('is_active', true))
             ->first();
 
         if (! $translation) {
             $viTranslation = PageTranslation::where('locale', config('app.fallback_locale'))
                 ->where('slug', $slug)
-                ->where('is_active', true)
+                ->whereHas('page', fn ($q) => $q->where('is_active', true))
                 ->first();
 
             if ($viTranslation) {
@@ -34,9 +34,9 @@ class PageController extends Controller
             abort(404);
         }
 
-        // PageTranslation is standalone — build alternate URLs from sibling translations
-        $alternateUrls = PageTranslation::where('page_key', $translation->page_key)
-            ->where('is_active', true)
+        // Build alternate URLs from sibling translations of the same parent Page
+        $alternateUrls = PageTranslation::where('page_id', $translation->page_id)
+            ->whereHas('page', fn ($q) => $q->where('is_active', true))
             ->get()
             ->mapWithKeys(fn ($t) => [
                 $t->locale => route($t->locale . '.page.show', ['slug' => $t->slug]),

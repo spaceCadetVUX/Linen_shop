@@ -66,9 +66,11 @@ class ProductResource extends Resource
                                 ->preload()
                                 ->native(false)
                                 ->live()
-                                ->afterStateUpdated(function (Set $set, ?array $state) {
-                                    // Clear primary if it's no longer in the selected list
-                                    $set('primary_category_id', null);
+                                ->afterStateUpdated(function (Set $set, Get $get, ?array $state) {
+                                    // Clear primary only if it's no longer in the selected list
+                                    if (! in_array($get('primary_category_id'), $state ?? [])) {
+                                        $set('primary_category_id', null);
+                                    }
                                 })
                                 ->columnSpanFull(),
 
