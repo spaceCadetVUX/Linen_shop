@@ -45,9 +45,17 @@ class ProductController extends Controller
             }
         }
 
+        $minPrice = request()->query('min_price');
+        $maxPrice = request()->query('max_price');
+        $minPrice = is_numeric($minPrice) ? (float) $minPrice : null;
+        $maxPrice = is_numeric($maxPrice) ? (float) $maxPrice : null;
+
         $products = $this->productSearchService->search(
-            $locale, $keyword, $filterGroups, $activeValueSlugs, $brandSlug, categoryId: null, perPage: 24,
+            $locale, $keyword, $filterGroups, $activeValueSlugs, $brandSlug,
+            categoryId: null, perPage: 24, minPrice: $minPrice, maxPrice: $maxPrice,
         );
+
+        $priceBounds = $this->productSearchService->getPriceBounds(categoryId: null);
 
         $brands = Brand::active()
             ->orderBy('sort_order')
@@ -71,7 +79,7 @@ class ProductController extends Controller
 
         return view('pages.product.index', compact(
             'locale', 'products', 'filterGroups', 'brands',
-            'activeValueSlugs', 'brandSlug', 'keyword'
+            'activeValueSlugs', 'brandSlug', 'keyword', 'priceBounds', 'minPrice', 'maxPrice'
         ) + [
             'seoMeta' => null,
             'fallbackTitle' => $fallbackTitle,

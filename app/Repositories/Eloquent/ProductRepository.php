@@ -34,12 +34,22 @@ class ProductRepository extends BaseRepository
         string $brandSlug,
         ?string $categoryId,
         int $perPage,
+        ?float $minPrice = null,
+        ?float $maxPrice = null,
     ): LengthAwarePaginator {
         $query = ProductTranslation::where('locale', $locale)
-            ->whereHas('product', function ($q) use ($categoryId) {
+            ->whereHas('product', function ($q) use ($categoryId, $minPrice, $maxPrice) {
                 $q->active();
                 if ($categoryId) {
                     $q->whereHas('categories', fn ($q2) => $q2->where('categories.id', $categoryId));
+                }
+                // LEAST(price, COALESCE(sale_price, price)) mirrors Product::toSearchableArray()'s
+                // effective_price — the price the customer actually pays.
+                if ($minPrice !== null) {
+                    $q->whereRaw('LEAST(price, COALESCE(sale_price, price)) >= ?', [$minPrice]);
+                }
+                if ($maxPrice !== null) {
+                    $q->whereRaw('LEAST(price, COALESCE(sale_price, price)) <= ?', [$maxPrice]);
                 }
             })
             ->with([
@@ -103,6 +113,30 @@ class ProductRepository extends BaseRepository
         return collect($orderedProductIds)
             ->map(fn ($id) => $translations->get($id))
             ->filter();
+    }
+
+    /**
+     * Min/max of the effective price (see searchWithFiltersSql()) across active
+     * products, optionally scoped to one category — bounds for the PLP price
+     * slider. Single aggregate query, no per-product computation.
+     */
+    public function getPriceBounds(?string $categoryId = null): array
+    {
+        $query = $this->query()->active();
+
+        if ($categoryId) {
+            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
+        }
+
+        $row = $query->selectRaw(
+            'MIN(LEAST(price, COALESCE(sale_price, price))) as min_price,
+             MAX(LEAST(price, COALESCE(sale_price, price))) as max_price'
+        )->first();
+
+        return [
+            'min' => $row?->min_price !== null ? (float) $row->min_price : 0.0,
+            'max' => $row?->max_price !== null ? (float) $row->max_price : 0.0,
+        ];
     }
 
     // ── List ──────────────────────────────────────────────────────────────────

@@ -44,7 +44,7 @@ return [
 
     'queue' => [
         'connection' => env('SCOUT_QUEUE_CONNECTION', 'redis'),
-        'queue'      => env('SCOUT_QUEUE_NAME', 'seo'),
+        'queue' => env('SCOUT_QUEUE_NAME', 'seo'),
     ],
 
     /*
@@ -145,13 +145,13 @@ return [
         'index-settings' => [
             'app_products' => [
                 'searchableAttributes' => ['name_vi', 'name_en', 'sku', 'short_description_vi', 'short_description_en'],
-                'filterableAttributes' => ['category_ids', 'filter_value_ids', 'price', 'sale_price', 'is_active', 'stock_quantity', '__soft_deleted'],
-                'sortableAttributes'   => ['price', 'created_at', 'name_vi', 'name_en'],
+                'filterableAttributes' => ['category_ids', 'filter_value_ids', 'price', 'sale_price', 'effective_price', 'is_active', 'stock_quantity', '__soft_deleted'],
+                'sortableAttributes' => ['price', 'effective_price', 'created_at', 'name_vi', 'name_en'],
             ],
             'app_blog_posts' => [
                 'searchableAttributes' => ['title', 'excerpt'],
                 'filterableAttributes' => ['status', 'blog_category_id', '__soft_deleted'],
-                'sortableAttributes'   => ['published_at'],
+                'sortableAttributes' => ['published_at'],
             ],
         ],
     ],

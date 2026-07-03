@@ -16,6 +16,10 @@ use Illuminate\Http\RedirectResponse;
 use Tiptap\Editor;
 use Tiptap\Extensions\StarterKit;
 use Tiptap\Nodes\Image as TiptapImage;
+use Tiptap\Nodes\Table;
+use Tiptap\Nodes\TableCell;
+use Tiptap\Nodes\TableHeader;
+use Tiptap\Nodes\TableRow;
 
 class CategoryController extends Controller
 {
@@ -77,7 +81,7 @@ class CategoryController extends Controller
         }
 
         // ── Products in this category ─────────────────────────────────────────
-        $keyword   = (string) request()->query('q', '');
+        $keyword = (string) request()->query('q', '');
         $brandSlug = (string) request()->query('brand', '');
 
         $filterGroups = FilterGroup::active()
@@ -90,36 +94,46 @@ class CategoryController extends Controller
             $raw = (string) request()->query($group->slug, '');
             if ($raw) {
                 $slugs = array_values(array_filter(array_map('trim', explode(',', $raw))));
-                if ($slugs) $activeValueSlugs[$group->slug] = $slugs;
+                if ($slugs) {
+                    $activeValueSlugs[$group->slug] = $slugs;
+                }
             }
         }
 
+        $minPrice = request()->query('min_price');
+        $maxPrice = request()->query('max_price');
+        $minPrice = is_numeric($minPrice) ? (float) $minPrice : null;
+        $maxPrice = is_numeric($maxPrice) ? (float) $maxPrice : null;
+
         $products = $this->productSearchService->search(
-            $locale, $keyword, $filterGroups, $activeValueSlugs, $brandSlug, categoryId: (string) $category->id, perPage: 24,
+            $locale, $keyword, $filterGroups, $activeValueSlugs, $brandSlug,
+            categoryId: (string) $category->id, perPage: 24, minPrice: $minPrice, maxPrice: $maxPrice,
         );
+
+        $priceBounds = $this->productSearchService->getPriceBounds(categoryId: (string) $category->id);
 
         $brands = Brand::active()->orderBy('sort_order')->orderBy('name')->get();
 
         // ── FAQ ───────────────────────────────────────────────────────────────
-        $faqField    = 'faq_items_' . $locale;
-        $faqItems    = is_array($category->$faqField ?? null) ? $category->$faqField : [];
+        $faqField = 'faq_items_'.$locale;
+        $faqItems = is_array($category->$faqField ?? null) ? $category->$faqField : [];
         $faqEntities = array_filter(array_map(
-            fn($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
+            fn ($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
             $faqItems
         ));
 
         // ── Rich content HTML ─────────────────────────────────────────────────
         $richContentHtml = null;
-        $rawContent      = $translation->rich_content;
+        $rawContent = $translation->rich_content;
         if (! empty($rawContent) && is_array($rawContent)) {
             try {
                 $richContentHtml = (new Editor(['extensions' => [
                     new StarterKit,
                     new TiptapImage,
-                    new \Tiptap\Nodes\Table,
-                    new \Tiptap\Nodes\TableRow,
-                    new \Tiptap\Nodes\TableHeader,
-                    new \Tiptap\Nodes\TableCell,
+                    new Table,
+                    new TableRow,
+                    new TableHeader,
+                    new TableCell,
                 ]]))->setContent($rawContent)->getHTML();
                 // Strip empty paragraphs only
                 if (trim(strip_tags($richContentHtml)) === '') {
@@ -131,17 +145,17 @@ class CategoryController extends Controller
         }
 
         // ── SEO ───────────────────────────────────────────────────────────────
-        $alternateUrls  = app(SeoService::class)->alternateUrls($category);
+        $alternateUrls = app(SeoService::class)->alternateUrls($category);
         $category->loadMissing('seoMetas');
-        $seoMeta        = $category->seoMeta($locale);
-        $jsonldSchemas  = app(JsonldService::class)->getActiveSchemas($category, $locale)
+        $seoMeta = $category->seoMeta($locale);
+        $jsonldSchemas = app(JsonldService::class)->getActiveSchemas($category, $locale)
             ->pluck('payload')->toArray();
-        $fallbackTitle       = $translation->name;
+        $fallbackTitle = $translation->name;
         $fallbackDescription = $translation->description ?? '';
-        $fallbackImage       = $category->image_path
-            ? asset('storage/' . $category->image_path)
+        $fallbackImage = $category->image_path
+            ? asset('storage/'.$category->image_path)
             : null;
-        $ogType     = 'website';
+        $ogType = 'website';
         $currentUrl = request()->fullUrl();
 
         view()->share('alternateUrls', $alternateUrls);
@@ -149,6 +163,7 @@ class CategoryController extends Controller
         return view('pages.category.show', compact(
             'category', 'translation', 'locale',
             'products', 'filterGroups', 'brands', 'activeValueSlugs', 'brandSlug', 'keyword',
+            'priceBounds', 'minPrice', 'maxPrice',
             'faqItems', 'faqEntities',
             'richContentHtml',
             'alternateUrls', 'seoMeta', 'jsonldSchemas',
@@ -156,4 +171,3 @@ class CategoryController extends Controller
         ));
     }
 }
-

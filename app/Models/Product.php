@@ -146,6 +146,12 @@ class Product extends Model
                                     : [],
             'price' => (float) $this->price,
             'sale_price' => $this->sale_price ? (float) $this->sale_price : null,
+            // What the customer actually pays — sale_price when it undercuts price,
+            // else price. Indexed separately so price-range filtering is a single
+            // numeric comparison instead of an OR across two attributes.
+            'effective_price' => ($this->sale_price && $this->sale_price < $this->price)
+                ? (float) $this->sale_price
+                : (float) $this->price,
             'stock_quantity' => $this->stock_quantity,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->timestamp,
