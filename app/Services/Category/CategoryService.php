@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 class CategoryService
 {
     public const TREE_CACHE_KEY = 'categories:tree';
+
     private const TREE_CACHE_TTL = 600;
 
     public function __construct(
@@ -64,16 +65,17 @@ class CategoryService
         ]);
 
         return $tree->map(fn (Category $root) => [
-            'name'     => $root->translation($locale)?->name ?? $root->name,
+            'name' => $root->translation($locale)?->name ?? $root->name,
+            'url' => LocaleUrl::for('category', $root->translation($locale)?->slug ?? $root->slug, $locale),
             'children' => $root->children->map(fn (Category $child) => [
-                'label'    => $child->translation($locale)?->name ?? $child->name,
+                'label' => $child->translation($locale)?->name ?? $child->name,
                 'mega_cat' => $child->slug,
-                'url'      => LocaleUrl::for('category', $child->translation($locale)?->slug ?? $child->slug, $locale),
+                'url' => LocaleUrl::for('category', $child->translation($locale)?->slug ?? $child->slug, $locale),
                 'products' => $child->products->take(4)
                     ->map(fn (Product $product) => [
-                        'name'  => $product->translation($locale)?->name ?? $product->name,
+                        'name' => $product->translation($locale)?->name ?? $product->name,
                         'image' => $product->thumbnail?->url,
-                        'url'   => LocaleUrl::for('product', $product->translation($locale)?->slug ?? $product->slug, $locale),
+                        'url' => LocaleUrl::for('product', $product->translation($locale)?->slug ?? $product->slug, $locale),
                     ])
                     ->filter(fn (array $p) => filled($p['image']))
                     ->values()

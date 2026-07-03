@@ -108,7 +108,7 @@
       @forelse ($megaMenuGroups as $group)
         <div class="mega-group">
           <div class="mega-group-hd">
-            <span class="mega-group-name">{{ $group['name'] }}</span>
+            <a href="{{ $group['url'] }}" class="mega-group-name mega-group-name--link">{{ $group['name'] }}</a>
             <span class="mega-group-plus" aria-hidden="true">+</span>
           </div>
           @if (count($group['children']))
