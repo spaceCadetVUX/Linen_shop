@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', ($category->name ?? 'Cửa hàng') . ' — LINNÉ')
-@section('meta-description', 'Khám phá bộ sưu tập ' . ($category->name ?? '') . ' của LINNÉ — thời trang linen tối giản, bền vững.')
+@section('title', ($category ?? $fallbackTitle) . ' — LINNÉ')
+@section('meta-description', $fallbackDescription)
 @section('body-class', 'page-pd')
 
 @section('content')

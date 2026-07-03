@@ -84,7 +84,23 @@ class AppServiceProvider extends ServiceProvider
         $this->registerMorphMap();
         $this->registerEncryptedUserProvider();
         $this->registerObservers();
+        $this->registerViewComposers();
         MediaAttachFilesAction::register();
+    }
+
+    // ── View composers ────────────────────────────────────────────────────────
+    // Favicon is uploaded via Business Profile → Identity (extra.favicon) and
+    // must reach the layout without a query in Blade (CLAUDE.md rule).
+
+    private function registerViewComposers(): void
+    {
+        \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
+            $raw = \App\Models\Setting::get('favicon');
+
+            $view->with('faviconUrl', $raw
+                ? (str_starts_with($raw, 'http') ? $raw : asset('storage/' . ltrim($raw, '/')))
+                : asset('favicon.ico'));
+        });
     }
 
     // ── Encrypted user provider ───────────────────────────────────────────────

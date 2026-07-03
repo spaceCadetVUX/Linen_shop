@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Về LINNÉ — Thời trang tối giản, vải tự nhiên')
-@section('meta-description', 'LINNÉ được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản — chất liệu thuần khiết, đường cắt may lâu bền, lựa chọn có ý thức.')
+@section('title', $fallbackTitle)
+@section('meta-description', $fallbackDescription)
 @section('body-class', 'page-pd')
 
 @section('content')

@@ -38,13 +38,15 @@ class HomeController extends Controller
 
         $enTagline = Setting::get('site_tagline_en') ?: 'Minimalist, Sustainable Linen Fashion';
         $fallbackTitle = $locale === 'vi'
-            ? ($tagline ?: $siteName)
-            : $enTagline;
+            ? (Setting::get('home_title') ?: ($tagline ?: $siteName))
+            : (Setting::get('home_title_en') ?: $enTagline);
 
-        $fallbackDescription = Setting::get('meta_description')
-            ?? ($tagline ?: null)
-            ?? ($locale === 'vi' ? 'LINNÉ — Thời trang linen tối giản, bền vững.'
-                                 : 'LINNÉ — Minimalist, sustainable linen fashion.');
+        $fallbackDescription = $locale === 'vi'
+            ? (Setting::get('meta_description')
+                ?: ($tagline ?: 'LINNÉ — Thời trang linen tối giản, bền vững.'))
+            : (Setting::get('meta_description_en')
+                ?: (Setting::get('meta_description')
+                ?: 'LINNÉ — Minimalist, sustainable linen fashion.'));
 
         $ogRaw = $profile->extra['og_image'] ?? Setting::get('default_og_image');
         $fallbackImage = $ogRaw

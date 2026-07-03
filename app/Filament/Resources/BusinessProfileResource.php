@@ -237,14 +237,27 @@ class BusinessProfileResource extends Resource
                         ->icon('heroicon-o-language')
                         ->schema([
                             Section::make('Homepage (/)')
-                                ->description('Dùng khi trang chủ chưa có tagline — đọc qua Setting::get(\'meta_description\') trong HomeController. Một giá trị chung cho cả vi/en.')
+                                ->description('Tab title + meta description trang chủ — đọc qua Setting::get() trong HomeController. Trống → dùng tagline / tên business.')
                                 ->schema([
+                                    Forms\Components\TextInput::make('extra.home_title')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
+                                        ->placeholder('Trống → tagline → tên business'),
+
+                                    Forms\Components\TextInput::make('extra.home_title_en')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
+                                        ->placeholder('Empty → Tagline (EN) → business name'),
+
                                     Forms\Components\Textarea::make('extra.meta_description')
-                                        ->label('Meta Description')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('LINNÉ — Thời trang linen tối giản, bền vững.')
-                                        ->columnSpanFull(),
-                                ]),
+                                        ->placeholder('LINNÉ — Thời trang linen tối giản, bền vững.'),
+
+                                    Forms\Components\Textarea::make('extra.meta_description_en')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
+                                        ->rows(2)
+                                        ->placeholder('LINNÉ — Minimalist, sustainable linen fashion.'),
+                                ])
+                                ->columns(2),
 
                             Section::make('Product Catalog (/cua-hang, /shop)')
                                 ->description('Dùng khi trang danh sách sản phẩm chưa có SEO meta riêng — đọc qua Setting::get() trong ProductController.')
@@ -289,6 +302,65 @@ class BusinessProfileResource extends Resource
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description</span>'))
                                         ->rows(2)
                                         ->placeholder('Browse all LINNÉ product categories.'),
+                                ])
+                                ->columns(2),
+
+                            Section::make('About (/gioi-thieu, /about)')
+                                ->description('Tab title + meta description trang giới thiệu — đọc qua Setting::get() trong AboutController.')
+                                ->schema([
+                                    Forms\Components\TextInput::make('extra.about_title')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
+                                        ->placeholder('Về LINNÉ — Thời trang tối giản, vải tự nhiên'),
+
+                                    Forms\Components\TextInput::make('extra.about_title_en')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
+                                        ->placeholder('About LINNÉ — Minimalist fashion, natural fabrics'),
+
+                                    Forms\Components\Textarea::make('extra.about_meta_description')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
+                                        ->rows(2)
+                                        ->placeholder('LINNÉ được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản...'),
+
+                                    Forms\Components\Textarea::make('extra.about_meta_description_en')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
+                                        ->rows(2)
+                                        ->placeholder('LINNÉ is made for people who believe true beauty comes from simplicity...'),
+                                ])
+                                ->columns(2),
+
+                            Section::make('Blog Index (/bai-viet, /blog)')
+                                ->description('Tab title + meta description trang danh sách bài viết — đọc qua Setting::get() trong BlogController.')
+                                ->schema([
+                                    Forms\Components\TextInput::make('extra.blog_index_title')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
+                                        ->placeholder('Blog — Tin tức & Bài viết'),
+
+                                    Forms\Components\TextInput::make('extra.blog_index_title_en')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
+                                        ->placeholder('Blog — News & Articles'),
+
+                                    Forms\Components\Textarea::make('extra.blog_index_description')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
+                                        ->rows(2)
+                                        ->placeholder('Góc nhìn của LINNÉ về thời trang bền vững, chất liệu tự nhiên và lối sống tối giản.'),
+
+                                    Forms\Components\Textarea::make('extra.blog_index_description_en')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
+                                        ->rows(2)
+                                        ->placeholder('LINNÉ\'s perspective on sustainable fashion, natural fabrics and minimalist living.'),
+                                ])
+                                ->columns(2),
+
+                            Section::make('Search (/tim-kiem, /search)')
+                                ->description('Tiền tố tab title trang kết quả tìm kiếm — từ khóa sẽ nối vào sau, vd: "Tìm kiếm: áo linen".')
+                                ->schema([
+                                    Forms\Components\TextInput::make('extra.search_title')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
+                                        ->placeholder('Tìm kiếm'),
+
+                                    Forms\Components\TextInput::make('extra.search_title_en')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
+                                        ->placeholder('Search'),
                                 ])
                                 ->columns(2),
                         ]),

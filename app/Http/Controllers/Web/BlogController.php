@@ -124,8 +124,12 @@ class BlogController extends Controller
             'locale'              => $locale,
             'seoMeta'             => null,
             'jsonldSchemas'       => [],
-            'fallbackTitle'       => $locale === 'vi' ? 'Blog — Tin tức & Bài viết' : 'Blog — News & Articles',
-            'fallbackDescription' => $locale === 'vi' ? 'Cập nhật kiến thức, xu hướng và câu chuyện từ chúng tôi.' : 'Insights, trends and stories from our team.',
+            'fallbackTitle'       => $locale === 'vi'
+                ? (Setting::get('blog_index_title') ?: 'Blog — Tin tức & Bài viết')
+                : (Setting::get('blog_index_title_en') ?: 'Blog — News & Articles'),
+            'fallbackDescription' => $locale === 'vi'
+                ? (Setting::get('blog_index_description') ?: 'Cập nhật kiến thức, xu hướng và câu chuyện từ chúng tôi.')
+                : (Setting::get('blog_index_description_en') ?: 'Insights, trends and stories from our team.'),
             'fallbackImage'       => (($ogRaw = Setting::get('default_og_image')) && filled($ogRaw))
                                         ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/' . ltrim($ogRaw, '/')))
                                         : null,

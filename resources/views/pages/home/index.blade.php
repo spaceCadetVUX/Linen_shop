@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'LINNÉ — Thời trang linen tối giản, bền vững')
-@section('meta-description', 'LINNÉ — Thời trang linen tối giản, bền vững. Bộ sưu tập Thu 2026.')
+@section('title', $fallbackTitle)
+@section('meta-description', $fallbackDescription)
 
 {{-- No body-class → navbar stays transparent on homepage --}}
 
