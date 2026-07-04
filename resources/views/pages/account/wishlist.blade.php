@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Danh sách yêu thích — LINNÉ')
+@section('title', 'Danh sách yêu thích')
 @section('meta-description', 'Xem lại các sản phẩm bạn đã yêu thích tại LINNÉ.')
 @section('body-class', 'page-pd')
 

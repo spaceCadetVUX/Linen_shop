@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Áo Tank Cashmere Lurex — LINNÉ')
+@section('title', 'Áo Tank Cashmere Lurex')
 @section('meta-description', 'Áo Tank Cashmere Lurex LINNÉ — dệt từ cashmere Mông Cổ Grade A kết hợp lurex ánh kim. Dáng fitted, subtle luxury.')
 @section('body-class', 'page-pd')
 

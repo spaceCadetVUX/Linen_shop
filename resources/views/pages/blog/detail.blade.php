@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Linen và nghệ thuật mặc đẹp mỗi ngày — LINNÉ Journal')
+@section('title', 'Linen và nghệ thuật mặc đẹp mỗi ngày')
 @section('meta-description', 'Một chiếc áo linen không chỉ là trang phục — đó là lựa chọn về lối sống, về những gì bạn muốn mang theo từng ngày.')
 @section('body-class', 'page-pd')
 

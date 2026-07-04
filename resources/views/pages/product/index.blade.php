@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($seoMeta?->meta_title ?? $fallbackTitle) . ' — LINNÉ')
+@section('title', ($seoMeta?->meta_title ?? $fallbackTitle))
 @section('meta-description', $seoMeta?->meta_description ?? $fallbackDescription)
 @section('body-class', 'page-pd')
 
@@ -19,7 +19,7 @@
 <section class="plp-banner">
   @if($shopHero['image_url'])
     <div class="plp-banner-img-col">
-      <img src="{{ $shopHero['image_url'] }}" alt="{{ $shopHero['title'] }} — LINNÉ" class="plp-banner-img">
+      <img src="{{ $shopHero['image_url'] }}" alt="{{ $shopHero['title'] }} — {{ \App\Models\Setting::get('site_name') }}" class="plp-banner-img">
     </div>
   @endif
   <div class="plp-banner-info">

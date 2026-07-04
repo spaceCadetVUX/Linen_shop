@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($category ?? $fallbackTitle) . ' — LINNÉ')
+@section('title', ($category ?? $fallbackTitle))
 @section('meta-description', $fallbackDescription)
 @section('body-class', 'page-pd')
 

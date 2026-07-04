@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($seoMeta?->meta_title ?? $fallbackTitle) . ' — LINNÉ Journal')
+@section('title', ($seoMeta?->meta_title ?? $fallbackTitle))
 @section('meta-description', $seoMeta?->meta_description ?? $fallbackDescription)
 @section('body-class', 'page-pd')
 

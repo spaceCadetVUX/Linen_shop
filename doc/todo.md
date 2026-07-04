@@ -59,3 +59,4 @@ Audit 2026-07-04 phát hiện pipeline JSON-LD backend không render ra HTML →
 5. **ERD `doc/databse.md` thiếu các bảng filter** (`filter_groups`, `filter_values`, `product_filter_values`) — thêm khi cập nhật ERD, nhớ kèm cột `filter_groups.type` mới.
 6. **Sort dropdown PLP/category** chỉ là UI, chưa có server-side sort (Meilisearch đã có `sortableAttributes` sẵn: price, effective_price, created_at, name).
 7. **Brand filter chưa có trong UI modal** — chọn brand hiện phải qua `?brand=` tay, và brand đi SQL path thay vì Meilisearch (brand chưa được index).
+8. **`layouts/checkout.blade.php` + `layouts/auth.blade.php` là file rỗng 0 byte, chưa trang nào dùng** — khi build layout checkout/auth thật, nhớ include `partials.seo-head` + đăng ký favicon view composer (`AppServiceProvider::registerViewComposers` hiện chỉ gắn vào `layouts.app`), không thì favicon/tab title/OG sẽ lệch với phần còn lại của site.

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($seoMeta?->meta_title ?? $fallbackTitle) . ' — LINNÉ')
+@section('title', ($seoMeta?->meta_title ?? $fallbackTitle))
 @section('meta-description', $seoMeta?->meta_description ?? $fallbackDescription)
 @section('body-class', 'page-pd')
 
@@ -18,7 +18,7 @@
   <div class="plp-banner-img-col">
     <img
       src="{{ $fallbackImage ?? asset('assets/img/placeholder-category.jpg') }}"
-      alt="{{ $translation->name }} — LINNÉ"
+      alt="{{ $translation->name }} — {{ \App\Models\Setting::get('site_name') }}"
       class="plp-banner-img"
     >
   </div>

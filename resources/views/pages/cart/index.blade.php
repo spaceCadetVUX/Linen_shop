@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Giỏ hàng — LINNÉ')
+@section('title', 'Giỏ hàng')
 @section('meta-description', 'Xem lại các sản phẩm trong giỏ hàng và tiến hành thanh toán.')
 @section('body-class', 'page-pd')
 

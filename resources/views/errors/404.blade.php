@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Không tìm thấy trang — LINNÉ')
+@section('title', 'Không tìm thấy trang')
 @section('meta-description', 'Trang bạn tìm không còn ở đây. Khám phá bộ sưu tập LINNÉ hoặc quay về trang chủ.')
 @section('body-class', 'page-pd')
 
