@@ -9,6 +9,7 @@ use App\Models\BlogCategoryTranslation;
 use App\Models\BlogPost;
 use App\Models\BlogPostTranslation;
 use App\Models\BlogTag;
+use App\Models\BusinessProfile;
 use App\Models\Setting;
 use App\Models\Seo\GeoEntityProfile;
 use App\Services\Seo\JsonldService;
@@ -120,6 +121,16 @@ class BlogController extends Controller
             ? (Setting::get('blog_index_title') ?: 'Blog — Tin tức & Bài viết')
             : (Setting::get('blog_index_title_en') ?: 'Blog — News & Articles');
 
+        // Hero image — admin-managed via Filament BlogSetting (extra['blog']).
+        $blogExtra = (array) (BusinessProfile::instance()->extra['blog'] ?? []);
+        $blogHeroRaw = $blogExtra['hero_image'] ?? null;
+        $blogHeroUrl = $blogHeroRaw
+            ? (str_starts_with($blogHeroRaw, 'http') ? $blogHeroRaw : asset('storage/'.ltrim($blogHeroRaw, '/')))
+            : null;
+        // Alt tự điền, fallback "Journal — {site_name}".
+        $blogHeroAlt = ($locale === 'en' ? ($blogExtra['hero_alt_en'] ?? null) : ($blogExtra['hero_alt'] ?? null))
+            ?: 'Journal — '.Setting::get('site_name');
+
         // Canonical: bỏ query (search/category filter), giữ page — cùng rule với PLP.
         $canonicalUrl = $blogs->currentPage() > 1
             ? route($locale.'.blog.index').'?page='.$blogs->currentPage()
@@ -163,10 +174,13 @@ class BlogController extends Controller
             'blogCategories'      => $blogCategories,
             'searchTerm'          => $search,
             'category'            => $categoryName,
+            'activeCategorySlugs' => array_values($categoryFilter),
             'locale'              => $locale,
             'seoMeta'             => null,
             'jsonldSchemas'       => $jsonldSchemas,
             'canonicalUrl'        => $canonicalUrl,
+            'blogHeroUrl'         => $blogHeroUrl,
+            'blogHeroAlt'         => $blogHeroAlt,
             'fallbackTitle'       => $fallbackTitle,
             'fallbackDescription' => $locale === 'vi'
                 ? (Setting::get('blog_index_description') ?: 'Cập nhật kiến thức, xu hướng và câu chuyện từ chúng tôi.')

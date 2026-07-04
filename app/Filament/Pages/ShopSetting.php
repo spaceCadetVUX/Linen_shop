@@ -39,6 +39,8 @@ class ShopSetting extends Page
             'intro' => $shop['intro'] ?? null,
             'intro_en' => $shop['intro_en'] ?? null,
             'hero_image' => $shop['hero_image'] ?? null,
+            'hero_alt' => $shop['hero_alt'] ?? null,
+            'hero_alt_en' => $shop['hero_alt_en'] ?? null,
 
             // Key extra.product_catalog_* cũ (trước ở BusinessProfileResource
             // tab Page Fallbacks) — giữ nguyên chỗ lưu, chỉ đổi editor.
@@ -97,6 +99,20 @@ class ShopSetting extends Page
                             ->maxSize(5120)
                             ->helperText('Hiển thị cột trái banner. Khuyến nghị 800×600px, ≤5MB, WebP. Bỏ trống thì banner chỉ có chữ.')
                             ->columnSpanFull(),
+
+                        TextInput::make('hero_alt')
+                            ->label('Alt ảnh Tiếng Việt')
+                            ->placeholder('Mô tả nội dung ảnh — bỏ trống sẽ dùng H1')
+                            ->maxLength(160)
+                            ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
+
+                        TextInput::make('hero_alt_en')
+                            ->label('Alt ảnh English')
+                            ->placeholder('Describe what the image shows')
+                            ->maxLength(160)
+                            ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
                     ])
                     ->columns(2),
 
@@ -161,6 +177,8 @@ class ShopSetting extends Page
             'intro' => filled($data['intro']) ? trim($data['intro']) : null,
             'intro_en' => filled($data['intro_en']) ? trim($data['intro_en']) : null,
             'hero_image' => $data['hero_image'] ?? null,
+            'hero_alt' => filled($data['hero_alt']) ? trim($data['hero_alt']) : null,
+            'hero_alt_en' => filled($data['hero_alt_en']) ? trim($data['hero_alt_en']) : null,
         ];
 
         // Key top-level cũ — ProductController đọc qua Setting::get().

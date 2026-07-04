@@ -75,13 +75,17 @@ class ProductController extends Controller
         $shop = (array) (BusinessProfile::instance()->extra['shop'] ?? []);
         $isEn = $locale === 'en';
         $heroImageRaw = $shop['hero_image'] ?? null;
+        $shopHeroTitle = ($isEn ? ($shop['h1_en'] ?? null) : ($shop['h1'] ?? null))
+            ?: ($isEn ? 'All Products' : 'Tất cả sản phẩm');
         $shopHero = [
-            'title' => ($isEn ? ($shop['h1_en'] ?? null) : ($shop['h1'] ?? null))
-                ?: ($isEn ? 'All Products' : 'Tất cả sản phẩm'),
+            'title' => $shopHeroTitle,
             'intro' => $isEn ? ($shop['intro_en'] ?? null) : ($shop['intro'] ?? null),
             'image_url' => $heroImageRaw
                 ? (str_starts_with($heroImageRaw, 'http') ? $heroImageRaw : asset('storage/'.ltrim($heroImageRaw, '/')))
                 : null,
+            // Alt tự điền (BlogSetting/ShopSetting), fallback H1 + tên shop.
+            'image_alt' => ($isEn ? ($shop['hero_alt_en'] ?? null) : ($shop['hero_alt'] ?? null))
+                ?: $shopHeroTitle.' — '.Setting::get('site_name'),
         ];
 
         // Không kèm hậu tố "— LINNÉ" — layout blade append một lần duy nhất,

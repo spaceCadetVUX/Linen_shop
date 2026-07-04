@@ -44,6 +44,13 @@ class PagesSetting extends Page
                 'url' => ShopSetting::getUrl(),
                 'newTab' => true,
             ],
+            [
+                'label' => 'Blog Page Setting',
+                'description' => 'Ảnh hero và SEO (tab title, meta description) cho trang danh sách bài viết.',
+                'icon' => 'heroicon-o-newspaper',
+                'url' => BlogSetting::getUrl(),
+                'newTab' => true,
+            ],
             // Thêm page setting mới = thêm 1 entry tại đây
             // ('newTab' => true nếu muốn mở tab mới).
         ];

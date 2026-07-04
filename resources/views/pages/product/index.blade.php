@@ -19,7 +19,7 @@
 <section class="plp-banner">
   @if($shopHero['image_url'])
     <div class="plp-banner-img-col">
-      <img src="{{ $shopHero['image_url'] }}" alt="{{ $shopHero['title'] }} — {{ \App\Models\Setting::get('site_name') }}" class="plp-banner-img">
+      <img src="{{ $shopHero['image_url'] }}" alt="{{ $shopHero['image_alt'] }}" class="plp-banner-img">
     </div>
   @endif
   <div class="plp-banner-info">

@@ -22,6 +22,13 @@
         <h1 class="jnl-hd-title"><em>Journal</em></h1>
       </div>
 
+      <!-- Hero image — admin-managed via Filament BlogSetting, ẩn khi chưa upload -->
+      @if($blogHeroUrl)
+        <div class="jnl-hero">
+          <img src="{{ $blogHeroUrl }}" alt="{{ $blogHeroAlt }}" class="jnl-hero-img">
+        </div>
+      @endif
+
       <!-- Featured article -->
       @if($featured)
         @php
@@ -70,6 +77,26 @@
           @endif
         </span>
       </div>
+
+      <!-- Category pills — server-side links (?blog_category=slug), no JS.
+           Đặt tại divider: control nằm cạnh state label, featured hero giữ sạch;
+           khi có filter thì featured ẩn nên pills thành đầu danh sách — vị trí
+           nhất quán ở cả 2 trạng thái. -->
+      @if($blogCategories->isNotEmpty())
+        <div class="jnl-cat-pills">
+          <a href="{{ route($locale . '.blog.index') }}"
+             class="jnl-cat-pill{{ empty($activeCategorySlugs) && ! $searchTerm ? ' active' : '' }}">
+            {{ $locale === 'vi' ? 'Tất cả' : 'All' }}
+          </a>
+          @foreach($blogCategories as $cat)
+            @continue(($cat->total_blog_count ?? 0) < 1)
+            <a href="{{ route($locale . '.blog.index', ['blog_category' => $cat->slug]) }}"
+               class="jnl-cat-pill{{ in_array($cat->slug, $activeCategorySlugs, true) ? ' active' : '' }}">
+              {{ $cat->name }}
+            </a>
+          @endforeach
+        </div>
+      @endif
 
       <!-- Articles grid -->
       @if($gridPosts->isNotEmpty())
