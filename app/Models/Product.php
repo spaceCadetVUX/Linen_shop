@@ -112,18 +112,18 @@ class Product extends Model
      */
     public function toSearchableArray(): array
     {
-        $categoriesLoaded = $this->relationLoaded('categories');
-        $filterValuesLoaded = $this->relationLoaded('filterValues');
-        $translationsLoaded = $this->relationLoaded('translations');
+        // makeAllSearchableUsing() pre-loads these during scout:import; loadMissing
+        // covers single-model syncs, where the queued MakeSearchable job restores
+        // the model without relations — a relationLoaded() guard here would
+        // silently index empty category_ids/filter_value_ids on every admin save.
+        $this->loadMissing(['categories', 'filterValues', 'translations']);
 
         // Per-locale searchable text. Falls back to the base products.* columns
         // when a locale has no translation row yet, so the index never has a
         // blank field for an existing product.
         $localized = [];
         foreach (config('app.supported_locales', ['vi', 'en']) as $locale) {
-            $translation = $translationsLoaded
-                ? $this->translations->firstWhere('locale', $locale)
-                : null;
+            $translation = $this->translations->firstWhere('locale', $locale);
 
             $localized["name_{$locale}"] = $translation->name ?? $this->name;
             $localized["short_description_{$locale}"] = $translation->short_description ?? $this->short_description;
@@ -132,18 +132,14 @@ class Product extends Model
         return array_merge([
             'id' => $this->id,
             'sku' => $this->sku,
-            'category_ids' => $categoriesLoaded
-                                    ? $this->categories->pluck('id')->all()
-                                    : [],
-            'categories' => $categoriesLoaded
-                                    ? $this->categories->pluck('name')->all()
-                                    : [],
-            'filter_value_ids' => $filterValuesLoaded
-                                    ? $this->filterValues->pluck('id')->all()
-                                    : [],
-            'filter_value_slugs' => $filterValuesLoaded
-                                    ? $this->filterValues->pluck('slug')->all()
-                                    : [],
+            'category_ids' => $this->categories->pluck('id')->all(),
+            'categories' => $this->categories->pluck('name')->all(),
+            'filter_value_ids' => $this->filterValues->pluck('id')->all(),
+            // Display names so a keyword like "trắng" or "linen" matches products
+            // by attribute, not just by name/description. FilterValue stores vi in
+            // `name` and en in `name_en` (nullable, vi fallback) — no locale table.
+            'filter_value_names_vi' => $this->filterValues->pluck('name')->all(),
+            'filter_value_names_en' => $this->filterValues->map(fn ($v) => $v->name_en ?: $v->name)->all(),
             'price' => (float) $this->price,
             'sale_price' => $this->sale_price ? (float) $this->sale_price : null,
             // What the customer actually pays — sale_price when it undercuts price,
@@ -160,7 +156,7 @@ class Product extends Model
 
     /**
      * Eager-load categories, filterValues and translations when running
-     * scout:import to populate category_ids, filter_value_ids/slugs and the
+     * scout:import to populate category_ids, filter_value_ids/names and the
      * per-locale name_{locale}/short_description_{locale} fields.
      */
     public function makeAllSearchableUsing(Builder $query): Builder

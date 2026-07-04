@@ -144,7 +144,9 @@ return [
         'key' => env('MEILISEARCH_KEY'),
         'index-settings' => [
             'app_products' => [
-                'searchableAttributes' => ['name_vi', 'name_en', 'sku', 'short_description_vi', 'short_description_en'],
+                // filter_value_names_* last: attribute order is a Meilisearch ranking
+                // rule — a hit on the product name must outrank a hit on an attribute.
+                'searchableAttributes' => ['name_vi', 'name_en', 'sku', 'short_description_vi', 'short_description_en', 'filter_value_names_vi', 'filter_value_names_en'],
                 'filterableAttributes' => ['category_ids', 'filter_value_ids', 'price', 'sale_price', 'effective_price', 'is_active', 'stock_quantity', '__soft_deleted'],
                 'sortableAttributes' => ['price', 'effective_price', 'created_at', 'name_vi', 'name_en'],
             ],

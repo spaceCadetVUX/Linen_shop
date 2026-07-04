@@ -34,5 +34,6 @@ class CreateProduct extends CreateRecord
     {
         $this->saveTranslations();
         $this->saveFilterValues();
+        $this->syncSearchIndex();
     }
 }

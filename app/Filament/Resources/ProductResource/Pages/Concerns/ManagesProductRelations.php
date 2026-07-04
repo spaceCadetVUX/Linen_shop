@@ -47,4 +47,14 @@ trait ManagesProductRelations
 
         $this->getRecord()->filterValues()->sync($allSelectedIds);
     }
+
+    /**
+     * Đẩy lại product lên Meilisearch sau khi translations + filter values đã lưu.
+     * Scout chỉ tự re-index khi bảng products thay đổi — pivot sync() và
+     * translation updateOrCreate() không trigger observer nào của Product.
+     */
+    protected function syncSearchIndex(): void
+    {
+        $this->getRecord()->searchable();
+    }
 }

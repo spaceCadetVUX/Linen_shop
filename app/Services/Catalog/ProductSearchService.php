@@ -96,7 +96,7 @@ class ProductSearchService
 
         $raw = Product::search($keyword, function ($meilisearch, $query, $options) use ($locale, $filter, $offset, $perPage) {
             $options['filter'] = $filter;
-            $options['attributesToSearchOn'] = ["name_{$locale}", "short_description_{$locale}"];
+            $options['attributesToSearchOn'] = ["name_{$locale}", "short_description_{$locale}", "filter_value_names_{$locale}"];
             $options['offset'] = $offset;
             $options['limit'] = $perPage;
 

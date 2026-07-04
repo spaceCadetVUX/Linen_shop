@@ -14,12 +14,15 @@ class MeilisearchConfigureCommand extends Command
 
     public function handle(MeilisearchClient $client): int
     {
-        $prefix = config('scout.prefix', '');
+        // Single source of truth — scout.meilisearch.index-settings, the same
+        // config scout:sync-index-settings reads. Keys already carry the prefix.
+        $indexes = config('scout.meilisearch.index-settings', []);
 
-        $indexes = [
-            $prefix . 'products'   => $this->productSettings(),
-            $prefix . 'blog_posts' => $this->blogPostSettings(),
-        ];
+        if (empty($indexes)) {
+            $this->error('No index settings found in scout.meilisearch.index-settings.');
+
+            return self::FAILURE;
+        }
 
         foreach ($indexes as $indexName => $settings) {
             $this->line("Configuring index: <info>{$indexName}</info>");
@@ -29,7 +32,7 @@ class MeilisearchConfigureCommand extends Command
                 $index->updateSearchableAttributes($settings['searchableAttributes']);
                 $index->updateFilterableAttributes($settings['filterableAttributes']);
                 $index->updateSortableAttributes($settings['sortableAttributes']);
-                $this->line("  <comment>✓</comment> Settings applied.");
+                $this->line('  <comment>✓</comment> Settings applied.');
             } catch (Throwable $e) {
                 $this->error("  Failed: {$e->getMessage()}");
 
@@ -40,23 +43,5 @@ class MeilisearchConfigureCommand extends Command
         $this->info('Meilisearch indexes configured successfully.');
 
         return self::SUCCESS;
-    }
-
-    private function productSettings(): array
-    {
-        return [
-            'searchableAttributes' => ['name', 'sku', 'short_description'],
-            'filterableAttributes' => ['category_id', 'price', 'sale_price', 'is_active', 'stock_quantity'],
-            'sortableAttributes'   => ['price', 'created_at', 'name'],
-        ];
-    }
-
-    private function blogPostSettings(): array
-    {
-        return [
-            'searchableAttributes' => ['title', 'excerpt'],
-            'filterableAttributes' => ['status', 'blog_category_id'],
-            'sortableAttributes'   => ['published_at'],
-        ];
     }
 }

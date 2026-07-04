@@ -77,9 +77,17 @@ class ProductRepository extends BaseRepository
         }
 
         if ($keyword) {
+            // COALESCE mirrors the Meilisearch path's filter_value_names_en, which
+            // is indexed with a vi-name fallback when name_en is null.
+            $attributeNameSql = $locale === 'en'
+                ? 'COALESCE(filter_values.name_en, filter_values.name)'
+                : 'filter_values.name';
+
             $query->where(fn ($q) => $q
                 ->where('name', 'ilike', "%{$keyword}%")
-                ->orWhere('short_description', 'ilike', "%{$keyword}%"));
+                ->orWhere('short_description', 'ilike', "%{$keyword}%")
+                ->orWhereHas('product.filterValues', fn ($q2) => $q2
+                    ->whereRaw("{$attributeNameSql} ILIKE ?", ["%{$keyword}%"])));
         }
 
         return $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();

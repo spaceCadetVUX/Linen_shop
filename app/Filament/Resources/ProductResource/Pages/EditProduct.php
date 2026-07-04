@@ -88,5 +88,6 @@ class EditProduct extends EditRecord
     {
         $this->saveTranslations();
         $this->saveFilterValues();
+        $this->syncSearchIndex();
     }
 }
