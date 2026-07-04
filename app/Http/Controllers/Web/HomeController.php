@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Enums\BlogPostStatus;
 use App\Models\BlogPostTranslation;
 use App\Models\BusinessProfile;
+use App\Models\ProductTranslation;
 use App\Models\Setting;
 use App\Services\Seo\BusinessJsonldService;
 use Illuminate\Contracts\View\View;
@@ -89,6 +90,23 @@ class HomeController extends Controller
         $seoMeta = null;
         $ogType  = 'website';
 
+        // Shop grid — sản phẩm mới nhất, bật/tắt + tiêu đề từ LandingSetup
+        // (extra['landing']['featured_enabled'/'featured_title']).
+        $featuredEnabled = (bool) ($landing['featured_enabled'] ?? true);
+        $featuredTitle   = ($landing['featured_title'] ?? null) ?: ($isEn ? 'Featured products' : 'Sản phẩm nổi bật');
+        $featuredProducts = collect();
+        if ($featuredEnabled) {
+            $featuredProducts = ProductTranslation::where('product_translations.locale', $locale)
+                ->join('products', 'products.id', '=', 'product_translations.product_id')
+                ->where('products.is_active', true)
+                ->whereNull('products.deleted_at')
+                ->select('product_translations.*')
+                ->with(['product.images'])
+                ->orderByDesc('products.created_at')
+                ->limit(8)
+                ->get();
+        }
+
         $latestBlogs = BlogPostTranslation::where('blog_post_translations.locale', $locale)
             ->join('blog_posts', 'blog_posts.id', '=', 'blog_post_translations.blog_post_id')
             ->where('blog_posts.status', BlogPostStatus::Published)
@@ -97,7 +115,7 @@ class HomeController extends Controller
             ->select('blog_post_translations.*')
             ->with(['blogPost.blogCategory.translations' => fn ($q) => $q->where('locale', $locale)])
             ->orderByDesc('blog_posts.published_at')
-            ->limit(3)
+            ->limit(4) // journal-grid desktop là 4 cột
             ->get()
             ->map(function ($tr) {
                 $p    = $tr->blogPost;
@@ -118,7 +136,7 @@ class HomeController extends Controller
             'locale', 'businessSchemas', 'faqItems', 'latestBlogs',
             'seoMeta', 'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
             'heroImageUrl', 'heroEyebrow', 'heroHeadline', 'heroCtaLabel', 'heroCtaUrl', 'heroCtaLabel2', 'heroCtaUrl2',
-            'editorialItems'
+            'editorialItems', 'featuredEnabled', 'featuredTitle', 'featuredProducts'
         ));
     }
 }

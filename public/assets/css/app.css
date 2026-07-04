@@ -1817,6 +1817,29 @@ img    { display: block; }
 .shop-tab.active { color: var(--ink); font-weight: 700; }
 .shop-tab:not(.active):hover { color: var(--graphite); }
 
+/* Header variant khi grid render sản phẩm thật (title trái + view-all phải) */
+.shop-header--featured { justify-content: space-between; }
+.shop-header-title {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+}
+.shop-view-all {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  padding-bottom: 2px;
+  border-bottom: 0.5px solid var(--ink);
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+.shop-view-all:hover { opacity: 0.7; }
+
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

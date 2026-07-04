@@ -225,182 +225,24 @@
 
 
 
-  <!-- ==============================  SHOP GRID  ============================== -->
+  {{-- ==============================  SHOP GRID  ==============================
+       Sản phẩm mới nhất (8) — bật/tắt + tiêu đề chỉnh trong Landing Page
+       setting (featured_enabled / featured_title). Ẩn hẳn khi tắt hoặc
+       chưa có sản phẩm. --}}
+  @if($featuredEnabled && $featuredProducts->isNotEmpty())
   <section class="shop-section" id="shopSection">
-    <div class="shop-header">
-      <nav class="shop-tabs">
-        <button class="shop-tab active">Áo linen</button>
-        <button class="shop-tab">Áo khoác</button>
-        <button class="shop-tab">Quần &amp; Váy</button>
-      </nav>
+    <div class="shop-header shop-header--featured">
+      <h2 class="shop-header-title">{{ $featuredTitle }}</h2>
+      <a href="{{ route($locale . '.product.shop') }}" class="shop-view-all">{{ $locale === 'vi' ? 'Xem tất cả' : 'View all' }} →</a>
     </div>
 
     <div class="shop-grid">
-
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Luxe_Cardigan_Seafoam4.jpg?v=1778219735&width=2160" alt="Áo linen cổ chữ V" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/Luxe_Cardigan_Seafoam3.jpg?v=1778219735&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo linen cổ chữ V</span>
-          <p class="shop-card-meta">100% Linen · Cổ chữ V</p>
-          <span class="shop-card-price">660.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-forest"></span>
-            <span class="shop-swatch swatch-slate"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/thumbnail-2_4cf766ce-5b06-4193-a934-16b9810f4d7f.jpg?v=1760544267&width=2160" alt="Áo blouse thắt nơ" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/thumbnail-4_02c534f0-4e07-437b-bf55-1a30ceefa45c.jpg?v=1760544267&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo blouse thắt nơ</span>
-          <p class="shop-card-meta">100% Linen · Thắt nơ</p>
-          <span class="shop-card-price">720.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-camel"></span>
-            <span class="shop-swatch swatch-cognac"></span>
-            <span class="shop-swatch swatch-noir"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/thumbnail-3_b566575e-e85c-4d05-8881-d0aed54285d7.jpg?v=1760544198&width=2160" alt="Áo crop linen" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/thumbnail-5.jpg?v=1760544198&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo crop linen</span>
-          <p class="shop-card-meta">100% Linen · Crop fit</p>
-          <span class="shop-card-price">620.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-rust"></span>
-            <span class="shop-swatch swatch-noir"></span>
-            <span class="shop-swatch swatch-forest"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Red.jpg?v=1778217693&width=2160" alt="Áo linen oversized" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Red3.jpg?v=1778217693&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo linen oversized</span>
-          <p class="shop-card-meta">100% Linen · Oversized</p>
-          <span class="shop-card-price">680.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-slate"></span>
-            <span class="shop-swatch swatch-noir"></span>
-          </div>
-        </div>
-      </div>
-
+      @foreach($featuredProducts as $p)
+        <x-product.card :product="$p" />
+      @endforeach
     </div>
   </section>
-
-    <!-- ==============================  SHOP GRID  ============================== -->
-  <section class="shop-section" id="shopSection">
-    <div class="shop-header">
-      <nav class="shop-tabs">
-        <button class="shop-tab active">Áo linen</button>
-        <button class="shop-tab">Áo khoác</button>
-        <button class="shop-tab">Quần &amp; Váy</button>
-      </nav>
-    </div>
-
-    <div class="shop-grid">
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Black.jpg?v=1779070489&width=2160" alt="Áo linen cổ chữ V" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Black4.jpg?v=1779070489&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo linen cổ chữ V</span>
-          <p class="shop-card-meta">100% Linen · Cổ chữ V</p>
-          <span class="shop-card-price">660.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-forest"></span>
-            <span class="shop-swatch swatch-slate"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Black-Sand_80abcf68-ce45-46c1-8665-8419cb22e876.jpg?v=1781216042&width=2160" alt="Áo blouse thắt nơ" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Black-Sand3.jpg?v=1781216042&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo blouse thắt nơ</span>
-          <p class="shop-card-meta">100% Linen · Thắt nơ</p>
-          <span class="shop-card-price">720.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-camel"></span>
-            <span class="shop-swatch swatch-cognac"></span>
-            <span class="shop-swatch swatch-noir"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Red.jpg?v=1778217693&width=2160" alt="Áo crop linen" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Red2.jpg?v=1778217693&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo crop linen</span>
-          <p class="shop-card-meta">100% Linen · Crop fit</p>
-          <span class="shop-card-price">620.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-rust"></span>
-            <span class="shop-swatch swatch-noir"></span>
-            <span class="shop-swatch swatch-forest"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="shop-card">
-        <div class="shop-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160" alt="Áo linen oversized" class="shop-card-img">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch3.jpg?v=1778217589&width=2160" alt="" class="shop-card-img-alt" aria-hidden="true">
-          <span class="shop-badge">Mới</span>
-        </div>
-        <div class="shop-card-info">
-          <span class="shop-card-name">Áo linen oversized</span>
-          <p class="shop-card-meta">100% Linen · Oversized</p>
-          <span class="shop-card-price">680.000 ₫</span>
-          <div class="shop-card-swatches">
-            <span class="shop-swatch swatch-cream"></span>
-            <span class="shop-swatch swatch-slate"></span>
-            <span class="shop-swatch swatch-noir"></span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
+  @endif
 
   <!-- ==============================  TIKTOK INSPIRATION  ============================== -->
   <!--
@@ -469,77 +311,22 @@
     </div>
   </section>
 
-  <!-- ==============================  JOURNAL / BLOG  ============================== -->
+  {{-- ==============================  JOURNAL / BLOG  ==============================
+       4 bài viết mới nhất ($latestBlogs — HomeController, khớp 4 cột grid).
+       Ẩn hẳn khi chưa có bài published. --}}
+  @if($latestBlogs->isNotEmpty())
   <section class="journal-section" id="journalSection">
     <div class="journal-header">
-      <p class="journal-eyebrow">Nhật ký thời trang</p>
+      <p class="journal-eyebrow">{{ $locale === 'vi' ? 'Nhật ký thời trang' : 'Fashion journal' }}</p>
       <h2 class="journal-title">JOURNAL</h2>
-      <a href="#" class="journal-view-all">Xem tất cả <span class="journal-view-all-arrow">→</span></a>
+      <a href="{{ route($locale . '.blog.index') }}" class="journal-view-all">{{ $locale === 'vi' ? 'Xem tất cả' : 'View all' }} <span class="journal-view-all-arrow">→</span></a>
     </div>
 
     <div class="journal-grid">
-
-      <article class="journal-card">
-        <a href="journal.html" class="journal-card-img-link">
-          <div class="journal-card-img-wrap">
-            <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160"
-                 alt="Mặc gì khi đi làm?" class="journal-card-img">
-          </div>
-        </a>
-        <div class="journal-card-body">
-          <div class="jnl-card-meta"><span class="jnl-tag">Phong cách</span><span class="jnl-date">12/06/2026</span></div>
-          <h3 class="journal-card-title">Mặc gì khi đi làm?</h3>
-          <p class="journal-card-excerpt">Chọn trang phục phù hợp khi đi làm đôi khi là một thử thách...</p>
-          <a href="journal.html" class="journal-card-cta">Đọc thêm</a>
-        </div>
-      </article>
-
-      <article class="journal-card">
-        <a href="journal.html" class="journal-card-img-link">
-          <div class="journal-card-img-wrap">
-            <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=2160"
-                 alt="Chọn độ dài váy phù hợp" class="journal-card-img">
-          </div>
-        </a>
-        <div class="journal-card-body">
-          <div class="jnl-card-meta"><span class="jnl-tag">Phong cách</span><span class="jnl-date">05/06/2026</span></div>
-          <h3 class="journal-card-title">Chọn độ dài váy phù hợp</h3>
-          <p class="journal-card-excerpt">Độ dài váy phù hợp có thể tôn lên vóc dáng của bạn...</p>
-          <a href="journal.html" class="journal-card-cta">Đọc thêm</a>
-        </div>
-      </article>
-
-      <article class="journal-card">
-        <a href="journal.html" class="journal-card-img-link">
-          <div class="journal-card-img-wrap">
-            <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160"
-                 alt="Blazer và phong cách văn phòng" class="journal-card-img">
-          </div>
-        </a>
-        <div class="journal-card-body">
-          <div class="jnl-card-meta"><span class="jnl-tag">Xu hướng</span><span class="jnl-date">28/05/2026</span></div>
-          <h3 class="journal-card-title">Blazer và phong cách văn phòng</h3>
-          <p class="journal-card-excerpt">Blazer là một item không thể thiếu trong tủ đồ thời trang...</p>
-          <a href="journal.html" class="journal-card-cta">Đọc thêm</a>
-        </div>
-      </article>
-
-      <article class="journal-card">
-        <a href="journal.html" class="journal-card-img-link">
-          <div class="journal-card-img-wrap">
-            <img src="https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=2160"
-                 alt="Chăm sóc vải linen đúng cách" class="journal-card-img">
-          </div>
-        </a>
-        <div class="journal-card-body">
-          <div class="jnl-card-meta"><span class="jnl-tag">Chất liệu</span><span class="jnl-date">20/05/2026</span></div>
-          <h3 class="journal-card-title">Chăm sóc vải linen đúng cách</h3>
-          <p class="journal-card-excerpt">Vải linen bền đẹp hơn nếu bạn biết cách giặt và bảo quản...</p>
-          <a href="journal.html" class="journal-card-cta">Đọc thêm</a>
-        </div>
-      </article>
-
+      @foreach($latestBlogs as $post)
+        <x-blog.card :post="$post" :locale="$locale" />
+      @endforeach
     </div>
   </section>
-
+  @endif
 @endsection
