@@ -20,6 +20,15 @@ docker compose exec app php artisan scout:import "App\Models\Product"
 
 **Test nhanh sau khi xong:** search PLP bằng tên thuộc tính thuần (vd "trắng", "100% linen") — phải ra sản phẩm gắn value đó kể cả khi từ khoá không có trong tên/mô tả. Match vào tên sản phẩm vẫn rank cao hơn match vào thuộc tính (thứ tự searchableAttributes là ranking rule).
 
+## 🔴 Chạy migration filter_groups.type khi bật Docker
+
+```bash
+docker compose exec app php artisan migrate
+# thêm filter_groups.type ('text'|'color') + backfill group có color_hex → 'color'
+```
+
+Sau đó vào Admin → Filter Groups kiểm tra: group "Màu sắc" phải có Loại = "Màu sắc (swatch)", các group khác không còn thấy ColorPicker trong Values.
+
 ## Nội dung đã sửa trong session này (chờ commit + verify runtime)
 
 | File | Thay đổi |
@@ -37,3 +46,5 @@ docker compose exec app php artisan scout:import "App\Models\Product"
 2. **Pint fail có sẵn** ở `ProductResource/Pages/*` (aligned assignment style vs config pint) — HEAD cũng fail y hệt, không phải do session này.
 3. **phpstan/larastan chưa cài** dù CLAUDE.md ghi là có (`vendor/bin/phpstan` không tồn tại).
 4. **`SCOUT_DRIVER` không được set trong `phpunit.xml`** — test env có thể leak driver meilisearch từ `.env` (nên set `SCOUT_DRIVER=collection` hoặc `null` cho testing).
+5. **ERD `doc/databse.md` không có các bảng filter** (`filter_groups`, `filter_values`, `product_filter_values`) — thêm khi cập nhật ERD lần tới.
+6. **PLP/category filter modal còn mockup tĩnh** — swatch màu/size hardcode trong blade, chưa wire vào `$filterGroups`. Khi wire, dùng `$group->type === FilterGroupType::Color` để chọn renderer swatch vs pill.

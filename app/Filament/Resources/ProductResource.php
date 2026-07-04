@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\FilterGroupType;
 use App\Enums\OgType;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Category;
@@ -523,21 +524,38 @@ class ProductResource extends Resource
                                 ];
                             }
 
-                            return $groups->map(fn (FilterGroup $group) => Section::make($group->name.($group->name_en ? " / {$group->name_en}" : ''))
-                                ->compact()
-                                ->schema([
-                                    Forms\Components\CheckboxList::make("filter_group_{$group->id}")
-                                        ->label('')
-                                        ->options(
-                                            $group->activeValues->mapWithKeys(fn ($v) => [
-                                                $v->id => $v->name.($v->name_en ? " / {$v->name_en}" : ''),
-                                            ])->toArray()
-                                        )
-                                        ->columns(3)
-                                        ->columnSpanFull()
-                                        ->gridDirection('row'),
-                                ])
-                            )->all();
+                            return $groups->map(function (FilterGroup $group) {
+                                $isColor = $group->type === FilterGroupType::Color;
+
+                                // Group màu: option kèm ô swatch để admin tick đúng màu
+                                // bằng mắt. allowHtml chỉ bật cho group màu — name phải
+                                // tự escape vì Filament không escape nữa khi allowHtml.
+                                $options = $group->activeValues->mapWithKeys(function ($v) use ($isColor) {
+                                    $label = $v->name.($v->name_en ? " / {$v->name_en}" : '');
+
+                                    if ($isColor) {
+                                        $swatch = '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'
+                                            .e($v->color_hex ?: '#ffffff')
+                                            .';border:1px solid rgba(0,0,0,.2);vertical-align:-2px;margin-right:6px"></span>';
+
+                                        return [$v->id => $swatch.e($label)];
+                                    }
+
+                                    return [$v->id => $label];
+                                })->toArray();
+
+                                return Section::make($group->name.($group->name_en ? " / {$group->name_en}" : ''))
+                                    ->compact()
+                                    ->schema([
+                                        Forms\Components\CheckboxList::make("filter_group_{$group->id}")
+                                            ->label('')
+                                            ->allowHtml($isColor)
+                                            ->options($options)
+                                            ->columns(3)
+                                            ->columnSpanFull()
+                                            ->gridDirection('row'),
+                                    ]);
+                            })->all();
                         }),
 
                     // ── Tab 8: Variants ───────────────────────────────────────

@@ -19,7 +19,7 @@ class ProductSeeder extends Seeder
     {
         $colorGroup = FilterGroup::firstOrCreate(
             ['slug' => 'mau-sac'],
-            ['name' => 'Màu sắc', 'name_en' => 'Color', 'sort_order' => 1, 'is_active' => true],
+            ['name' => 'Màu sắc', 'name_en' => 'Color', 'type' => 'color', 'sort_order' => 1, 'is_active' => true],
         );
 
         $colors = [

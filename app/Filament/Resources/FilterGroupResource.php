@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\FilterGroupType;
 use App\Filament\Resources\FilterGroupResource\Pages;
 use App\Models\FilterGroup;
 use BackedEnum;
@@ -11,6 +12,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -32,6 +34,13 @@ class FilterGroupResource extends Resource
         return (string) static::getModel()::count();
     }
 
+    /** Form state có thể là enum instance (fill từ model cast) hoặc string (live update). */
+    private static function isColorType(mixed $state): bool
+    {
+        return ($state instanceof FilterGroupType ? $state : FilterGroupType::tryFrom((string) $state))
+            === FilterGroupType::Color;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
@@ -44,6 +53,14 @@ class FilterGroupResource extends Resource
 
                     Forms\Components\TextInput::make('name_en')
                         ->label('Name (en)'),
+
+                    Forms\Components\Select::make('type')
+                        ->label('Loại')
+                        ->options(FilterGroupType::options())
+                        ->default(FilterGroupType::Text->value)
+                        ->required()
+                        ->live()
+                        ->helperText('Màu sắc: mỗi value có ô chọn màu, storefront hiển thị swatch thay vì chữ.'),
 
                     Forms\Components\Toggle::make('is_active')
                         ->label('Active')
@@ -65,8 +82,11 @@ class FilterGroupResource extends Resource
                                 ->label('Name (en)'),
 
                             Forms\Components\ColorPicker::make('color_hex')
-                                ->label('Màu (chỉ dùng cho group màu sắc)')
-                                ->helperText('Để trống nếu group này không phải màu sắc'),
+                                ->label('Màu')
+                                ->visible(fn (Get $get) => self::isColorType($get('../../type')))
+                                ->required(fn (Get $get) => self::isColorType($get('../../type')))
+                                ->regex('/^#[0-9A-Fa-f]{6}$/')
+                                ->validationMessages(['regex' => 'Màu phải ở dạng #RRGGBB.']),
 
                             Forms\Components\Toggle::make('is_active')
                                 ->label('Active')
@@ -94,6 +114,12 @@ class FilterGroupResource extends Resource
                 Tables\Columns\TextColumn::make('name_en')
                     ->label('Name (en)')
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Loại')
+                    ->badge()
+                    ->formatStateUsing(fn (FilterGroupType $state) => $state->label())
+                    ->color(fn (FilterGroupType $state) => $state === FilterGroupType::Color ? 'info' : 'gray'),
 
                 Tables\Columns\TextColumn::make('values_count')
                     ->label('Values')

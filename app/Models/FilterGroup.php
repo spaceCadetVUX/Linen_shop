@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FilterGroupType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
@@ -12,6 +13,7 @@ class FilterGroup extends Model
         'name',
         'name_en',
         'slug',
+        'type',
         'sort_order',
         'is_active',
     ];
@@ -23,10 +25,19 @@ class FilterGroup extends Model
                 $model->slug = Str::slug($model->name_en ?: $model->name);
             }
         });
+
+        // color_hex chỉ có nghĩa trong group màu — đổi type khỏi color thì dọn
+        // sạch hex của values, tránh data mồ côi khiến storefront render swatch sai.
+        static::saved(function (self $model) {
+            if ($model->type !== FilterGroupType::Color) {
+                $model->values()->whereNotNull('color_hex')->update(['color_hex' => null]);
+            }
+        });
     }
 
     protected $casts = [
-        'is_active'  => 'boolean',
+        'type' => FilterGroupType::class,
+        'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
 
