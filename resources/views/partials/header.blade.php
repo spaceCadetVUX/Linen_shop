@@ -17,12 +17,12 @@
       <nav class="nav-quick" aria-label="Quick navigation">
         <a href="{{ $megaMenuCollectionUrl }}" class="nav-quick-link">{{ $megaMenuCollectionLabel }}</a>
         <a href="{{ url('/blog') }}" class="nav-quick-link">Journal</a>
-        <a href="{{ url('/about') }}" class="nav-quick-link">Về LINNÉ</a>
+        <a href="{{ url('/about') }}" class="nav-quick-link">Về CacyLinen</a>
       </nav>
     </div>
 
     {{-- Center: logo --}}
-    <a href="{{ url('/') }}" class="nav-logo">LINNÉ</a>
+    <a href="{{ url('/') }}" class="nav-logo">CacyLinen</a>
 
     {{-- Right: lang switcher + search + wishlist + account --}}
     <div class="nav-right">
@@ -81,7 +81,7 @@
         <a href="{{ url('/collections/new') }}" class="mega-feature-img-wrap">
           <img
             src="{{ asset('assets/images/collections/new-arrivals.jpg') }}"
-            alt="Sản phẩm mới — LINNÉ"
+            alt="Sản phẩm mới - CacyLinen"
             class="mega-feature-img"
           >
         </a>
@@ -161,9 +161,9 @@
       <p class="mega-products-empty" id="megaProductsEmpty" hidden>Chưa có sản phẩm trong danh mục này.</p>
     </div>
 
-    {{-- Col 4: La Maison LINNÉ --}}
+    {{-- Col 4: La Maison CacyLinen --}}
     <div class="mega-col mega-col--brand">
-      <h3 class="mega-col-title">La Maison LINNÉ</h3>
+      <h3 class="mega-col-title">La Maison CacyLinen</h3>
 
       <div class="mega-group">
         <div class="mega-group-hd">

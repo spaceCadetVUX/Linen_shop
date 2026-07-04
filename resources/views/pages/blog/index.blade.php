@@ -18,7 +18,7 @@
 
       <!-- Header -->
       <div class="jnl-hd">
-        <p class="jnl-hd-eyebrow">LINNÉ · {{ $locale === 'vi' ? 'Nhật ký thời trang' : 'Fashion journal' }}</p>
+        <p class="jnl-hd-eyebrow">CacyLinen · {{ $locale === 'vi' ? 'Nhật ký thời trang' : 'Fashion journal' }}</p>
         <h1 class="jnl-hd-title"><em>Journal</em></h1>
       </div>
 

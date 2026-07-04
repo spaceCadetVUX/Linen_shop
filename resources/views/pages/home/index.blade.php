@@ -18,13 +18,13 @@
     @if($heroImageUrl)
       <img
         src="{{ $heroImageUrl }}"
-        alt="{{ $heroHeadline ?? 'LINNÉ — Bộ sưu tập Thu 2026' }}"
+        alt="{{ $heroHeadline ?? 'CacyLinen - Bộ sưu tập Thu 2026' }}"
         class="hero-img"
       >
     @else
       <img
         src="https://wonder-theme-fashion.myshopify.com/cdn/shop/files/5-velour-main-banner-image-desktop.jpg?v=1754861835&width=1920"
-        alt="LINNÉ — Bộ sưu tập Thu 2026"
+        alt="CacyLinen - Bộ sưu tập Thu 2026"
         class="hero-img"
       >
     @endif
@@ -32,7 +32,7 @@
   <div class="hero-overlay"></div>
 
   <div class="hero-logo-wrap" aria-hidden="true">
-    <span class="hero-logo-text">LINNÉ</span>
+    <span class="hero-logo-text">CacyLinen</span>
   </div>
 
   <div class="hero-caption">
@@ -78,7 +78,7 @@
     <div class="feat-product-left">
       <img
         src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160"
-        alt="LINNÉ — Bộ sưu tập Thu 2026"
+        alt="CacyLinen - Bộ sưu tập Thu 2026"
         class="feat-product-editorial"
       >
       <div class="feat-product-overlay">
@@ -176,7 +176,7 @@
     <div class="feat-product-left">
       <img
         src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange.jpg?v=1778217470&width=2160"
-        alt="LINNÉ — Quần &amp; Váy"
+        alt="CacyLinen - Quần &amp; Váy"
         class="feat-product-editorial"
       >
       <div class="feat-product-overlay">
@@ -207,7 +207,7 @@
     <div class="dual-edit-item">
       <img
         src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160"
-        alt="Phong cách tối giản — LINNÉ Thu 2026"
+        alt="Phong cách tối giản - CacyLinen Thu 2026"
         class="dual-edit-img"
       >
     </div>
@@ -217,8 +217,8 @@
   <!-- <section class="brand-stmt">
     <div class="brand-stmt-inner">
       <div class="brand-stmt-text">
-        <p class="brand-stmt-body">Chúng tôi thiết kế những trang phục linen tinh tế, xây dựng phong cách sống bền vững, và mang đến những trải nghiệm mặc đẹp mỗi ngày. Bắt nguồn từ chất liệu tự nhiên và được định hướng bởi sự tối giản, LINNÉ không ngừng phát triển theo cách có chủ đích.</p>
-        <a href="#" class="brand-stmt-cta">Tìm hiểu về LINNÉ</a>
+        <p class="brand-stmt-body">Chúng tôi thiết kế những trang phục linen tinh tế, xây dựng phong cách sống bền vững, và mang đến những trải nghiệm mặc đẹp mỗi ngày. Bắt nguồn từ chất liệu tự nhiên và được định hướng bởi sự tối giản, CacyLinen không ngừng phát triển theo cách có chủ đích.</p>
+        <a href="#" class="brand-stmt-cta">Tìm hiểu về CacyLinen</a>
       </div>
     </div>
   </section> -->

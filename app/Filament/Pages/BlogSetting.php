@@ -87,14 +87,14 @@ class BlogSetting extends Page
                     ->schema([
                         TextInput::make('meta_title')
                             ->label('Tab Title Tiếng Việt')
-                            ->placeholder('Blog — Tin tức & Bài viết')
+                            ->placeholder('Blog - Tin tức & Bài viết')
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('meta_title_en')
                             ->label('Tab Title English')
-                            ->placeholder('Blog — News & Articles')
+                            ->placeholder('Blog - News & Articles')
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
@@ -116,7 +116,8 @@ class BlogSetting extends Page
                             ->columnSpan(1),
                     ])
                     ->columns(2),
-            ]);
+            ])
+            ->statePath('data');
     }
 
     protected function getHeaderActions(): array

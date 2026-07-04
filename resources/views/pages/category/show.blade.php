@@ -18,7 +18,7 @@
   <div class="plp-banner-img-col">
     <img
       src="{{ $fallbackImage ?? asset('assets/img/placeholder-category.jpg') }}"
-      alt="{{ $translation->name }} — {{ \App\Models\Setting::get('site_name') }}"
+      alt="{{ $translation->name }} - {{ \App\Models\Setting::get('site_name') }}"
       class="plp-banner-img"
     >
   </div>

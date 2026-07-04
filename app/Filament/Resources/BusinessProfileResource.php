@@ -250,12 +250,12 @@ class BusinessProfileResource extends Resource
                                     Forms\Components\Textarea::make('extra.meta_description')
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('LINNÉ — Thời trang linen tối giản, bền vững.'),
+                                        ->placeholder('CacyLinen - Thời trang linen tối giản, bền vững.'),
 
                                     Forms\Components\Textarea::make('extra.meta_description_en')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('LINNÉ — Minimalist, sustainable linen fashion.'),
+                                        ->placeholder('CacyLinen - Minimalist, sustainable linen fashion.'),
                                 ])
                                 ->columns(2),
 
@@ -277,12 +277,12 @@ class BusinessProfileResource extends Resource
                                     Forms\Components\Textarea::make('extra.category_index_description')
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Mô tả</span>'))
                                         ->rows(2)
-                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của LINNÉ.'),
+                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của CacyLinen.'),
 
                                     Forms\Components\Textarea::make('extra.category_index_description_en')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('Browse all LINNÉ product categories.'),
+                                        ->placeholder('Browse all CacyLinen product categories.'),
                                 ])
                                 ->columns(2),
 
@@ -291,21 +291,21 @@ class BusinessProfileResource extends Resource
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.about_title')
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
-                                        ->placeholder('Về LINNÉ — Thời trang tối giản, vải tự nhiên'),
+                                        ->placeholder('Về CacyLinen - Thời trang tối giản, vải tự nhiên'),
 
                                     Forms\Components\TextInput::make('extra.about_title_en')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
-                                        ->placeholder('About LINNÉ — Minimalist fashion, natural fabrics'),
+                                        ->placeholder('About CacyLinen - Minimalist fashion, natural fabrics'),
 
                                     Forms\Components\Textarea::make('extra.about_meta_description')
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('LINNÉ được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản...'),
+                                        ->placeholder('CacyLinen được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản...'),
 
                                     Forms\Components\Textarea::make('extra.about_meta_description_en')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('LINNÉ is made for people who believe true beauty comes from simplicity...'),
+                                        ->placeholder('CacyLinen is made for people who believe true beauty comes from simplicity...'),
                                 ])
                                 ->columns(2),
 
@@ -314,21 +314,21 @@ class BusinessProfileResource extends Resource
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.blog_index_title')
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
-                                        ->placeholder('Blog — Tin tức & Bài viết'),
+                                        ->placeholder('Blog - Tin tức & Bài viết'),
 
                                     Forms\Components\TextInput::make('extra.blog_index_title_en')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
-                                        ->placeholder('Blog — News & Articles'),
+                                        ->placeholder('Blog - News & Articles'),
 
                                     Forms\Components\Textarea::make('extra.blog_index_description')
                                         ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('Góc nhìn của LINNÉ về thời trang bền vững, chất liệu tự nhiên và lối sống tối giản.'),
+                                        ->placeholder('Góc nhìn của CacyLinen về thời trang bền vững, chất liệu tự nhiên và lối sống tối giản.'),
 
                                     Forms\Components\Textarea::make('extra.blog_index_description_en')
                                         ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
                                         ->rows(2)
-                                        ->placeholder('LINNÉ\'s perspective on sustainable fashion, natural fabrics and minimalist living.'),
+                                        ->placeholder('CacyLinen\'s perspective on sustainable fashion, natural fabrics and minimalist living.'),
                                 ])
                                 ->columns(2),
 

@@ -11,12 +11,12 @@ class AboutController extends Controller
     public function show(string $locale): View
     {
         $seoTitle = $locale === 'vi'
-            ? (Setting::get('about_title') ?: 'Về LINNÉ — Thời trang tối giản, vải tự nhiên')
-            : (Setting::get('about_title_en') ?: 'About LINNÉ — Minimalist fashion, natural fabrics');
+            ? (Setting::get('about_title') ?: 'Về CacyLinen - Thời trang tối giản, vải tự nhiên')
+            : (Setting::get('about_title_en') ?: 'About CacyLinen - Minimalist fashion, natural fabrics');
 
         $seoDescription = $locale === 'vi'
-            ? (Setting::get('about_meta_description') ?: 'LINNÉ được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản — chất liệu thuần khiết, đường cắt may lâu bền, lựa chọn có ý thức.')
-            : (Setting::get('about_meta_description_en') ?: 'LINNÉ is made for people who believe true beauty comes from simplicity — pure fabrics, lasting construction, conscious choices.');
+            ? (Setting::get('about_meta_description') ?: 'CacyLinen được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản - chất liệu thuần khiết, đường cắt may lâu bền, lựa chọn có ý thức.')
+            : (Setting::get('about_meta_description_en') ?: 'CacyLinen is made for people who believe true beauty comes from simplicity - pure fabrics, lasting construction, conscious choices.');
 
         $data = [
             'seoTitle'       => $seoTitle,

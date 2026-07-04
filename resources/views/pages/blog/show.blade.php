@@ -47,7 +47,7 @@
           <div class="jnl-post-author">
             <span class="jnl-post-author-name">{{ $blog->author->name }}</span>
             <span class="jnl-post-author-sep">—</span>
-            <span class="jnl-post-author-role">LINNÉ</span>
+            <span class="jnl-post-author-role">CacyLinen</span>
           </div>
         @endif
       </header>
@@ -79,7 +79,7 @@
           @if($blog->author)
             <div class="jnl-rail-author">
               <span class="jnl-rail-author-name">{{ $blog->author->name }}</span>
-              <span class="jnl-rail-author-role">LINNÉ</span>
+              <span class="jnl-rail-author-role">CacyLinen</span>
             </div>
 
             <div class="jnl-rail-divider"></div>

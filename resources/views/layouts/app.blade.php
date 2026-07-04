@@ -6,14 +6,14 @@
   @php
     // Hậu tố tab title lấy từ Business Profile (site_name) — đổi tên shop
     // một chỗ, toàn site đổi theo. Page chỉ set phần tên riêng, KHÔNG kèm suffix.
-    $__siteName = \App\Models\Setting::get('site_name') ?: config('app.name', 'LINNÉ');
+    $__siteName = \App\Models\Setting::get('site_name') ?: config('app.name', 'CacyLinen');
     $__pageTitle = trim($__env->yieldContent('title'));
     $__tabTitle = ($__pageTitle === '' || $__pageTitle === $__siteName)
         ? $__siteName
-        : (str_ends_with($__pageTitle, '— '.$__siteName) ? $__pageTitle : $__pageTitle.' — '.$__siteName);
+        : (str_ends_with($__pageTitle, '- '.$__siteName) ? $__pageTitle : $__pageTitle.' - '.$__siteName);
   @endphp
   <title>{{ $__tabTitle }}</title>
-  <meta name="description" content="@yield('meta-description', 'LINNÉ — Thời trang linen tối giản, bền vững.')">
+  <meta name="description" content="@yield('meta-description', 'CacyLinen - Thời trang linen tối giản, bền vững.')">
   @include('partials.seo-head')
   <link rel="icon" href="{{ $faviconUrl ?? asset('favicon.ico') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">

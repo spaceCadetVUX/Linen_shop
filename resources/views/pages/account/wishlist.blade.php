@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Danh sách yêu thích')
-@section('meta-description', 'Xem lại các sản phẩm bạn đã yêu thích tại LINNÉ.')
+@section('meta-description', 'Xem lại các sản phẩm bạn đã yêu thích tại CacyLinen.')
 @section('body-class', 'page-pd')
 
 @section('content')
@@ -11,7 +11,7 @@
 
       <!-- Header -->
       <div class="fav-hd">
-        <p class="fav-hd-eyebrow">LINNÉ · Yêu thích</p>
+        <p class="fav-hd-eyebrow">CacyLinen · Yêu thích</p>
         <h1 class="fav-hd-title">Danh sách yêu thích <em id="favCountLabel">(8)</em></h1>
       </div>
 

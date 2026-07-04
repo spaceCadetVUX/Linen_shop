@@ -43,10 +43,10 @@ class HomeController extends Controller
 
         $fallbackDescription = $locale === 'vi'
             ? (Setting::get('meta_description')
-                ?: ($tagline ?: 'LINNÉ — Thời trang linen tối giản, bền vững.'))
+                ?: ($tagline ?: 'CacyLinen - Thời trang linen tối giản, bền vững.'))
             : (Setting::get('meta_description_en')
                 ?: (Setting::get('meta_description')
-                ?: 'LINNÉ — Minimalist, sustainable linen fashion.'));
+                ?: 'CacyLinen - Minimalist, sustainable linen fashion.'));
 
         $ogRaw = $profile->extra['og_image'] ?? Setting::get('default_og_image');
         $fallbackImage = $ogRaw

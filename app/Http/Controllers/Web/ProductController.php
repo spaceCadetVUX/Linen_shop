@@ -86,17 +86,17 @@ class ProductController extends Controller
                 : null,
             // Alt tự điền (BlogSetting/ShopSetting), fallback H1 + tên shop.
             'image_alt' => ($isEn ? ($shop['hero_alt_en'] ?? null) : ($shop['hero_alt'] ?? null))
-                ?: $shopHeroTitle.' — '.Setting::get('site_name'),
+                ?: $shopHeroTitle.' - '.Setting::get('site_name'),
         ];
 
-        // Không kèm hậu tố "— LINNÉ" — layout blade append một lần duy nhất,
-        // để suffix ở đây nữa là tab title thành "... — LINNÉ — LINNÉ".
+        // Không kèm hậu tố "- CacyLinen" - layout blade append một lần duy nhất,
+        // để suffix ở đây nữa là tab title thành "... - CacyLinen - CacyLinen".
         $fallbackTitle = $locale === 'vi'
             ? (Setting::get('product_catalog_title') ?: 'Tất cả sản phẩm')
             : (Setting::get('product_catalog_title_en') ?: 'All Products');
         $fallbackDescription = $locale === 'vi'
-            ? (Setting::get('product_catalog_description') ?: 'Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.')
-            : (Setting::get('product_catalog_description_en') ?: 'Browse the full LINNÉ collection of minimalist, sustainable linen fashion.');
+            ? (Setting::get('product_catalog_description') ?: 'Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của CacyLinen.')
+            : (Setting::get('product_catalog_description_en') ?: 'Browse the full CacyLinen collection of minimalist, sustainable linen fashion.');
 
         // Canonical: bỏ toàn bộ query filter (mau-sac, min_price, q, brand...) —
         // n! tổ hợp filter là nội dung trùng. Giữ page để paginated pages tự canonical.

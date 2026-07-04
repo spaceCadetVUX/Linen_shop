@@ -18,7 +18,7 @@
         </div>
         <div class="about-hero-content">
           <p class="about-hero-eyebrow">Về chúng tôi</p>
-          <h1 class="about-hero-title">LINNÉ</h1>
+          <h1 class="about-hero-title">CacyLinen</h1>
           <p class="about-hero-tagline">Thời trang tối giản · Vải tự nhiên · Thiết kế lâu bền</p>
         </div>
         <div class="about-hero-scroll" aria-hidden="true">
@@ -38,7 +38,7 @@
             <span class="about-manifesto-line about-manifesto-line--accent">Mãi mãi.</span>
           </blockquote>
           <p class="about-manifesto-body">
-            LINNÉ được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản —<br>
+            CacyLinen được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản —<br>
             từ những chất liệu thuần khiết, những đường cắt may lâu bền, và những lựa chọn có ý thức.
           </p>
         </div>
@@ -60,9 +60,9 @@
             <p class="about-story-eyebrow">Câu chuyện thương hiệu</p>
             <h2 class="about-story-title">Bắt đầu từ<br>một câu hỏi đơn giản</h2>
             <div class="about-story-body">
-              <p>Năm 2018, LINNÉ ra đời từ một câu hỏi rất đơn giản: <em>tại sao thời trang phải phức tạp?</em> Chúng tôi tin rằng một chiếc áo đẹp không cần nhiều chi tiết — nó chỉ cần được làm tốt, từ chất liệu tốt, và mang lại cảm giác đúng khi mặc lên người.</p>
-              <p>Khởi đầu từ một xưởng nhỏ tại Hà Nội với vỏn vẹn 12 mẫu thiết kế, LINNÉ dần trở thành địa chỉ tin cậy cho những ai tìm kiếm phong cách tối giản, lâu bền và có ý thức với môi trường.</p>
-              <p>Hôm nay, mỗi sản phẩm của LINNÉ vẫn được thiết kế theo cùng một triết lý: ít hơn, nhưng tốt hơn.</p>
+              <p>Năm 2018, CacyLinen ra đời từ một câu hỏi rất đơn giản: <em>tại sao thời trang phải phức tạp?</em> Chúng tôi tin rằng một chiếc áo đẹp không cần nhiều chi tiết — nó chỉ cần được làm tốt, từ chất liệu tốt, và mang lại cảm giác đúng khi mặc lên người.</p>
+              <p>Khởi đầu từ một xưởng nhỏ tại Hà Nội với vỏn vẹn 12 mẫu thiết kế, CacyLinen dần trở thành địa chỉ tin cậy cho những ai tìm kiếm phong cách tối giản, lâu bền và có ý thức với môi trường.</p>
+              <p>Hôm nay, mỗi sản phẩm của CacyLinen vẫn được thiết kế theo cùng một triết lý: ít hơn, nhưng tốt hơn.</p>
             </div>
             <div class="about-story-stats">
               <div class="about-story-stat">
@@ -151,14 +151,14 @@
             <span class="about-values-num">02</span>
             <div class="about-values-divider"></div>
             <h3 class="about-values-name">Bền vững</h3>
-            <p class="about-values-desc">Từng sản phẩm của LINNÉ được làm để tồn tại lâu dài — không phải theo xu hướng của một mùa, mà theo thời gian. Chất liệu tự nhiên, quy trình có trách nhiệm, thiết kế vượt mùa.</p>
+            <p class="about-values-desc">Từng sản phẩm của CacyLinen được làm để tồn tại lâu dài — không phải theo xu hướng của một mùa, mà theo thời gian. Chất liệu tự nhiên, quy trình có trách nhiệm, thiết kế vượt mùa.</p>
           </div>
 
           <div class="about-values-col">
             <span class="about-values-num">03</span>
             <div class="about-values-divider"></div>
             <h3 class="about-values-name">Chân thực</h3>
-            <p class="about-values-desc">Không có trend giả tạo, không có marketing rỗng. LINNÉ nói thật về chất liệu, về quy trình, về giá trị. Sự tin tưởng của khách hàng là thứ chúng tôi trân trọng nhất.</p>
+            <p class="about-values-desc">Không có trend giả tạo, không có marketing rỗng. CacyLinen nói thật về chất liệu, về quy trình, về giá trị. Sự tin tưởng của khách hàng là thứ chúng tôi trân trọng nhất.</p>
           </div>
 
         </div>
@@ -268,7 +268,7 @@
         <!-- Portrait -->
         <div class="about-fq-portrait">
           <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160"
-               alt="Người sáng lập LINNÉ" class="about-fq-img">
+               alt="Người sáng lập CacyLinen" class="about-fq-img">
         </div>
 
         <!-- Quote -->

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Áo Tank Cashmere Lurex')
-@section('meta-description', 'Áo Tank Cashmere Lurex LINNÉ — dệt từ cashmere Mông Cổ Grade A kết hợp lurex ánh kim. Dáng fitted, subtle luxury.')
+@section('meta-description', 'Áo Tank Cashmere Lurex CacyLinen — dệt từ cashmere Mông Cổ Grade A kết hợp lurex ánh kim. Dáng fitted, subtle luxury.')
 @section('body-class', 'page-pd')
 
 @section('content')
@@ -37,7 +37,7 @@
         <div class="pd-img-badge"><span class="badge badge-muted">Mới về</span></div>
         <img
           src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=1400"
-          alt="Áo Tank Cashmere Lurex LINNÉ — nhìn chính diện"
+          alt="Áo Tank Cashmere Lurex CacyLinen — nhìn chính diện"
           loading="eager"
         >
       </div>

@@ -14,13 +14,13 @@
     </div>
 
     <div class="footer-col footer-col--center">
-      <a href="{{ url('/') }}" class="footer-logo">LINNÉ</a>
+      <a href="{{ url('/') }}" class="footer-logo">CacyLinen</a>
     </div>
 
     <div class="footer-col footer-col--right">
       <h4 class="footer-col-title">Thông tin</h4>
       <nav class="footer-nav">
-        <a href="{{ url('/about') }}">Về LINNÉ</a>
+        <a href="{{ url('/about') }}">Về CacyLinen</a>
         <a href="{{ url('/contact') }}">Liên hệ</a>
         <a href="{{ url('/privacy-policy') }}">Chính sách bảo mật</a>
         <a href="{{ url('/size-guide') }}">Hướng dẫn size</a>
@@ -105,7 +105,7 @@
   {{-- Legal --}}
   <div class="footer-legal">
     <p>
-      &copy; {{ date('Y') }}, LINNÉ &nbsp;&middot;&nbsp;
+      &copy; {{ date('Y') }}, CacyLinen &nbsp;&middot;&nbsp;
       <a href="{{ url('/privacy-policy') }}">Chính sách bảo mật</a>
       &nbsp;&middot;&nbsp;
       <a href="{{ url('/terms') }}">Điều khoản dịch vụ</a>

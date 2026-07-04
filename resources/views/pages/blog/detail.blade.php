@@ -29,7 +29,7 @@
         <div class="jnl-post-author">
           <span class="jnl-post-author-name">Linh An</span>
           <span class="jnl-post-author-sep">—</span>
-          <span class="jnl-post-author-role">Người sáng lập, LINNÉ</span>
+          <span class="jnl-post-author-role">Người sáng lập, CacyLinen</span>
         </div>
       </header>
 
@@ -48,12 +48,12 @@
             Vải đẹp không cần phải được che giấu bởi nhiều lớp trang trí. Nó tự nói lên tất cả.
           </blockquote>
 
-          <p id="triet-ly">Ở LINNÉ, chúng tôi tin rằng tủ quần áo tốt nhất là tủ quần áo ít nhất. Không phải vì chủ nghĩa tối giản là một xu hướng — mà vì khi bạn chỉ có những thứ bạn thực sự yêu thích, bạn mặc tốt hơn. Bạn nghĩ ít hơn về việc mặc gì, và sống nhiều hơn với điều quan trọng hơn.</p>
+          <p id="triet-ly">Ở CacyLinen, chúng tôi tin rằng tủ quần áo tốt nhất là tủ quần áo ít nhất. Không phải vì chủ nghĩa tối giản là một xu hướng — mà vì khi bạn chỉ có những thứ bạn thực sự yêu thích, bạn mặc tốt hơn. Bạn nghĩ ít hơn về việc mặc gì, và sống nhiều hơn với điều quan trọng hơn.</p>
 
           <!-- Inline image -->
           <figure class="jnl-post-figure">
             <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=1600"
-                 alt="Chi tiết vải linen LINNÉ" class="jnl-post-figure-img">
+                 alt="Chi tiết vải linen CacyLinen" class="jnl-post-figure-img">
             <figcaption class="jnl-post-caption">Bộ sưu tập Thu 2026 — 100% linen Bỉ, nhuộm tự nhiên</figcaption>
           </figure>
 
@@ -105,7 +105,7 @@
 
           <div class="jnl-rail-author">
             <span class="jnl-rail-author-name">Linh An</span>
-            <span class="jnl-rail-author-role">Người sáng lập, LINNÉ</span>
+            <span class="jnl-rail-author-role">Người sáng lập, CacyLinen</span>
           </div>
 
           <div class="jnl-rail-divider"></div>
@@ -164,7 +164,7 @@
             <div class="journal-card-body">
               <div class="jnl-card-meta"><span class="jnl-tag">Tủ đồ</span><span class="jnl-date">02/06/2026</span></div>
               <h3 class="journal-card-title">10 món cơ bản cho tủ đồ tối giản</h3>
-              <p class="journal-card-excerpt">Ít hơn nhưng tốt hơn — nguyên tắc xây dựng tủ đồ bền vững theo phong cách LINNÉ.</p>
+              <p class="journal-card-excerpt">Ít hơn nhưng tốt hơn — nguyên tắc xây dựng tủ đồ bền vững theo phong cách CacyLinen.</p>
               <a href="#" class="journal-card-cta">Đọc thêm</a>
             </div>
           </article>

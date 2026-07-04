@@ -13,7 +13,7 @@
       <!-- Header -->
       <div class="jnl-hd">
         <p class="jnl-hd-eyebrow">
-          <a href="{{ route($locale . '.blog.index') }}">LINNÉ · Journal</a>
+          <a href="{{ route($locale . '.blog.index') }}">CacyLinen · Journal</a>
         </p>
         <h1 class="jnl-hd-title"><em>{{ $translation->name }}</em></h1>
 

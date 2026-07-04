@@ -11,7 +11,7 @@
 
       <!-- Header -->
       <div class="cart-hd">
-        <p class="cart-hd-eyebrow">LINNÉ · Giỏ hàng</p>
+        <p class="cart-hd-eyebrow">CacyLinen · Giỏ hàng</p>
         <h1 class="cart-hd-title">Giỏ hàng <em id="cartCountLabel">(3)</em></h1>
       </div>
 

@@ -47,8 +47,8 @@ class CategoryController extends Controller
             ? (Setting::get('category_index_title') ?: 'Danh mục sản phẩm')
             : (Setting::get('category_index_title_en') ?: 'Product Categories');
         $fallbackDescription = $locale === 'vi'
-            ? (Setting::get('category_index_description') ?: 'Khám phá tất cả danh mục sản phẩm của LINNÉ.')
-            : (Setting::get('category_index_description_en') ?: 'Browse all LINNÉ product categories.');
+            ? (Setting::get('category_index_description') ?: 'Khám phá tất cả danh mục sản phẩm của CacyLinen.')
+            : (Setting::get('category_index_description_en') ?: 'Browse all CacyLinen product categories.');
 
         return view('pages.category.index', compact(
             'locale', 'categories', 'fallbackTitle', 'fallbackDescription'

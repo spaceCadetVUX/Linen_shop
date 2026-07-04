@@ -30,7 +30,7 @@ docker compose exec app php artisan scout:import "App\Models\Product"
 | 3 | PLP `/vi/products` → bấm "Lọc" | Group màu hiện swatch tròn đúng màu, group thường hiện pill; tick + kéo giá + "Xem kết quả" → URL `?mau-sac=den&min_price=...`, grid lọc đúng; reload vẫn tick, nút hiện "Lọc (n)" |
 | 4 | Trang category bất kỳ → "Lọc" | Như trên, thanh giá scoped theo category |
 | 5 | Admin → Setting → Pages Setting | Thấy 2 card: Landing Page (mở cùng tab), Shop Setting (mở tab mới); Landing Page biến mất khỏi sidebar |
-| 6 | Shop Setting: điền H1/P/ảnh hero + Tab Title → Lưu | `/vi/products` banner đổi H1, hiện đoạn P + ảnh cột trái; tab title đổi, KHÔNG bị đúp "— LINNÉ" |
+| 6 | Shop Setting: điền H1/P/ảnh hero + Tab Title → Lưu | `/vi/products` banner đổi H1, hiện đoạn P + ảnh cột trái; tab title đổi, KHÔNG bị đúp "— CacyLinen" |
 
 ## 🟠 Chưa commit (batch admin Pages Setting — session 2026-07-04)
 
@@ -41,10 +41,10 @@ docker compose exec app php artisan scout:import "App\Models\Product"
 | `app/Filament/Pages/ShopSetting.php` (mới) + `shop-setting.blade.php` (mới) | Form 2 section: Hero (H1, P, ảnh — lưu `extra['shop']`) và SEO/Tab Title (đọc/ghi key cũ `extra.product_catalog_*`) |
 | `app/Filament/Pages/LandingSetup.php` | Ẩn khỏi sidebar (`$shouldRegisterNavigation = false`), truy cập qua card hub |
 | `app/Filament/Resources/BusinessProfileResource.php` | Bỏ section "Product Catalog" (chuyển sang Shop Setting, cùng key lưu) |
-| `app/Http/Controllers/Web/ProductController.php` | Đọc `extra['shop']` → `$shopHero`; **fix bug** fallback title đúp "— LINNÉ" |
+| `app/Http/Controllers/Web/ProductController.php` | Đọc `extra['shop']` → `$shopHero`; **fix bug** fallback title đúp "— CacyLinen" |
 | `resources/views/pages/product/index.blade.php` | Banner PLP dùng `$shopHero` (H1/P/ảnh), fallback y hệt cũ khi chưa điền |
 
-**Lưu ý data:** nếu `product_catalog_title` từng được điền kèm "— LINNÉ" (placeholder cũ gợi ý sai) thì tab title vẫn đúp — mở Shop Setting xoá hậu tố trong ô Tab Title.
+**Lưu ý data:** nếu `product_catalog_title` từng được điền kèm "— CacyLinen" (placeholder cũ gợi ý sai) thì tab title vẫn đúp — mở Shop Setting xoá hậu tố trong ô Tab Title.
 
 ## 🟠 SEO/GEO: JSON-LD ra HTML — GĐ1–4 code xong, còn verify (xem `doc/seo.md`)
 

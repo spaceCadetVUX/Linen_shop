@@ -83,7 +83,7 @@
     <div class="pd-info">
       <div class="pd-info-inner" id="pdInfoInner">
 
-        <p class="pd-eyebrow">{{ $catT?->name ?? 'LINNÉ' }}</p>
+        <p class="pd-eyebrow">{{ $catT?->name ?? 'CacyLinen' }}</p>
 
         <div class="pd-title-row">
           <h1 class="pd-title">{{ $translation->name }}</h1>

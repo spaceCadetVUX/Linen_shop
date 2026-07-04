@@ -118,8 +118,8 @@ class BlogController extends Controller
         ]);
 
         $fallbackTitle = $locale === 'vi'
-            ? (Setting::get('blog_index_title') ?: 'Blog — Tin tức & Bài viết')
-            : (Setting::get('blog_index_title_en') ?: 'Blog — News & Articles');
+            ? (Setting::get('blog_index_title') ?: 'Blog - Tin tức & Bài viết')
+            : (Setting::get('blog_index_title_en') ?: 'Blog - News & Articles');
 
         // Hero image — admin-managed via Filament BlogSetting (extra['blog']).
         $blogExtra = (array) (BusinessProfile::instance()->extra['blog'] ?? []);
@@ -127,9 +127,9 @@ class BlogController extends Controller
         $blogHeroUrl = $blogHeroRaw
             ? (str_starts_with($blogHeroRaw, 'http') ? $blogHeroRaw : asset('storage/'.ltrim($blogHeroRaw, '/')))
             : null;
-        // Alt tự điền, fallback "Journal — {site_name}".
+        // Alt tự điền, fallback "Journal - {site_name}".
         $blogHeroAlt = ($locale === 'en' ? ($blogExtra['hero_alt_en'] ?? null) : ($blogExtra['hero_alt'] ?? null))
-            ?: 'Journal — '.Setting::get('site_name');
+            ?: 'Journal - '.Setting::get('site_name');
 
         // Canonical: bỏ query (search/category filter), giữ page — cùng rule với PLP.
         $canonicalUrl = $blogs->currentPage() > 1

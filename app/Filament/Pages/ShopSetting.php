@@ -118,7 +118,7 @@ class ShopSetting extends Page
 
                 Section::make('SEO / Tab Title')
                     ->icon('heroicon-o-magnifying-glass')
-                    ->description('Thẻ <title> (tiêu đề tab cạnh favicon) và meta description của trang danh sách sản phẩm. Hậu tố " — LINNÉ" tự thêm, đừng gõ vào.')
+                    ->description('Thẻ <title> (tiêu đề tab cạnh favicon) và meta description của trang danh sách sản phẩm. Hậu tố " - CacyLinen" tự thêm, đừng gõ vào.')
                     ->schema([
                         TextInput::make('meta_title')
                             ->label('Tab Title Tiếng Việt')
@@ -136,7 +136,7 @@ class ShopSetting extends Page
 
                         Textarea::make('meta_description')
                             ->label('Meta Description Tiếng Việt')
-                            ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.')
+                            ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của CacyLinen.')
                             ->rows(2)
                             ->maxLength(300)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
@@ -144,14 +144,15 @@ class ShopSetting extends Page
 
                         Textarea::make('meta_description_en')
                             ->label('Meta Description English')
-                            ->placeholder('Browse the full LINNÉ collection of minimalist, sustainable linen fashion.')
+                            ->placeholder('Browse the full CacyLinen collection of minimalist, sustainable linen fashion.')
                             ->rows(2)
                             ->maxLength(300)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
                     ])
                     ->columns(2),
-            ]);
+            ])
+            ->statePath('data');
     }
 
     protected function getHeaderActions(): array

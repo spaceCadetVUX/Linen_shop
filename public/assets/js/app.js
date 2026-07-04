@@ -1,5 +1,5 @@
 /* ============================================
-   LINNÉ — main.js
+   CacyLinen — main.js
 ============================================ */
 
 
@@ -213,11 +213,11 @@ updateNav();
   if (!section) return;
 
   const SLIDES = [
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=2160',       brand: 'LINNÉ', name: 'Áo linen cổ chữ V',   price: '660.000 ₫'   },
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=2160',  brand: 'LINNÉ', name: 'Áo blouse thắt nơ',    price: '720.000 ₫'   },
-    { img: 'https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160',    brand: 'LINNÉ', name: 'Đầm linen cổ chữ V',   price: '1.290.000 ₫' },
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange.jpg?v=1778217470&width=2160',   brand: 'LINNÉ', name: 'Áo crop linen',         price: '620.000 ₫'   },
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160',          brand: 'LINNÉ', name: 'Áo linen oversized',    price: '680.000 ₫'   },
+    { img: 'https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=2160',       brand: 'CacyLinen', name: 'Áo linen cổ chữ V',   price: '660.000 ₫'   },
+    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=2160',  brand: 'CacyLinen', name: 'Áo blouse thắt nơ',    price: '720.000 ₫'   },
+    { img: 'https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160',    brand: 'CacyLinen', name: 'Đầm linen cổ chữ V',   price: '1.290.000 ₫' },
+    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange.jpg?v=1778217470&width=2160',   brand: 'CacyLinen', name: 'Áo crop linen',         price: '620.000 ₫'   },
+    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160',          brand: 'CacyLinen', name: 'Áo linen oversized',    price: '680.000 ₫'   },
   ];
 
   const N      = SLIDES.length;
