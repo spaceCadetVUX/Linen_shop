@@ -8,6 +8,7 @@ use App\Models\BusinessProfile;
 use App\Models\FilterGroup;
 use App\Models\ProductTranslation;
 use App\Models\Setting;
+use App\Repositories\Eloquent\BlogPostRepository;
 use App\Services\Catalog\ProductSearchService;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
@@ -305,10 +306,13 @@ class ProductController extends Controller
             ])->values()->all(),
         ])->values()->all();
 
+        // Journal section cuối PDP — 4 bài mới nhất, cùng shape với homepage.
+        $latestBlogs = app(BlogPostRepository::class)->latestDecorated($locale, 4);
+
         return view('pages.product.show', compact(
             'product', 'translation', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
-            'relatedProducts', 'variantsData', 'optionTypesData'
+            'relatedProducts', 'variantsData', 'optionTypesData', 'latestBlogs'
         ));
     }
 }

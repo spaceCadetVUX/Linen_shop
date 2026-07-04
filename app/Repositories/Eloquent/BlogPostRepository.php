@@ -2,15 +2,53 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Enums\BlogPostStatus;
 use App\Models\BlogComment;
 use App\Models\BlogPost;
+use App\Models\BlogPostTranslation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class BlogPostRepository extends BaseRepository
 {
     protected function model(): string
     {
         return BlogPost::class;
+    }
+
+    /**
+     * Latest published posts, decorated to the shape <x-blog.card> expects:
+     * title, slug, excerpt, category, category_slug, featured_image
+     * ('storage/...'), formatted_published_date. Used by the homepage and
+     * PDP journal sections.
+     */
+    public function latestDecorated(string $locale, int $limit = 4): Collection
+    {
+        return BlogPostTranslation::where('blog_post_translations.locale', $locale)
+            ->join('blog_posts', 'blog_posts.id', '=', 'blog_post_translations.blog_post_id')
+            ->where('blog_posts.status', BlogPostStatus::Published)
+            ->where('blog_posts.published_at', '<=', now())
+            ->whereNull('blog_posts.deleted_at')
+            ->select('blog_post_translations.*')
+            ->with(['blogPost.blogCategory.translations' => fn ($q) => $q->where('locale', $locale)])
+            ->orderByDesc('blog_posts.published_at')
+            ->limit($limit)
+            ->get()
+            ->map(function ($tr) {
+                $p = $tr->blogPost;
+                $cTr = $p?->blogCategory?->translations->first();
+                $img = $p?->featured_image;
+
+                return (object) [
+                    'title' => $tr->title,
+                    'slug' => $tr->slug,
+                    'excerpt' => $tr->excerpt,
+                    'category' => $cTr?->name ?? $p?->blogCategory?->name,
+                    'category_slug' => $cTr?->slug ?? $p?->blogCategory?->slug,
+                    'featured_image' => $img ? 'storage/'.ltrim($img, '/') : null,
+                    'formatted_published_date' => $p?->published_at?->translatedFormat('d M, Y'),
+                ];
+            });
     }
 
     // ── List ──────────────────────────────────────────────────────────────────

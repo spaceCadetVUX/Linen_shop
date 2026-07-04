@@ -266,72 +266,23 @@
 @endif
 
 {{-- ============================================================
-     JOURNAL
-     TODO: controller does not pass $relatedPosts yet — static until
-     decided (add query vs drop section).
+     JOURNAL — 4 bài viết mới nhất ($latestBlogs, cùng shape với
+     homepage). Ẩn hẳn khi chưa có bài published.
      ============================================================ --}}
+@if($latestBlogs->isNotEmpty())
 <section class="journal-section" id="journalSection">
   <div class="journal-header">
-    <p class="journal-eyebrow">Nhật ký thời trang</p>
+    <p class="journal-eyebrow">{{ $locale === 'vi' ? 'Nhật ký thời trang' : 'Fashion journal' }}</p>
     <h2 class="journal-title">JOURNAL</h2>
-    <a href="{{ url('/blog') }}" class="journal-view-all">Xem tất cả <span class="journal-view-all-arrow">→</span></a>
+    <a href="{{ route($locale . '.blog.index') }}" class="journal-view-all">{{ $locale === 'vi' ? 'Xem tất cả' : 'View all' }} <span class="journal-view-all-arrow">→</span></a>
   </div>
 
   <div class="journal-grid">
-
-    <article class="journal-card">
-      <a href="{{ url('/blog/mac-gi-khi-di-lam') }}" class="journal-card-img-link">
-        <div class="journal-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160" alt="Mặc gì khi đi làm?" class="journal-card-img">
-        </div>
-      </a>
-      <div class="journal-card-body">
-        <a href="{{ url('/blog/mac-gi-khi-di-lam') }}" class="journal-card-title">Mặc gì khi đi làm?</a>
-        <p class="journal-card-excerpt">Chọn trang phục phù hợp khi đi làm đôi khi là một thử thách...</p>
-        <a href="{{ url('/blog/mac-gi-khi-di-lam') }}" class="journal-card-cta">Đọc thêm</a>
-      </div>
-    </article>
-
-    <article class="journal-card">
-      <a href="{{ url('/blog/chon-do-dai-vay-phu-hop') }}" class="journal-card-img-link">
-        <div class="journal-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=2160" alt="Chọn độ dài váy phù hợp" class="journal-card-img">
-        </div>
-      </a>
-      <div class="journal-card-body">
-        <a href="{{ url('/blog/chon-do-dai-vay-phu-hop') }}" class="journal-card-title">Chọn độ dài váy phù hợp</a>
-        <p class="journal-card-excerpt">Độ dài váy phù hợp có thể tôn lên vóc dáng của bạn...</p>
-        <a href="{{ url('/blog/chon-do-dai-vay-phu-hop') }}" class="journal-card-cta">Đọc thêm</a>
-      </div>
-    </article>
-
-    <article class="journal-card">
-      <a href="{{ url('/blog/blazer-va-phong-cach-van-phong') }}" class="journal-card-img-link">
-        <div class="journal-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160" alt="Blazer và phong cách văn phòng" class="journal-card-img">
-        </div>
-      </a>
-      <div class="journal-card-body">
-        <a href="{{ url('/blog/blazer-va-phong-cach-van-phong') }}" class="journal-card-title">Blazer và phong cách văn phòng</a>
-        <p class="journal-card-excerpt">Blazer là một item không thể thiếu trong tủ đồ thời trang...</p>
-        <a href="{{ url('/blog/blazer-va-phong-cach-van-phong') }}" class="journal-card-cta">Đọc thêm</a>
-      </div>
-    </article>
-
-    <article class="journal-card">
-      <a href="{{ url('/blog/cham-soc-vai-linen-dung-cach') }}" class="journal-card-img-link">
-        <div class="journal-card-img-wrap">
-          <img src="https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=2160" alt="Chăm sóc vải linen đúng cách" class="journal-card-img">
-        </div>
-      </a>
-      <div class="journal-card-body">
-        <a href="{{ url('/blog/cham-soc-vai-linen-dung-cach') }}" class="journal-card-title">Chăm sóc vải linen đúng cách</a>
-        <p class="journal-card-excerpt">Vải linen bền đẹp hơn nếu bạn biết cách giặt và bảo quản...</p>
-        <a href="{{ url('/blog/cham-soc-vai-linen-dung-cach') }}" class="journal-card-cta">Đọc thêm</a>
-      </div>
-    </article>
-
+    @foreach($latestBlogs as $post)
+      <x-blog.card :post="$post" :locale="$locale" />
+    @endforeach
   </div>
 </section>
+@endif
 
 @endsection
