@@ -16,10 +16,11 @@ use Filament\Schemas\Schema;
 
 class LandingSetup extends Page
 {
+    // Ẩn khỏi sidebar — truy cập qua card trong PagesSetting hub.
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static BackedEnum|string|null $navigationIcon  = 'heroicon-o-home';
-    protected static \UnitEnum|string|null  $navigationGroup = 'Setting';
     protected static ?string               $navigationLabel = 'Landing Page';
-    protected static ?int                  $navigationSort  = 20;
 
     protected string $view = 'filament.pages.landing-setup';
 

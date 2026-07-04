@@ -259,28 +259,9 @@ class BusinessProfileResource extends Resource
                                 ])
                                 ->columns(2),
 
-                            Section::make('Product Catalog (/cua-hang, /shop)')
-                                ->description('Dùng khi trang danh sách sản phẩm chưa có SEO meta riêng — đọc qua Setting::get() trong ProductController.')
-                                ->schema([
-                                    Forms\Components\TextInput::make('extra.product_catalog_title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tiêu đề</span>'))
-                                        ->placeholder('Tất cả sản phẩm — LINNÉ'),
-
-                                    Forms\Components\TextInput::make('extra.product_catalog_title_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Title</span>'))
-                                        ->placeholder('All Products — LINNÉ'),
-
-                                    Forms\Components\Textarea::make('extra.product_catalog_description')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Mô tả</span>'))
-                                        ->rows(2)
-                                        ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.'),
-
-                                    Forms\Components\Textarea::make('extra.product_catalog_description_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description</span>'))
-                                        ->rows(2)
-                                        ->placeholder('Browse the full LINNÉ collection of minimalist, sustainable linen fashion.'),
-                                ])
-                                ->columns(2),
+                            // Product Catalog (/cua-hang, /shop) — chuyển sang
+                            // Pages Setting → Shop Setting (App\Filament\Pages\ShopSetting),
+                            // vẫn đọc/ghi cùng key extra.product_catalog_*.
 
                             Section::make('Category Index (/danh-muc, /categories)')
                                 ->description('Dùng khi trang danh sách danh mục chưa có SEO meta riêng — đọc qua Setting::get() trong CategoryController.')
