@@ -116,6 +116,48 @@ class BlogController extends Controller
             'en' => route('en.blog.index'),
         ]);
 
+        $fallbackTitle = $locale === 'vi'
+            ? (Setting::get('blog_index_title') ?: 'Blog — Tin tức & Bài viết')
+            : (Setting::get('blog_index_title_en') ?: 'Blog — News & Articles');
+
+        // Canonical: bỏ query (search/category filter), giữ page — cùng rule với PLP.
+        $canonicalUrl = $blogs->currentPage() > 1
+            ? route($locale.'.blog.index').'?page='.$blogs->currentPage()
+            : route($locale.'.blog.index');
+
+        // CollectionPage + ItemList runtime (đổi theo trang/filter, không lưu DB).
+        $positionOffset = ($blogs->currentPage() - 1) * $blogs->perPage();
+        $jsonldSchemas = [
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'CollectionPage',
+                'name' => $fallbackTitle,
+                'url' => $canonicalUrl,
+                'inLanguage' => $locale,
+                'mainEntity' => [
+                    '@type' => 'ItemList',
+                    'numberOfItems' => $blogs->total(),
+                    'itemListElement' => $blogs->getCollection()->values()
+                        ->filter(fn ($post) => filled($post->category_slug) && filled($post->slug))
+                        ->values()
+                        ->map(fn ($post, $i) => [
+                            '@type' => 'ListItem',
+                            'position' => $positionOffset + $i + 1,
+                            'url' => route($locale.'.blog.show', ['category_slug' => $post->category_slug, 'slug' => $post->slug]),
+                            'name' => $post->title,
+                        ])->all(),
+                ],
+            ],
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'item' => route($locale.'.index')],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Blog'],
+                ],
+            ],
+        ];
+
         return view('pages.blog.index', [
             'blogs'               => $blogs,
             'blogCategories'      => $blogCategories,
@@ -123,10 +165,9 @@ class BlogController extends Controller
             'category'            => $categoryName,
             'locale'              => $locale,
             'seoMeta'             => null,
-            'jsonldSchemas'       => [],
-            'fallbackTitle'       => $locale === 'vi'
-                ? (Setting::get('blog_index_title') ?: 'Blog — Tin tức & Bài viết')
-                : (Setting::get('blog_index_title_en') ?: 'Blog — News & Articles'),
+            'jsonldSchemas'       => $jsonldSchemas,
+            'canonicalUrl'        => $canonicalUrl,
+            'fallbackTitle'       => $fallbackTitle,
             'fallbackDescription' => $locale === 'vi'
                 ? (Setting::get('blog_index_description') ?: 'Cập nhật kiến thức, xu hướng và câu chuyện từ chúng tôi.')
                 : (Setting::get('blog_index_description_en') ?: 'Insights, trends and stories from our team.'),

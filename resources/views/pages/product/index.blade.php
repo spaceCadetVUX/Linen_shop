@@ -12,12 +12,22 @@
 ]" />
 
 {{-- ============================================================
-     PLP BANNER — text-only (no per-catalog hero image on this route,
-     .plp-banner-info is flex:1 so it fills full width without the img col)
+     PLP BANNER — admin-managed via Filament ShopSetting (H1, intro,
+     hero image). Falls back to text-only "Tất cả sản phẩm" when unset;
+     .plp-banner-info is flex:1 so it fills full width without the img col.
      ============================================================ --}}
 <section class="plp-banner">
+  @if($shopHero['image_url'])
+    <div class="plp-banner-img-col">
+      <img src="{{ $shopHero['image_url'] }}" alt="{{ $shopHero['title'] }} — LINNÉ" class="plp-banner-img">
+    </div>
+  @endif
   <div class="plp-banner-info">
-    <h1 class="plp-banner-title">{{ $locale === 'vi' ? 'Tất cả sản phẩm' : 'All Products' }}</h1>
+    <h1 class="plp-banner-title">{{ $shopHero['title'] }}</h1>
+    @if($shopHero['intro'])
+      <div class="plp-banner-divider"></div>
+      <p class="plp-banner-desc">{{ $shopHero['intro'] }}</p>
+    @endif
     <p class="plp-banner-sub">{{ $products->total() }} sản phẩm</p>
   </div>
 </section>

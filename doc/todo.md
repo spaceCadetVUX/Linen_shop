@@ -1,50 +1,61 @@
 # TODO
 
-> Cập nhật: 2026-07-04 — session "search theo thuộc tính trong Meilisearch"
+> Cập nhật: 2026-07-04 — các session: search thuộc tính Meilisearch, tách color/text filter group, wire filter modal PLP, Pages Setting hub + Shop Setting
 
-## 🔴 Phải chạy khi bật Docker (search thuộc tính chưa hoạt động nếu thiếu)
+## 🔴 Checklist khi bật Docker (làm theo thứ tự)
 
-Code đã sửa xong (8 file, chưa commit) nhưng Docker Desktop đang tắt nên chưa apply được runtime. Chạy đúng thứ tự:
-
-```bash
-docker compose restart horizon
-# bắt buộc — Scout sync chạy qua queue `seo`, worker là process dài hạn,
-# không tự reload class PHP. Bỏ qua = fail âm thầm, index nhận data schema cũ.
-
-docker compose exec app php artisan meilisearch:configure
-# đẩy searchableAttributes mới (filter_value_names_vi/en) lên Meilisearch
-
-docker compose exec app php artisan scout:import "App\Models\Product"
-# re-index toàn bộ để document có field filter_value_names_*
-```
-
-**Test nhanh sau khi xong:** search PLP bằng tên thuộc tính thuần (vd "trắng", "100% linen") — phải ra sản phẩm gắn value đó kể cả khi từ khoá không có trong tên/mô tả. Match vào tên sản phẩm vẫn rank cao hơn match vào thuộc tính (thứ tự searchableAttributes là ranking rule).
-
-## 🔴 Chạy migration filter_groups.type khi bật Docker
+Toàn bộ code đã xong, chỉ chờ runtime. Các commit liên quan: `bf24fb8` (Meilisearch search thuộc tính), `2a57142` (filter_groups.type), `8598cb1` (wire filter modal), + batch admin Pages Setting **chưa commit**.
 
 ```bash
+# 1. Migration — filter_groups.type ('text'|'color') + backfill group có color_hex
 docker compose exec app php artisan migrate
-# thêm filter_groups.type ('text'|'color') + backfill group có color_hex → 'color'
+
+# 2. Horizon — bắt buộc restart, worker là process dài hạn không tự reload PHP.
+#    Bỏ qua = scout sync fail âm thầm, index nhận data schema cũ.
+docker compose restart horizon
+
+# 3. Đẩy searchableAttributes mới (filter_value_names_vi/en) lên Meilisearch
+docker compose exec app php artisan meilisearch:configure
+
+# 4. Re-index để document có filter_value_names_*
+docker compose exec app php artisan scout:import "App\Models\Product"
 ```
 
-Sau đó vào Admin → Filter Groups kiểm tra: group "Màu sắc" phải có Loại = "Màu sắc (swatch)", các group khác không còn thấy ColorPicker trong Values.
+### Test nhanh sau khi chạy xong
 
-## Nội dung đã sửa trong session này (chờ commit + verify runtime)
+| # | Test | Kỳ vọng |
+|---|---|---|
+| 1 | Search PLP bằng tên thuộc tính thuần ("trắng", "100% linen") | Ra sản phẩm gắn value đó dù keyword không có trong tên/mô tả; match tên sản phẩm vẫn rank cao hơn |
+| 2 | Admin → Filter Groups | Group "Màu sắc" có badge Loại = "Màu sắc (swatch)"; group khác không thấy ColorPicker trong Values |
+| 3 | PLP `/vi/products` → bấm "Lọc" | Group màu hiện swatch tròn đúng màu, group thường hiện pill; tick + kéo giá + "Xem kết quả" → URL `?mau-sac=den&min_price=...`, grid lọc đúng; reload vẫn tick, nút hiện "Lọc (n)" |
+| 4 | Trang category bất kỳ → "Lọc" | Như trên, thanh giá scoped theo category |
+| 5 | Admin → Setting → Pages Setting | Thấy 2 card: Landing Page (mở cùng tab), Shop Setting (mở tab mới); Landing Page biến mất khỏi sidebar |
+| 6 | Shop Setting: điền H1/P/ảnh hero + Tab Title → Lưu | `/vi/products` banner đổi H1, hiện đoạn P + ảnh cột trái; tab title đổi, KHÔNG bị đúp "— LINNÉ" |
+
+## 🟠 Chưa commit (batch admin Pages Setting — session 2026-07-04)
 
 | File | Thay đổi |
 |---|---|
-| `app/Models/Product.php` | `toSearchableArray()`: thêm `filter_value_names_vi/en`; **fix bug** thay guard `relationLoaded()` bằng `loadMissing()` — trước đây mỗi lần admin save, Scout job index đè `category_ids = []`, `filter_value_ids = []` (relations không được serialize vào queue job). Bỏ `filter_value_slugs` (dead data). |
-| `config/scout.php` | `searchableAttributes` app_products += `filter_value_names_vi/en` (đặt cuối — ranking) |
-| `app/Services/Catalog/ProductSearchService.php` | `attributesToSearchOn` += `filter_value_names_{locale}` |
-| `app/Repositories/Eloquent/ProductRepository.php` | SQL fallback: keyword match thêm tên thuộc tính (`orWhereHas`, en dùng `COALESCE(name_en, name)`) |
-| `app/Console/Commands/MeilisearchConfigureCommand.php` | Bỏ settings cũ hardcode (lệch config, chạy là phá filter `filter_value_ids`/`effective_price`), giờ đọc `config('scout.meilisearch.index-settings')` |
-| `.../ProductResource/Pages/Concerns/ManagesProductRelations.php` + `CreateProduct.php` + `EditProduct.php` | Thêm `syncSearchIndex()` sau khi save translations + filter values — pivot `sync()` và translation `updateOrCreate()` không trigger Scout, attach/detach thuộc tính trước đây không re-index |
+| `app/Filament/Pages/PagesSetting.php` (mới) | Hub gom page settings về 1 mục sidebar, card registry qua `getCards()` (hỗ trợ `newTab`) |
+| `resources/views/filament/pages/pages-setting.blade.php` (mới) | Lưới card, plain CSS + Filament theme vars (pattern developer.blade.php), dark mode |
+| `app/Filament/Pages/ShopSetting.php` (mới) + `shop-setting.blade.php` (mới) | Form 2 section: Hero (H1, P, ảnh — lưu `extra['shop']`) và SEO/Tab Title (đọc/ghi key cũ `extra.product_catalog_*`) |
+| `app/Filament/Pages/LandingSetup.php` | Ẩn khỏi sidebar (`$shouldRegisterNavigation = false`), truy cập qua card hub |
+| `app/Filament/Resources/BusinessProfileResource.php` | Bỏ section "Product Catalog" (chuyển sang Shop Setting, cùng key lưu) |
+| `app/Http/Controllers/Web/ProductController.php` | Đọc `extra['shop']` → `$shopHero`; **fix bug** fallback title đúp "— LINNÉ" |
+| `resources/views/pages/product/index.blade.php` | Banner PLP dùng `$shopHero` (H1/P/ảnh), fallback y hệt cũ khi chưa điền |
 
-## 🟡 Nợ kỹ thuật phát hiện trong session (chưa fix)
+**Lưu ý data:** nếu `product_catalog_title` từng được điền kèm "— LINNÉ" (placeholder cũ gợi ý sai) thì tab title vẫn đúp — mở Shop Setting xoá hậu tố trong ô Tab Title.
 
-1. **Test suite chết trên sqlite** — `php artisan test` fail toàn bộ (0 assertion) từ trước thay đổi này: migration `blog_posts drop column slug` không tương thích sqlite in-memory (`error in index blog_posts_slug_unique after drop column`). CI/pre-commit checklist "php artisan test passes" hiện vô nghĩa cho tới khi fix.
-2. **Pint fail có sẵn** ở `ProductResource/Pages/*` (aligned assignment style vs config pint) — HEAD cũng fail y hệt, không phải do session này.
+## 🟠 SEO/GEO: JSON-LD ra HTML — GĐ1–4 code xong, còn verify (xem `doc/seo.md`)
+
+Audit 2026-07-04 phát hiện pipeline JSON-LD backend không render ra HTML → đã fix cùng ngày: partial `seo-head` (JSON-LD + canonical + hreflang + OG/Twitter, cắm vào layout), `<html lang>` theo locale, PLP/category/blog-index có CollectionPage/ItemList/BreadcrumbList runtime + canonical bỏ query filter. Home tự có Organization/WebSite/LocalBusiness/FAQPage (BusinessJsonldService có sẵn). **Còn lại GĐ5 khi Docker bật:** view-source 5 loại trang + Rich Results Test + nhớ clear responsecache. Chi tiết: `doc/seo.md`.
+
+## 🟡 Nợ kỹ thuật (chưa fix)
+
+1. **Test suite chết trên sqlite** — `php artisan test` fail toàn bộ (0 assertion) từ trước: migration `blog_posts drop column slug` không tương thích sqlite in-memory. Checklist "php artisan test passes" hiện vô nghĩa cho tới khi fix.
+2. **Pint fail có sẵn** ở `ProductResource/Pages/*`, `FilterGroupResource`, `ProductSeeder` (aligned assignment style) — có từ trước các session này.
 3. **phpstan/larastan chưa cài** dù CLAUDE.md ghi là có (`vendor/bin/phpstan` không tồn tại).
-4. **`SCOUT_DRIVER` không được set trong `phpunit.xml`** — test env có thể leak driver meilisearch từ `.env` (nên set `SCOUT_DRIVER=collection` hoặc `null` cho testing).
-5. **ERD `doc/databse.md` không có các bảng filter** (`filter_groups`, `filter_values`, `product_filter_values`) — thêm khi cập nhật ERD lần tới.
-6. ~~PLP/category filter modal còn mockup tĩnh~~ → **ĐÃ WIRE** (component `x-product.filter-modal` dùng chung 2 trang, swatch theo `color_hex`, pill cho thuộc tính thường, URL `?{group_slug}=slug1,slug2`). Còn thiếu: sort dropdown chưa có server-side sort, brand filter chưa có trong UI modal (chọn brand sẽ đi SQL path thay vì Meilisearch).
+4. **`SCOUT_DRIVER` không set trong `phpunit.xml`** — test env có thể leak driver meilisearch từ `.env` (nên set `collection`/`null`).
+5. **ERD `doc/databse.md` thiếu các bảng filter** (`filter_groups`, `filter_values`, `product_filter_values`) — thêm khi cập nhật ERD, nhớ kèm cột `filter_groups.type` mới.
+6. **Sort dropdown PLP/category** chỉ là UI, chưa có server-side sort (Meilisearch đã có `sortableAttributes` sẵn: price, effective_price, created_at, name).
+7. **Brand filter chưa có trong UI modal** — chọn brand hiện phải qua `?brand=` tay, và brand đi SQL path thay vì Meilisearch (brand chưa được index).

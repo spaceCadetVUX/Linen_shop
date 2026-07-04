@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
+use App\Models\BusinessProfile;
 use App\Models\FilterGroup;
 use App\Models\ProductTranslation;
 use App\Models\Setting;
@@ -70,23 +71,77 @@ class ProductController extends Controller
         $ogRaw = Setting::get('default_og_image');
         $fallbackImage = $ogRaw ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/'.ltrim($ogRaw, '/'))) : null;
 
+        // Shop page hero — admin-managed via Filament ShopSetting (extra['shop']).
+        $shop = (array) (BusinessProfile::instance()->extra['shop'] ?? []);
+        $isEn = $locale === 'en';
+        $heroImageRaw = $shop['hero_image'] ?? null;
+        $shopHero = [
+            'title' => ($isEn ? ($shop['h1_en'] ?? null) : ($shop['h1'] ?? null))
+                ?: ($isEn ? 'All Products' : 'Tất cả sản phẩm'),
+            'intro' => $isEn ? ($shop['intro_en'] ?? null) : ($shop['intro'] ?? null),
+            'image_url' => $heroImageRaw
+                ? (str_starts_with($heroImageRaw, 'http') ? $heroImageRaw : asset('storage/'.ltrim($heroImageRaw, '/')))
+                : null,
+        ];
+
+        // Không kèm hậu tố "— LINNÉ" — layout blade append một lần duy nhất,
+        // để suffix ở đây nữa là tab title thành "... — LINNÉ — LINNÉ".
         $fallbackTitle = $locale === 'vi'
-            ? (Setting::get('product_catalog_title') ?: 'Tất cả sản phẩm — LINNÉ')
-            : (Setting::get('product_catalog_title_en') ?: 'All Products — LINNÉ');
+            ? (Setting::get('product_catalog_title') ?: 'Tất cả sản phẩm')
+            : (Setting::get('product_catalog_title_en') ?: 'All Products');
         $fallbackDescription = $locale === 'vi'
             ? (Setting::get('product_catalog_description') ?: 'Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của LINNÉ.')
             : (Setting::get('product_catalog_description_en') ?: 'Browse the full LINNÉ collection of minimalist, sustainable linen fashion.');
 
+        // Canonical: bỏ toàn bộ query filter (mau-sac, min_price, q, brand...) —
+        // n! tổ hợp filter là nội dung trùng. Giữ page để paginated pages tự canonical.
+        $shopUrl = route($locale.'.product.shop');
+        $canonicalUrl = $products->currentPage() > 1
+            ? $shopUrl.'?page='.$products->currentPage()
+            : $shopUrl;
+
+        // CollectionPage + ItemList build runtime — thay đổi theo trang/filter nên
+        // không đi qua pipeline jsonld_schemas DB như PDP/category.
+        $positionOffset = ($products->currentPage() - 1) * $products->perPage();
+        $jsonldSchemas = [
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'CollectionPage',
+                'name' => $fallbackTitle,
+                'description' => $fallbackDescription,
+                'url' => $canonicalUrl,
+                'inLanguage' => $locale,
+                'mainEntity' => [
+                    '@type' => 'ItemList',
+                    'numberOfItems' => $products->total(),
+                    'itemListElement' => $products->getCollection()->values()->map(fn ($t, $i) => [
+                        '@type' => 'ListItem',
+                        'position' => $positionOffset + $i + 1,
+                        'url' => route($locale.'.product.show', $t->slug),
+                        'name' => $t->name,
+                    ])->all(),
+                ],
+            ],
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'item' => route($locale.'.index')],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => $locale === 'vi' ? 'Cửa hàng' : 'Shop'],
+                ],
+            ],
+        ];
+
         return view('pages.product.index', compact(
             'locale', 'products', 'filterGroups', 'brands',
-            'activeValueSlugs', 'brandSlug', 'keyword', 'priceBounds', 'minPrice', 'maxPrice'
+            'activeValueSlugs', 'brandSlug', 'keyword', 'priceBounds', 'minPrice', 'maxPrice',
+            'shopHero', 'canonicalUrl', 'jsonldSchemas'
         ) + [
             'seoMeta' => null,
             'fallbackTitle' => $fallbackTitle,
             'fallbackDescription' => $fallbackDescription,
             'fallbackImage' => $fallbackImage,
             'ogType' => 'website',
-            'jsonldSchemas' => [],
         ]);
     }
 

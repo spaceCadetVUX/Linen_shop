@@ -158,6 +158,27 @@ class CategoryController extends Controller
         $ogType = 'website';
         $currentUrl = request()->fullUrl();
 
+        // Canonical: bỏ query filter, giữ page (cùng rule với PLP).
+        $canonicalUrl = $products->currentPage() > 1
+            ? url()->current().'?page='.$products->currentPage()
+            : url()->current();
+
+        // ItemList của sản phẩm trên trang — runtime (đổi theo trang/filter),
+        // bổ sung cạnh CollectionPage/BreadcrumbList tĩnh từ pipeline DB.
+        $positionOffset = ($products->currentPage() - 1) * $products->perPage();
+        $jsonldSchemas[] = [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'name' => $fallbackTitle,
+            'numberOfItems' => $products->total(),
+            'itemListElement' => $products->getCollection()->values()->map(fn ($t, $i) => [
+                '@type' => 'ListItem',
+                'position' => $positionOffset + $i + 1,
+                'url' => route($locale.'.product.show', $t->slug),
+                'name' => $t->name,
+            ])->all(),
+        ];
+
         view()->share('alternateUrls', $alternateUrls);
 
         return view('pages.category.show', compact(
@@ -166,7 +187,7 @@ class CategoryController extends Controller
             'priceBounds', 'minPrice', 'maxPrice',
             'faqItems', 'faqEntities',
             'richContentHtml',
-            'alternateUrls', 'seoMeta', 'jsonldSchemas',
+            'alternateUrls', 'seoMeta', 'jsonldSchemas', 'canonicalUrl',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType', 'currentUrl'
         ));
     }

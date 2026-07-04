@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="{{ $locale ?? app()->getLocale() }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@yield('title', 'LINNÉ')</title>
   <meta name="description" content="@yield('meta-description', 'LINNÉ — Thời trang linen tối giản, bền vững.')">
+  @include('partials.seo-head')
   <link rel="icon" href="{{ $faviconUrl ?? asset('favicon.ico') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
