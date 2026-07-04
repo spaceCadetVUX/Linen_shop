@@ -47,4 +47,4 @@ Sau đó vào Admin → Filter Groups kiểm tra: group "Màu sắc" phải có 
 3. **phpstan/larastan chưa cài** dù CLAUDE.md ghi là có (`vendor/bin/phpstan` không tồn tại).
 4. **`SCOUT_DRIVER` không được set trong `phpunit.xml`** — test env có thể leak driver meilisearch từ `.env` (nên set `SCOUT_DRIVER=collection` hoặc `null` cho testing).
 5. **ERD `doc/databse.md` không có các bảng filter** (`filter_groups`, `filter_values`, `product_filter_values`) — thêm khi cập nhật ERD lần tới.
-6. **PLP/category filter modal còn mockup tĩnh** — swatch màu/size hardcode trong blade, chưa wire vào `$filterGroups`. Khi wire, dùng `$group->type === FilterGroupType::Color` để chọn renderer swatch vs pill.
+6. ~~PLP/category filter modal còn mockup tĩnh~~ → **ĐÃ WIRE** (component `x-product.filter-modal` dùng chung 2 trang, swatch theo `color_hex`, pill cho thuộc tính thường, URL `?{group_slug}=slug1,slug2`). Còn thiếu: sort dropdown chưa có server-side sort, brand filter chưa có trong UI modal (chọn brand sẽ đi SQL path thay vì Meilisearch).
