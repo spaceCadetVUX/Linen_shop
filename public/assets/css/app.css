@@ -2892,6 +2892,7 @@ img    { display: block; }
 .pd-swatches { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .pd-swatch {
+  position: relative;
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -2907,6 +2908,24 @@ img    { display: block; }
   box-shadow: 0 0 0 2px var(--warm-white), 0 0 0 3.5px var(--graphite);
   outline: none;
   transform: scale(1.0);
+}
+.pd-swatch.sold-out {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+.pd-swatch.sold-out:hover { transform: none; }
+.pd-swatch.sold-out::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: linear-gradient(
+    to bottom right,
+    transparent calc(50% - 0.5px),
+    var(--silver) calc(50% - 0.5px),
+    var(--silver) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
 }
 
 /* Size grid */

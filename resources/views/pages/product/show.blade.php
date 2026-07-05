@@ -97,9 +97,9 @@
         @if($product->show_price)
           <div class="pd-price-row">
             @if($salePrice)
-              <span class="pd-price"><span class="t-price-old">{{ $priceLabel }}</span> {{ $salePrice }}</span>
+              <span class="pd-price" id="pdPrice"><span class="t-price-old">{{ $priceLabel }}</span> {{ $salePrice }}</span>
             @else
-              <span class="pd-price">{{ $priceLabel }}</span>
+              <span class="pd-price" id="pdPrice">{{ $priceLabel }}</span>
             @endif
           </div>
         @endif
@@ -108,38 +108,67 @@
           <p class="pd-desc">{{ $translation->short_description }}</p>
         @endif
 
-        {{-- Colour — JS reads data-color to update #pdColorLabel on click --}}
-        {{-- TODO(Step 4): map to $optionTypesData + $variantsData --}}
-        <div class="pd-option-group">
-          <div class="pd-option-label">
-            <span>Màu sắc</span>
-            <span class="pd-color-name" id="pdColorLabel">Ivory</span>
-          </div>
-          <div class="pd-swatches" role="radiogroup" aria-label="Chọn màu">
-            <button class="pd-swatch active" style="background:var(--swatch-cream)"  data-color="Ivory"    role="radio" aria-checked="true"  aria-label="Ivory"></button>
-            <button class="pd-swatch"        style="background:var(--swatch-camel)"  data-color="Cognac"   role="radio" aria-checked="false" aria-label="Cognac"></button>
-            <button class="pd-swatch"        style="background:var(--swatch-slate)"  data-color="Sapphire" role="radio" aria-checked="false" aria-label="Sapphire"></button>
-            <button class="pd-swatch"        style="background:var(--swatch-noir)"   data-color="Noir"     role="radio" aria-checked="false" aria-label="Noir"></button>
-          </div>
-        </div>
+        @if(!empty($optionTypesData))
+          @php
+            $colorGroup  = collect($optionTypesData)->firstWhere('is_color', true);
+            $otherGroups = collect($optionTypesData)->reject(fn ($g) => $g['is_color']);
+          @endphp
 
-        {{-- Size --}}
-        {{-- TODO(Step 4): map to $optionTypesData + $variantsData --}}
-        <div class="pd-option-group">
-          <div class="pd-option-label">
-            <span>Kích cỡ</span>
-            <a href="{{ url('/size-guide') }}" class="pd-size-guide">Hướng dẫn chọn size →</a>
-          </div>
-          <div class="pd-sizes" role="radiogroup" aria-label="Chọn size">
-            <button class="pd-size-btn"          data-size="XS">XS</button>
-            <button class="pd-size-btn active"   data-size="S">S</button>
-            <button class="pd-size-btn"          data-size="M">M</button>
-            <button class="pd-size-btn"          data-size="L">L</button>
-            <button class="pd-size-btn sold-out" data-size="XL" disabled aria-label="XL — hết hàng">XL</button>
-          </div>
-        </div>
+          {{-- Data island read by app.js to match the selected combination
+               against a real ProductVariant and sync price/stock/SKU. --}}
+          <script>
+            window.__pdVariantData = @js(['optionTypes' => $optionTypesData, 'variants' => $variantsData]);
+          </script>
+
+          {{-- Colour — app.js reads data-color to update #pdColorLabel on click --}}
+          @if($colorGroup)
+            <div class="pd-option-group">
+              <div class="pd-option-label">
+                <span>{{ $colorGroup['name'] }}</span>
+                <span class="pd-color-name" id="pdColorLabel">{{ $colorGroup['values'][0]['value'] ?? '' }}</span>
+              </div>
+              <div class="pd-swatches" role="radiogroup" aria-label="Chọn {{ $colorGroup['name'] }}">
+                @foreach($colorGroup['values'] as $i => $value)
+                  <button
+                    class="pd-swatch{{ $i === 0 ? ' active' : '' }}"
+                    style="background:{{ $value['color_hex'] ?: '#e5e5e5' }}"
+                    data-type-id="{{ $colorGroup['id'] }}"
+                    data-value-id="{{ $value['id'] }}"
+                    data-color="{{ $value['value'] }}"
+                    role="radio"
+                    aria-checked="{{ $i === 0 ? 'true' : 'false' }}"
+                    aria-label="{{ $value['value'] }}"
+                  ></button>
+                @endforeach
+              </div>
+            </div>
+          @endif
+
+          {{-- Other dimensions (e.g. Size) — same button style as before, now data-driven --}}
+          @foreach($otherGroups as $group)
+            <div class="pd-option-group">
+              <div class="pd-option-label">
+                <span>{{ $group['name'] }}</span>
+                @if($loop->first)
+                  <a href="{{ url('/size-guide') }}" class="pd-size-guide">Hướng dẫn chọn size →</a>
+                @endif
+              </div>
+              <div class="pd-sizes" role="radiogroup" aria-label="Chọn {{ $group['name'] }}">
+                @foreach($group['values'] as $i => $value)
+                  <button
+                    class="pd-size-btn{{ $i === 0 ? ' active' : '' }}"
+                    data-type-id="{{ $group['id'] }}"
+                    data-value-id="{{ $value['id'] }}"
+                    data-size="{{ $value['value'] }}"
+                  >{{ $value['value'] }}</button>
+                @endforeach
+              </div>
+            </div>
+          @endforeach
+        @endif
 
         <div class="pd-actions">
+          <input type="hidden" id="pdVariantId" value="">
           <button class="pd-add-btn" id="pdAddBtn" type="button">Thêm vào giỏ hàng</button>
         </div>
 

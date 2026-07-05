@@ -429,39 +429,116 @@ updateNav();
 (function () {
   if (!document.querySelector('.pd-section')) return;
 
+  /* ── Variant data (color/size → price/stock), injected by show.blade.php.
+     __pdVariantData is only set when the product has variant-dimension
+     values selected — absent for simple products. ── */
+  const variantData = window.__pdVariantData || { optionTypes: [], variants: [] };
+  const variants    = variantData.variants || [];
+  const hasVariants = variants.length > 0;
+  const selected    = {}; // { [type_id]: value_id } — seeded from server-rendered .active buttons
+
+  const optionButtons = document.querySelectorAll('.pd-swatch[data-type-id], .pd-size-btn[data-type-id]');
+  optionButtons.forEach(btn => {
+    if (btn.classList.contains('active')) selected[btn.dataset.typeId] = btn.dataset.valueId;
+  });
+
+  // Exact match: the variant whose option set equals every currently selected value.
+  const findVariant = () => {
+    const typeIds = Object.keys(selected);
+    if (!typeIds.length) return null;
+    return variants.find(v => v.options.length === typeIds.length
+      && v.options.every(o => String(selected[o.type_id]) === String(o.value_id))
+    ) || null;
+  };
+
+  // A value is pickable if some in-stock variant combines it with the OTHER
+  // dimensions' current selections (e.g. Red is sold out only in size M).
+  const isValueAvailable = (typeId, valueId) => variants.some(v => {
+    if (v.stock <= 0) return false;
+    const optsByType = {};
+    v.options.forEach(o => { optsByType[o.type_id] = String(o.value_id); });
+    if (optsByType[typeId] !== String(valueId)) return false;
+    return Object.keys(selected).every(tId => String(tId) === String(typeId) || optsByType[tId] === String(selected[tId]));
+  });
+
+  const formatVnd = amount => Math.round(amount).toLocaleString('vi-VN') + ' ₫';
+
+  const updateAvailability = () => {
+    optionButtons.forEach(btn => {
+      const available = isValueAvailable(btn.dataset.typeId, btn.dataset.valueId);
+      btn.classList.toggle('sold-out', !available);
+      btn.disabled = !available;
+    });
+  };
+
+  const updateVariantUi = () => {
+    const variant        = findVariant();
+    const priceEl        = document.getElementById('pdPrice');
+    const variantIdInput = document.getElementById('pdVariantId');
+    const addBtn         = document.getElementById('pdAddBtn');
+
+    if (variantIdInput) variantIdInput.value = variant ? variant.id : '';
+
+    if (variant && priceEl) {
+      const hasSale = variant.sale_price && variant.sale_price < variant.base_price;
+      priceEl.innerHTML = hasSale
+        ? `<span class="t-price-old">${formatVnd(variant.base_price)}</span> ${formatVnd(variant.sale_price)}`
+        : formatVnd(variant.base_price);
+    }
+
+    if (addBtn && !addBtn.classList.contains('pd-added')) {
+      const outOfStock = !!variant && variant.stock <= 0;
+      addBtn.disabled = outOfStock;
+      addBtn.textContent = outOfStock ? 'Hết hàng' : 'Thêm vào giỏ hàng';
+    }
+  };
 
   /* ── Colour swatches ── */
-  const swatches   = document.querySelectorAll('.pd-swatch');
   const colorLabel = document.getElementById('pdColorLabel');
-  swatches.forEach(sw => {
+  document.querySelectorAll('.pd-swatch[data-type-id]').forEach(sw => {
     sw.addEventListener('click', () => {
-      swatches.forEach(s => { s.classList.remove('active'); s.setAttribute('aria-checked', 'false'); });
+      if (sw.disabled) return;
+      document.querySelectorAll(`.pd-swatch[data-type-id="${sw.dataset.typeId}"]`).forEach(s => {
+        s.classList.remove('active');
+        s.setAttribute('aria-checked', 'false');
+      });
       sw.classList.add('active');
       sw.setAttribute('aria-checked', 'true');
       if (colorLabel) colorLabel.textContent = sw.dataset.color;
+      selected[sw.dataset.typeId] = sw.dataset.valueId;
+      updateAvailability();
+      updateVariantUi();
     });
   });
 
-  /* ── Size buttons ── */
-  const sizeBtns = document.querySelectorAll('.pd-size-btn:not(:disabled)');
-  sizeBtns.forEach(btn => {
+  /* ── Size / other dimension buttons ── */
+  document.querySelectorAll('.pd-size-btn[data-type-id]').forEach(btn => {
     btn.addEventListener('click', () => {
-      sizeBtns.forEach(b => b.classList.remove('active'));
+      if (btn.disabled) return;
+      document.querySelectorAll(`.pd-size-btn[data-type-id="${btn.dataset.typeId}"]`).forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      selected[btn.dataset.typeId] = btn.dataset.valueId;
+      updateAvailability();
+      updateVariantUi();
     });
   });
+
+  if (hasVariants) {
+    updateAvailability();
+    updateVariantUi();
+  }
 
   /* ── Add to bag ── */
   const addBtn = document.getElementById('pdAddBtn');
   if (addBtn) {
     addBtn.addEventListener('click', () => {
+      if (addBtn.disabled) return;
       addBtn.textContent = 'Đã thêm vào giỏ ✓';
       addBtn.classList.add('pd-added');
       addBtn.disabled = true;
       setTimeout(() => {
-        addBtn.textContent = 'Thêm vào giỏ hàng';
         addBtn.classList.remove('pd-added');
-        addBtn.disabled = false;
+        updateVariantUi();
       }, 2200);
     });
   }

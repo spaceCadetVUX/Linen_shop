@@ -280,7 +280,8 @@ class Product extends Model
     public function variantDimensionValues(): BelongsToMany
     {
         return $this->belongsToMany(FilterValue::class, 'product_filter_values')
-            ->whereHas('group', fn ($q) => $q->where('is_variant_dimension', true));
+            ->whereHas('group', fn ($q) => $q->where('is_variant_dimension', true))
+            ->orderBy('filter_values.sort_order');
     }
 
     public function approvedReviews(): HasMany
