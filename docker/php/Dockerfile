@@ -33,7 +33,11 @@ COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 WORKDIR /backend
 
 # ─── Permissions ─────────────────────────────────────────────────────────────
-RUN chown -R www-data:www-data /backend
+# vendor/ is created here (owned by www-data) so that when Docker initializes
+# the vendor_data named volume from this image path, it inherits www-data
+# ownership instead of defaulting to root.
+RUN mkdir -p /backend/vendor \
+    && chown -R www-data:www-data /backend
 
 USER www-data
 

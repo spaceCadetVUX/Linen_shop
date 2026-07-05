@@ -20,6 +20,7 @@ services:
       dockerfile: docker/php/Dockerfile
     volumes:
       - .:/backend
+      - vendor_data:/backend/vendor
     depends_on:
       postgres:
         condition: service_healthy
@@ -86,6 +87,7 @@ services:
       dockerfile: docker/php/Dockerfile
     volumes:
       - .:/backend
+      - vendor_data:/backend/vendor
     depends_on:
       postgres:
         condition: service_healthy
@@ -104,6 +106,7 @@ services:
       dockerfile: docker/php/Dockerfile
     volumes:
       - .:/backend
+      - vendor_data:/backend/vendor
     depends_on:
       postgres:
         condition: service_healthy
@@ -119,3 +122,4 @@ volumes:
   postgres_data:
   redis_data:
   meilisearch_data:
+  vendor_data:

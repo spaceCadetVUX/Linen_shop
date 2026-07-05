@@ -3,8 +3,16 @@ set -e
 
 cd /backend
 
-echo "==> Installing Composer dependencies..."
-composer install --no-interaction --prefer-dist --optimize-autoloader
+LOCK_HASH_FILE="vendor/.composer-lock-hash"
+CURRENT_HASH=$(md5sum composer.lock | awk '{print $1}')
+
+if [ -f "$LOCK_HASH_FILE" ] && [ "$(cat "$LOCK_HASH_FILE")" = "$CURRENT_HASH" ]; then
+  echo "==> composer.lock unchanged, skipping composer install"
+else
+  echo "==> Installing Composer dependencies..."
+  composer install --no-interaction --prefer-dist --optimize-autoloader
+  echo "$CURRENT_HASH" > "$LOCK_HASH_FILE"
+fi
 
 echo "==> Running migrations..."
 php artisan migrate --force
