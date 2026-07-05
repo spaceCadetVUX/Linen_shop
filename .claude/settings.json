@@ -4,7 +4,15 @@
       "Bash(npm cache *)",
       "Bash(tail -n 60 \"/c/Users/vusu3/AppData/Local/npm-cache/_logs/2026-07-03T14_56_16_534Z-debug-0.log\")",
       "Read(//c/Users/vusu3/AppData/Local/npm-cache/_logs/**)",
-      "Read(//c/Users/vusu3/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/bin/**)"
+      "Read(//c/Users/vusu3/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/bin/**)",
+      "Bash(docker volume *)",
+      "Bash(docker buildx *)",
+      "Bash(docker version *)",
+      "Bash(DOCKER_BUILDKIT=0 docker compose build php-fpm)",
+      "Bash(docker system *)",
+      "PowerShell(wsl --shutdown)",
+      "Bash(docker pull *)",
+      "PowerShell(Get-NetAdapterChecksumOffload -Name \"vEthernet \\(WSL\\)\")"
     ]
   }
 }
