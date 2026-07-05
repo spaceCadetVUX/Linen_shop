@@ -2,7 +2,9 @@
 
 namespace App\Services\Seo;
 
+use App\Enums\BlogPostStatus;
 use App\Enums\JsonldSchemaType;
+use App\Models\BlogPost;
 use App\Models\Product;
 use App\Models\Seo\JsonldSchema;
 use App\Models\Seo\JsonldTemplate;
@@ -10,7 +12,6 @@ use App\Support\LocaleUrl;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use App\Services\Seo\BusinessJsonldService;
 
 class JsonldService
 {
@@ -20,12 +21,12 @@ class JsonldService
      * FAQPage for products is generated conditionally — only when geoProfile.faq has data.
      */
     private const MODEL_SCHEMA_TYPES = [
-        'product'       => [JsonldSchemaType::Product,        JsonldSchemaType::BreadcrumbList],
-        'blog_post'     => [JsonldSchemaType::Article,        JsonldSchemaType::BreadcrumbList],
-        'category'      => [JsonldSchemaType::CollectionPage, JsonldSchemaType::BreadcrumbList],
+        'product' => [JsonldSchemaType::Product,        JsonldSchemaType::BreadcrumbList],
+        'blog_post' => [JsonldSchemaType::Article,        JsonldSchemaType::BreadcrumbList],
+        'category' => [JsonldSchemaType::CollectionPage, JsonldSchemaType::BreadcrumbList],
         'blog_category' => [JsonldSchemaType::CollectionPage, JsonldSchemaType::BreadcrumbList],
-        'brand'         => [JsonldSchemaType::Brand,          JsonldSchemaType::BreadcrumbList],
-        'manufacturer'  => [JsonldSchemaType::Manufacturer,   JsonldSchemaType::BreadcrumbList],
+        'brand' => [JsonldSchemaType::Brand,          JsonldSchemaType::BreadcrumbList],
+        'manufacturer' => [JsonldSchemaType::Manufacturer,   JsonldSchemaType::BreadcrumbList],
     ];
 
     // URL prefixes are now managed by config/localeurl.php + App\Support\LocaleUrl.
@@ -34,11 +35,11 @@ class JsonldService
      * Render order for <head> — lower = earlier.
      */
     private const SORT_ORDER = [
-        JsonldSchemaType::Product->value        => 10,
-        JsonldSchemaType::Article->value        => 10,
+        JsonldSchemaType::Product->value => 10,
+        JsonldSchemaType::Article->value => 10,
         JsonldSchemaType::CollectionPage->value => 10,
-        JsonldSchemaType::FaqPage->value        => 50,
-        JsonldSchemaType::VideoObject->value    => 60,
+        JsonldSchemaType::FaqPage->value => 50,
+        JsonldSchemaType::VideoObject->value => 60,
         JsonldSchemaType::BreadcrumbList->value => 90,
     ];
 
@@ -59,7 +60,7 @@ class JsonldService
      */
     public function syncForModel(Model $model, string $locale = 'vi'): void
     {
-        $morphAlias  = $model->getMorphClass();
+        $morphAlias = $model->getMorphClass();
         $schemaTypes = self::MODEL_SCHEMA_TYPES[$morphAlias] ?? [];
 
         if (empty($schemaTypes)) {
@@ -150,18 +151,18 @@ class JsonldService
 
             JsonldSchema::updateOrCreate(
                 [
-                    'model_type'  => $morphAlias,
-                    'model_id'    => $model->getKey(),
+                    'model_type' => $morphAlias,
+                    'model_id' => $model->getKey(),
                     'schema_type' => $schemaType->value,
-                    'locale'      => $locale,
+                    'locale' => $locale,
                 ],
                 [
-                    'label'             => $template->label,
-                    'locale'            => $locale,
-                    'payload'           => $resolved,
-                    'is_active'         => true,
+                    'label' => $template->label,
+                    'locale' => $locale,
+                    'payload' => $resolved,
+                    'is_active' => true,
                     'is_auto_generated' => true,
-                    'sort_order'        => self::SORT_ORDER[$schemaType->value] ?? 50,
+                    'sort_order' => self::SORT_ORDER[$schemaType->value] ?? 50,
                 ]
             );
         }
@@ -251,7 +252,7 @@ class JsonldService
      * Build a Schema.org BreadcrumbList payload from a list of items.
      *
      * @param  array<int, array{name: string, url: string}>  $items
-     *         Ordered from root → current page.
+     *                                                               Ordered from root → current page.
      */
     public function buildBreadcrumbSchema(array $items): array
     {
@@ -259,23 +260,23 @@ class JsonldService
 
         foreach ($items as $position => $item) {
             $listElements[] = [
-                '@type'    => 'ListItem',
+                '@type' => 'ListItem',
                 'position' => $position + 1,
-                'name'     => $item['name'] ?? '',
-                'item'     => $item['url']  ?? '',
+                'name' => $item['name'] ?? '',
+                'item' => $item['url'] ?? '',
             ];
         }
 
         $pageUrl = $listElements[count($listElements) - 1]['item'] ?? null;
 
         $schema = [
-            '@context'        => 'https://schema.org',
-            '@type'           => 'BreadcrumbList',
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
             'itemListElement' => $listElements,
         ];
 
         if ($pageUrl) {
-            $schema['@id'] = $pageUrl . '#breadcrumb';
+            $schema['@id'] = $pageUrl.'#breadcrumb';
         }
 
         return $schema;
@@ -290,17 +291,17 @@ class JsonldService
         $t = $product->translation($locale);
 
         return [
-            '@context'    => 'https://schema.org',
-            '@type'       => 'Product',
-            'name'        => $t?->name ?? $product->name,
-            'url'         => LocaleUrl::for('product', $t?->slug ?? $product->slug, $locale),
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $t?->name ?? $product->name,
+            'url' => LocaleUrl::for('product', $t?->slug ?? $product->slug, $locale),
             'description' => strip_tags($t?->short_description ?? ''),
-            'sku'         => $product->sku,
-            'offers'      => [
-                '@type'         => 'Offer',
+            'sku' => $product->sku,
+            'offers' => [
+                '@type' => 'Offer',
                 'priceCurrency' => $t?->currency ?? config('app.default_currency'),
-                'price'         => $t?->price ?? $product->price,
-                'availability'  => $product->stock_quantity > 0
+                'price' => $t?->price ?? $product->price,
+                'availability' => $product->stock_quantity > 0
                     ? 'https://schema.org/InStock'
                     : 'https://schema.org/OutOfStock',
             ],
@@ -316,13 +317,13 @@ class JsonldService
     public function buildBreadcrumb(array $items): array
     {
         return [
-            '@context'        => 'https://schema.org',
-            '@type'           => 'BreadcrumbList',
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
             'itemListElement' => collect($items)->map(fn ($item, $i) => [
-                '@type'    => 'ListItem',
+                '@type' => 'ListItem',
                 'position' => $i + 1,
-                'name'     => $item['name'],
-                'item'     => $item['url'],
+                'name' => $item['name'],
+                'item' => $item['url'],
             ])->values()->all(),
         ];
     }
@@ -351,14 +352,14 @@ class JsonldService
 
                 // Official brand website → helps Google disambiguate the entity
                 if (filled($brand->website)) {
-                    $brandSchema['url']    = $brand->website;
+                    $brandSchema['url'] = $brand->website;
                     $brandSchema['sameAs'] = $brand->website;
                 }
 
                 // Brand logo → used by Google Knowledge Panel
                 if (filled($brand->logo)) {
                     $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-                    $brandSchema['logo'] = $baseUrl . '/storage/' . ltrim((string) $brand->logo, '/');
+                    $brandSchema['logo'] = $baseUrl.'/storage/'.ltrim((string) $brand->logo, '/');
                 }
 
                 $payload['brand'] = $brandSchema;
@@ -374,7 +375,7 @@ class JsonldService
 
                 // Official manufacturer website
                 if (filled($mfr->website)) {
-                    $mfrSchema['url']    = $mfr->website;
+                    $mfrSchema['url'] = $mfr->website;
                     $mfrSchema['sameAs'] = $mfr->website;
                 }
 
@@ -394,9 +395,9 @@ class JsonldService
 
             $urls = $images
                 ? $images->map(fn ($img): string => (string) ($img->url ?? ''))
-                         ->filter()
-                         ->values()
-                         ->all()
+                    ->filter()
+                    ->values()
+                    ->all()
                 : [];
 
             if (! empty($urls)) {
@@ -417,10 +418,10 @@ class JsonldService
 
             if ($reviews && $reviews->count() > 0) {
                 $payload['aggregateRating'] = [
-                    '@type'       => 'AggregateRating',
+                    '@type' => 'AggregateRating',
                     'ratingValue' => round((float) $reviews->avg('rating'), 1),
                     'reviewCount' => $reviews->count(),
-                    'bestRating'  => 5,
+                    'bestRating' => 5,
                     'worstRating' => 1,
                 ];
             }
@@ -462,7 +463,7 @@ class JsonldService
                     $payload['additionalProperty'] = $attrs
                         ->map(fn ($a): array => [
                             '@type' => 'PropertyValue',
-                            'name'  => (string) (($locale !== 'vi' && filled($a->name_en)) ? $a->name_en : $a->name),
+                            'name' => (string) (($locale !== 'vi' && filled($a->name_en)) ? $a->name_en : $a->name),
                             'value' => (string) (($locale !== 'vi' && filled($a->value_en)) ? $a->value_en : $a->value),
                         ])
                         ->values()
@@ -502,12 +503,12 @@ class JsonldService
      */
     private function buildOffersPayload(Model $model, array $payload): array
     {
-        $currency     = (string) ($payload['offers']['priceCurrency'] ?? config('seo.currency', 'VND'));
-        $productUrl   = (string) ($payload['url'] ?? '');
-        $seller       = app(BusinessJsonldService::class)->publisherBlock();
-        $priceHidden  = $model->getAttribute('show_price') === false;
+        $currency = (string) ($payload['offers']['priceCurrency'] ?? config('seo.currency', 'VND'));
+        $productUrl = (string) ($payload['url'] ?? '');
+        $seller = app(BusinessJsonldService::class)->publisherBlock();
+        $priceHidden = $model->getAttribute('show_price') === false;
 
-        $stockQty     = (int) ($model->getAttribute('stock_quantity') ?? 0);
+        $stockQty = (int) ($model->getAttribute('stock_quantity') ?? 0);
         $availability = $stockQty > 0
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock';
@@ -517,16 +518,16 @@ class JsonldService
         // Omitting price/priceCurrency prevents a "content mismatch" policy violation.
         if ($priceHidden) {
             return [
-                '@type'        => 'Offer',
+                '@type' => 'Offer',
                 'availability' => $availability,
-                'url'          => $productUrl,
-                'seller'       => $seller,
+                'url' => $productUrl,
+                'seller' => $seller,
             ];
         }
 
         // ── Try to load active variants ───────────────────────────────────────
         if (method_exists($model, 'activeVariants')) {
-            $model->loadMissing('activeVariants.optionValues.optionType');
+            $model->loadMissing('activeVariants.optionValues.group');
             $variants = $model->getRelationValue('activeVariants');
 
             if ($variants && $variants->isNotEmpty()) {
@@ -537,19 +538,19 @@ class JsonldService
                     ->filter(fn (float $p): bool => $p > 0);
 
                 if ($prices->isNotEmpty()) {
-                    $lowPrice  = $prices->min();
+                    $lowPrice = $prices->min();
                     $highPrice = $prices->max();
 
                     $offerList = $variants->map(function ($variant) use ($currency, $productUrl): array {
                         $offer = [
-                            '@type'         => 'Offer',
-                            'sku'           => $variant->sku,
-                            'price'         => (float) ($variant->sale_price ?? $variant->price),
+                            '@type' => 'Offer',
+                            'sku' => $variant->sku,
+                            'price' => (float) ($variant->sale_price ?? $variant->price),
                             'priceCurrency' => $currency,
-                            'availability'  => ((int) $variant->stock_quantity) > 0
+                            'availability' => ((int) $variant->stock_quantity) > 0
                                 ? 'https://schema.org/InStock'
                                 : 'https://schema.org/OutOfStock',
-                            'url'           => $productUrl,
+                            'url' => $productUrl,
                         ];
 
                         $label = $variant->combination_label;
@@ -567,15 +568,15 @@ class JsonldService
                         );
 
                         return [
-                            '@type'         => 'Offer',
-                            'price'         => $lowPrice,
+                            '@type' => 'Offer',
+                            'price' => $lowPrice,
                             'priceCurrency' => $currency,
-                            'availability'  => $anyInStock
+                            'availability' => $anyInStock
                                 ? 'https://schema.org/InStock'
                                 : 'https://schema.org/OutOfStock',
-                            'offerCount'    => $variants->count(),
-                            'url'           => $productUrl,
-                            'seller'        => $seller,
+                            'offerCount' => $variants->count(),
+                            'url' => $productUrl,
+                            'seller' => $seller,
                         ];
                     }
 
@@ -585,16 +586,16 @@ class JsonldService
                     );
 
                     return [
-                        '@type'         => 'AggregateOffer',
-                        'lowPrice'      => $lowPrice,
-                        'highPrice'     => $highPrice,
-                        'offerCount'    => $variants->count(),
+                        '@type' => 'AggregateOffer',
+                        'lowPrice' => $lowPrice,
+                        'highPrice' => $highPrice,
+                        'offerCount' => $variants->count(),
                         'priceCurrency' => $currency,
-                        'availability'  => $anyInStock
+                        'availability' => $anyInStock
                             ? 'https://schema.org/InStock'
                             : 'https://schema.org/OutOfStock',
-                        'offers'        => $offerList,
-                        'seller'        => $seller,
+                        'offers' => $offerList,
+                        'seller' => $seller,
                     ];
                 }
             }
@@ -621,11 +622,11 @@ class JsonldService
      */
     private function buildProductBreadcrumb(Model $model, string $locale = 'vi'): array
     {
-        $baseUrl   = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $shopUrl   = LocaleUrl::listUrl('product', $locale);
+        $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
+        $shopUrl = LocaleUrl::listUrl('product', $locale);
         $shopLabel = LocaleUrl::listLabel('product', $locale);
 
-        $t    = method_exists($model, 'translation') ? $model->translation($locale) : null;
+        $t = method_exists($model, 'translation') ? $model->translation($locale) : null;
         $name = (string) ($t?->name ?? $model->getAttribute('name') ?? '');
         $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
 
@@ -641,18 +642,18 @@ class JsonldService
 
             if ($categories && $categories->isNotEmpty()) {
                 $primaryId = $model->getAttribute('primary_category_id');
-                $primary   = $primaryId
+                $primary = $primaryId
                     ? $categories->firstWhere('id', $primaryId) ?? $categories->sortBy('sort_order')->first()
                     : $categories->sortBy('sort_order')->first();
 
-                $catTr   = method_exists($primary, 'translation') ? $primary->translation($locale) : null;
+                $catTr = method_exists($primary, 'translation') ? $primary->translation($locale) : null;
                 $catName = (string) ($catTr?->name ?? $primary->name ?? '');
                 $catSlug = (string) ($catTr?->slug ?? $primary->slug ?? '');
 
                 if (filled($catSlug)) {
                     $items[] = [
                         'name' => $catName,
-                        'url'  => LocaleUrl::for('category', $catSlug, $locale),
+                        'url' => LocaleUrl::for('category', $catSlug, $locale),
                     ];
                 }
             }
@@ -673,9 +674,9 @@ class JsonldService
     private function buildBlogPostBreadcrumb(Model $model, string $locale = 'vi'): array
     {
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $t       = method_exists($model, 'translation') ? $model->translation($locale) : null;
-        $title   = (string) ($t?->title ?? $model->getAttribute('title') ?? '');
-        $slug    = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
+        $t = method_exists($model, 'translation') ? $model->translation($locale) : null;
+        $title = (string) ($t?->title ?? $model->getAttribute('title') ?? '');
+        $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
 
         $items = [
             ['name' => 'Home', 'url' => $baseUrl],
@@ -691,12 +692,12 @@ class JsonldService
                 $catName = (string) ($category->translation($locale)?->name ?? $category->name);
                 $items[] = [
                     'name' => $catName,
-                    'url'  => LocaleUrl::for('blog_category', $catSlug, $locale),
+                    'url' => LocaleUrl::for('blog_category', $catSlug, $locale),
                 ];
             }
         }
 
-        $postUrl = ($model instanceof \App\Models\BlogPost)
+        $postUrl = ($model instanceof BlogPost)
             ? LocaleUrl::forBlogPost($model, $locale)
             : LocaleUrl::for('blog_post', $slug, $locale);
 
@@ -723,8 +724,8 @@ class JsonldService
         // ── Walk up the ancestor chain ────────────────────────────────────────
         // Collect ancestors from nearest parent → root, then reverse to root → parent.
         $ancestors = [];
-        $seenIds   = [$model->getKey()]; // guard against circular parent_id references
-        $cursor    = $model;
+        $seenIds = [$model->getKey()]; // guard against circular parent_id references
+        $cursor = $model;
 
         while (method_exists($cursor, 'parent')) {
             $cursor->loadMissing('parent');
@@ -734,17 +735,17 @@ class JsonldService
                 break;
             }
 
-            $seenIds[]   = $parent->getKey();
+            $seenIds[] = $parent->getKey();
             $ancestors[] = $parent;
-            $cursor      = $parent;
+            $cursor = $parent;
         }
 
         $ancestors = array_reverse($ancestors); // now root → nearest parent
 
         // ── Build item list ───────────────────────────────────────────────────
-        $homeLabel      = $locale === 'vi' ? 'Trang chủ' : 'Home';
-        $solutionsLabel = $locale === 'vi' ? 'Giải pháp'  : 'Solutions';
-        $solutionsUrl   = LocaleUrl::listUrl('category', $locale);
+        $homeLabel = $locale === 'vi' ? 'Trang chủ' : 'Home';
+        $solutionsLabel = $locale === 'vi' ? 'Giải pháp' : 'Solutions';
+        $solutionsUrl = LocaleUrl::listUrl('category', $locale);
 
         $items = [
             ['name' => $homeLabel,      'url' => $baseUrl],
@@ -752,20 +753,20 @@ class JsonldService
         ];
 
         foreach ($ancestors as $ancestor) {
-            $t    = method_exists($ancestor, 'translation') ? $ancestor->translation($locale) : null;
+            $t = method_exists($ancestor, 'translation') ? $ancestor->translation($locale) : null;
             $name = (string) ($t?->name ?? $ancestor->getAttribute('name') ?? '');
             $slug = (string) ($t?->slug ?? $ancestor->getAttribute('slug') ?? '');
 
             if (filled($name)) {
                 $items[] = [
                     'name' => $name,
-                    'url'  => LocaleUrl::for('category', $slug, $locale),
+                    'url' => LocaleUrl::for('category', $slug, $locale),
                 ];
             }
         }
 
         // ── Current category ──────────────────────────────────────────────────
-        $t    = method_exists($model, 'translation') ? $model->translation($locale) : null;
+        $t = method_exists($model, 'translation') ? $model->translation($locale) : null;
         $name = (string) ($t?->name ?? $model->getAttribute('name') ?? '');
         $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
 
@@ -778,6 +779,7 @@ class JsonldService
      * Enrich a resolved CollectionPage payload with dynamic category data.
      *
      * Added fields (not expressible as simple template placeholders):
+     *
      *   @id          → canonical URL (entity disambiguation)
      *   inLanguage   → locale signal for Google multilingual indexing
      *   image        → full URL built from categories.image_path
@@ -803,7 +805,7 @@ class JsonldService
         // image — category thumbnail stored as a relative path in image_path column.
         $imagePath = (string) ($model->getAttribute('image_path') ?? '');
         if (filled($imagePath)) {
-            $payload['image'] = $baseUrl . '/storage/' . ltrim($imagePath, '/');
+            $payload['image'] = $baseUrl.'/storage/'.ltrim($imagePath, '/');
         }
 
         // publisher — Organization block (same pattern as Article schemas).
@@ -819,17 +821,19 @@ class JsonldService
 
         // breadcrumb — link CollectionPage to its BreadcrumbList for cross-schema association.
         if (isset($payload['@id'])) {
-            $payload['breadcrumb'] = ['@type' => 'BreadcrumbList', '@id' => $payload['@id'] . '#breadcrumb'];
+            $payload['breadcrumb'] = ['@type' => 'BreadcrumbList', '@id' => $payload['@id'].'#breadcrumb'];
         }
 
         // additionalProperty — key_facts from geoProfile as PropertyValue array.
         $model->loadMissing('geoProfiles');
         $geoProfile = $model->geoProfiles->firstWhere('locale', $locale);
-        $keyFacts   = (array) ($geoProfile?->key_facts ?? []);
+        $keyFacts = (array) ($geoProfile?->key_facts ?? []);
         if (! empty($keyFacts)) {
             $props = [];
             foreach ($keyFacts as $kf) {
-                if (! is_array($kf)) continue;
+                if (! is_array($kf)) {
+                    continue;
+                }
                 $label = trim((string) ($kf['label'] ?? ''));
                 $value = trim((string) ($kf['value'] ?? ''));
                 if (filled($label) && filled($value)) {
@@ -844,12 +848,12 @@ class JsonldService
         // numberOfItems + mainEntity ItemList — products belonging to this category.
         if (method_exists($model, 'products')) {
             try {
-                $productCount             = $model->products()->where('products.is_active', true)->count();
+                $productCount = $model->products()->where('products.is_active', true)->count();
                 $payload['numberOfItems'] = $productCount;
 
                 if ($productCount > 0) {
                     $fallbackLocale = config('app.fallback_locale', 'vi');
-                    $locales        = array_unique([$locale, $fallbackLocale]);
+                    $locales = array_unique([$locale, $fallbackLocale]);
 
                     // Eager-load thumbnail (HasOne) and translations for the target locale
                     // in 2 queries total — no N+1 across the 20 product loop.
@@ -865,15 +869,15 @@ class JsonldService
 
                     if ($topProducts->isNotEmpty()) {
                         $listItems = $topProducts->map(function ($product, int $index) use ($locale): array {
-                            $t           = method_exists($product, 'translation') ? $product->translation($locale) : null;
+                            $t = method_exists($product, 'translation') ? $product->translation($locale) : null;
                             $productName = (string) ($t?->name ?? $product->getAttribute('name') ?? '');
                             $productSlug = (string) ($t?->slug ?? $product->getAttribute('slug') ?? '');
 
                             $item = [
-                                '@type'    => 'ListItem',
+                                '@type' => 'ListItem',
                                 'position' => $index + 1,
-                                'name'     => $productName,
-                                'url'      => LocaleUrl::for('product', $productSlug, $locale),
+                                'name' => $productName,
+                                'url' => LocaleUrl::for('product', $productSlug, $locale),
                             ];
 
                             // Thumbnail — relation is already eager-loaded, no extra query.
@@ -883,14 +887,14 @@ class JsonldService
                             }
 
                             // Price and availability — use locale-specific translation when available.
-                            $price    = $t?->price ?? $product->getAttribute('price');
+                            $price = $t?->price ?? $product->getAttribute('price');
                             $currency = $t?->currency ?? $product->getAttribute('currency') ?? config('seo.currency', 'VND');
                             if (filled($price)) {
                                 $item['offers'] = [
-                                    '@type'         => 'Offer',
-                                    'price'         => (float) $price,
+                                    '@type' => 'Offer',
+                                    'price' => (float) $price,
                                     'priceCurrency' => $currency,
-                                    'availability'  => ((int) $product->getAttribute('stock_quantity')) > 0
+                                    'availability' => ((int) $product->getAttribute('stock_quantity')) > 0
                                         ? 'https://schema.org/InStock'
                                         : 'https://schema.org/OutOfStock',
                                 ];
@@ -900,9 +904,9 @@ class JsonldService
                         })->values()->all();
 
                         $payload['mainEntity'] = [
-                            '@type'           => 'ItemList',
-                            'name'            => $payload['name'] ?? '',
-                            'numberOfItems'   => $productCount,
+                            '@type' => 'ItemList',
+                            'name' => $payload['name'] ?? '',
+                            'numberOfItems' => $productCount,
                             'itemListElement' => $listItems,
                         ];
                     }
@@ -932,7 +936,7 @@ class JsonldService
 
         $imagePath = (string) ($model->getAttribute('image_path') ?? '');
         if (filled($imagePath)) {
-            $payload['image'] = $baseUrl . '/storage/' . ltrim($imagePath, '/');
+            $payload['image'] = $baseUrl.'/storage/'.ltrim($imagePath, '/');
         }
 
         if (! isset($payload['publisher'])) {
@@ -941,44 +945,44 @@ class JsonldService
 
         if (method_exists($model, 'posts')) {
             try {
-                $postCount             = $model->posts()->where('status', \App\Enums\BlogPostStatus::Published)->count();
+                $postCount = $model->posts()->where('status', BlogPostStatus::Published)->count();
                 $payload['numberOfItems'] = $postCount;
 
                 if ($postCount > 0) {
                     $fallbackLocale = config('app.fallback_locale', 'vi');
-                    $locales        = array_unique([$locale, $fallbackLocale]);
+                    $locales = array_unique([$locale, $fallbackLocale]);
 
                     $topPosts = $model->posts()
-                        ->where('status', \App\Enums\BlogPostStatus::Published)
+                        ->where('status', BlogPostStatus::Published)
                         ->with(['translations' => fn ($q) => $q->whereIn('locale', $locales)])
                         ->orderBy('published_at', 'desc')
                         ->limit(20)
                         ->get();
 
                     if ($topPosts->isNotEmpty()) {
-                        $listItems = $topPosts->map(function ($post, int $index) use ($baseUrl, $locale): array {
-                            $t        = method_exists($post, 'translation') ? $post->translation($locale) : null;
+                        $listItems = $topPosts->map(function ($post, int $index) use ($locale): array {
+                            $t = method_exists($post, 'translation') ? $post->translation($locale) : null;
                             $postName = (string) ($t?->title ?? $post->getAttribute('title') ?? '');
                             $postSlug = (string) ($t?->slug ?? $post->getAttribute('slug') ?? '');
 
-                            $postUrl = ($post instanceof \App\Models\BlogPost && filled($postSlug))
+                            $postUrl = ($post instanceof BlogPost && filled($postSlug))
                                 ? LocaleUrl::forBlogPost($post, $locale)
                                 : (filled($postSlug)
                                     ? LocaleUrl::for('blog_post', $postSlug, $locale)
                                     : rtrim((string) (config('seo.app_url') ?: config('app.url')), '/'));
 
                             return [
-                                '@type'    => 'ListItem',
+                                '@type' => 'ListItem',
                                 'position' => $index + 1,
-                                'name'     => $postName,
-                                'url'      => $postUrl,
+                                'name' => $postName,
+                                'url' => $postUrl,
                             ];
                         })->values()->all();
 
                         $payload['mainEntity'] = [
-                            '@type'           => 'ItemList',
-                            'name'            => $payload['name'] ?? '',
-                            'numberOfItems'   => $postCount,
+                            '@type' => 'ItemList',
+                            'name' => $payload['name'] ?? '',
+                            'numberOfItems' => $postCount,
                             'itemListElement' => $listItems,
                         ];
                     }
@@ -1001,9 +1005,9 @@ class JsonldService
     private function buildBlogCategoryBreadcrumb(Model $model, string $locale = 'vi'): array
     {
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $t       = method_exists($model, 'translation') ? $model->translation($locale) : null;
-        $name    = (string) ($t?->name ?? $model->getAttribute('name') ?? '');
-        $slug    = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
+        $t = method_exists($model, 'translation') ? $model->translation($locale) : null;
+        $name = (string) ($t?->name ?? $model->getAttribute('name') ?? '');
+        $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
 
         $items = [
             ['name' => 'Home', 'url' => $baseUrl],
@@ -1019,7 +1023,7 @@ class JsonldService
                 $parentName = (string) ($parent->translation($locale)?->name ?? $parent->name);
                 $items[] = [
                     'name' => $parentName,
-                    'url'  => LocaleUrl::for('blog_category', $parentSlug, $locale),
+                    'url' => LocaleUrl::for('blog_category', $parentSlug, $locale),
                 ];
             }
         }
@@ -1039,13 +1043,13 @@ class JsonldService
         $morphAlias = $model->getMorphClass();
         $model->loadMissing('geoProfiles');
         $geoProfile = $model->geoProfile($locale);
-        $faq        = (array) ($geoProfile?->faq ?? []);
+        $faq = (array) ($geoProfile?->faq ?? []);
 
         // Products store FAQ on the root model (faq_items_vi/en), not in geoProfiles.faq.
         // Fall back when geoProfile has no faq data.
         if (empty($faq) && $morphAlias === 'product') {
-            $faqField = 'faq_items_' . $locale;
-            $faq      = (array) ($model->getAttribute($faqField) ?? []);
+            $faqField = 'faq_items_'.$locale;
+            $faq = (array) ($model->getAttribute($faqField) ?? []);
         }
 
         if (empty($faq)) {
@@ -1056,6 +1060,7 @@ class JsonldService
                 ->where('locale', $locale)
                 ->where('is_auto_generated', true)
                 ->delete();
+
             return;
         }
 
@@ -1073,10 +1078,10 @@ class JsonldService
         $mainEntity = collect($faq)
             ->map(fn (array $item): array => [
                 '@type' => 'Question',
-                'name'  => trim((string) ($item['question'] ?? '')),
+                'name' => trim((string) ($item['question'] ?? '')),
                 'acceptedAnswer' => [
                     '@type' => 'Answer',
-                    'text'  => trim((string) ($item['answer'] ?? '')),
+                    'text' => trim((string) ($item['answer'] ?? '')),
                 ],
             ])
             ->filter(fn (array $q): bool => filled($q['name']))
@@ -1089,24 +1094,24 @@ class JsonldService
 
         JsonldSchema::updateOrCreate(
             [
-                'model_type'  => $morphAlias,
-                'model_id'    => $model->getKey(),
+                'model_type' => $morphAlias,
+                'model_id' => $model->getKey(),
                 'schema_type' => JsonldSchemaType::FaqPage->value,
-                'locale'      => $locale,
+                'locale' => $locale,
             ],
             [
-                'label'             => 'FAQ Schema',
-                'locale'            => $locale,
-                'payload'           => [
-                    '@context'        => 'https://schema.org',
-                    '@type'           => 'FAQPage',
-                    '@id'             => LocaleUrl::for($morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale) . '#faq',
-                    'mainEntityOfPage'=> ['@type' => 'WebPage', '@id' => LocaleUrl::for($morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale)],
-                    'mainEntity'      => $mainEntity,
+                'label' => 'FAQ Schema',
+                'locale' => $locale,
+                'payload' => [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'FAQPage',
+                    '@id' => LocaleUrl::for($morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale).'#faq',
+                    'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => LocaleUrl::for($morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale)],
+                    'mainEntity' => $mainEntity,
                 ],
-                'is_active'         => true,
+                'is_active' => true,
                 'is_auto_generated' => true,
-                'sort_order'        => self::SORT_ORDER[JsonldSchemaType::FaqPage->value] ?? 50,
+                'sort_order' => self::SORT_ORDER[JsonldSchemaType::FaqPage->value] ?? 50,
             ]
         );
     }
@@ -1141,14 +1146,14 @@ class JsonldService
         if (isset($payload['url']) && ! isset($payload['mainEntityOfPage'])) {
             $payload['mainEntityOfPage'] = [
                 '@type' => 'WebPage',
-                '@id'   => $payload['url'],
+                '@id' => $payload['url'],
             ];
         }
 
         // ── articleSection — blog category name ───────────────────────────────
         if (! isset($payload['articleSection']) && method_exists($model, 'blogCategory')) {
             $model->loadMissing('blogCategory');
-            $category     = $model->blogCategory;
+            $category = $model->blogCategory;
             $categoryName = $category?->translation($locale)?->name ?? $category?->name;
             if (filled($categoryName)) {
                 $payload['articleSection'] = $categoryName;
@@ -1163,11 +1168,11 @@ class JsonldService
             if ($author) {
                 $person = [
                     '@type' => 'Person',
-                    'name'  => (string) $author->name,
+                    'name' => (string) $author->name,
                 ];
 
                 if (filled($author->slug)) {
-                    $person['@id'] = $baseUrl . '/authors/' . $author->slug . '#person';
+                    $person['@id'] = $baseUrl.'/authors/'.$author->slug.'#person';
                 }
 
                 if (filled($author->title)) {
@@ -1177,7 +1182,7 @@ class JsonldService
                 $sameAs = $author->same_as;
 
                 if (filled($author->slug)) {
-                    $person['url'] = $baseUrl . '/authors/' . $author->slug;
+                    $person['url'] = $baseUrl.'/authors/'.$author->slug;
                 } elseif (! empty($sameAs)) {
                     // Fallback: use first social/web profile URL so Google can anchor the author identity
                     $person['url'] = $sameAs[0];
@@ -1219,11 +1224,11 @@ class JsonldService
 
             $relativePath = $model->getAttribute('featured_image');
             if (filled($relativePath)) {
-                $fullPath = storage_path('app/public/' . ltrim($relativePath, '/'));
+                $fullPath = storage_path('app/public/'.ltrim($relativePath, '/'));
                 if (file_exists($fullPath)) {
                     [$w, $h] = @getimagesize($fullPath) ?: [null, null];
                     if ($w && $h) {
-                        $imageObj['width']  = $w;
+                        $imageObj['width'] = $w;
                         $imageObj['height'] = $h;
                     }
                 }
@@ -1258,8 +1263,8 @@ class JsonldService
         }
 
         $morphAlias = $model->getMorphClass();
-        $baseUrl    = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $slug       = (string) ($model->getAttribute('slug') ?? '');
+        $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
+        $slug = (string) ($model->getAttribute('slug') ?? '');
 
         $model->loadMissing('videos');
         $videos = $model->getRelationValue('videos');
@@ -1280,7 +1285,7 @@ class JsonldService
             $hasManualOverride = JsonldSchema::where('model_type', $morphAlias)
                 ->where('model_id', $model->getKey())
                 ->where('schema_type', $schemaKey)
-                ->where('label', 'Video: ' . $video->title)
+                ->where('label', 'Video: '.$video->title)
                 ->where('is_auto_generated', false)
                 ->exists();
 
@@ -1289,16 +1294,16 @@ class JsonldService
             }
 
             $payload = [
-                '@context'     => 'https://schema.org',
-                '@type'        => 'VideoObject',
-                'name'         => $video->title,
-                'description'  => $video->description,
-                'contentUrl'   => $baseUrl . '/storage/' . ltrim((string) ($video->path ?? ''), '/'),
-                'embedUrl'     => LocaleUrl::for('product', $slug, $locale) . '#video-' . $video->id,
+                '@context' => 'https://schema.org',
+                '@type' => 'VideoObject',
+                'name' => $video->title,
+                'description' => $video->description,
+                'contentUrl' => $baseUrl.'/storage/'.ltrim((string) ($video->path ?? ''), '/'),
+                'embedUrl' => LocaleUrl::for('product', $slug, $locale).'#video-'.$video->id,
                 'thumbnailUrl' => $video->thumbnail_path
-                    ? ($baseUrl . '/storage/' . ltrim((string) $video->thumbnail_path, '/'))
+                    ? ($baseUrl.'/storage/'.ltrim((string) $video->thumbnail_path, '/'))
                     : '',
-                'uploadDate'   => $video->created_at?->toIso8601String() ?? '',
+                'uploadDate' => $video->created_at?->toIso8601String() ?? '',
             ];
 
             // ISO 8601 duration (e.g. "PT2M30S") — optional but recommended.
@@ -1308,18 +1313,18 @@ class JsonldService
 
             JsonldSchema::updateOrCreate(
                 [
-                    'model_type'  => $morphAlias,
-                    'model_id'    => $model->getKey(),
+                    'model_type' => $morphAlias,
+                    'model_id' => $model->getKey(),
                     'schema_type' => $schemaKey,
-                    'locale'      => $locale,
-                    'label'       => 'Video: ' . $video->title,
+                    'locale' => $locale,
+                    'label' => 'Video: '.$video->title,
                 ],
                 [
-                    'locale'            => $locale,
-                    'payload'           => $payload,
-                    'is_active'         => true,
+                    'locale' => $locale,
+                    'payload' => $payload,
+                    'is_active' => true,
                     'is_auto_generated' => true,
-                    'sort_order'        => self::SORT_ORDER[$schemaKey] ?? 60,
+                    'sort_order' => self::SORT_ORDER[$schemaKey] ?? 60,
                 ]
             );
         }
@@ -1340,7 +1345,7 @@ class JsonldService
 
         $logo = (string) ($model->getAttribute('logo') ?? '');
         if (filled($logo)) {
-            $payload['logo'] = $baseUrl . '/storage/' . ltrim($logo, '/');
+            $payload['logo'] = $baseUrl.'/storage/'.ltrim($logo, '/');
         }
 
         $website = (string) ($model->getAttribute('website') ?? '');
@@ -1351,12 +1356,14 @@ class JsonldService
         // key_facts → additionalProperty (PropertyValue) for Knowledge Graph enrichment.
         $model->loadMissing('geoProfiles');
         $geoProfile = $model->geoProfiles->firstWhere('locale', $locale);
-        $keyFacts   = (array) ($geoProfile?->key_facts ?? []);
+        $keyFacts = (array) ($geoProfile?->key_facts ?? []);
 
         if (! empty($keyFacts)) {
             $props = [];
             foreach ($keyFacts as $kf) {
-                if (! is_array($kf)) continue;
+                if (! is_array($kf)) {
+                    continue;
+                }
                 $label = trim((string) ($kf['label'] ?? ''));
                 $value = trim((string) ($kf['value'] ?? ''));
                 if (filled($label) && filled($value)) {
@@ -1377,7 +1384,7 @@ class JsonldService
     private function enrichManufacturerSchema(array $payload, Model $model, string $locale): array
     {
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $slug    = (string) ($model->getAttribute('slug') ?? '');
+        $slug = (string) ($model->getAttribute('slug') ?? '');
 
         // @id = canonical page URL on our site (entity disambiguation for Google).
         // url in the template is the external manufacturer website — keep them separate.
@@ -1387,7 +1394,7 @@ class JsonldService
 
         $logo = (string) ($model->getAttribute('logo') ?? '');
         if (filled($logo)) {
-            $payload['logo'] = $baseUrl . '/storage/' . ltrim($logo, '/');
+            $payload['logo'] = $baseUrl.'/storage/'.ltrim($logo, '/');
         }
 
         $website = (string) ($model->getAttribute('website') ?? '');
@@ -1403,12 +1410,14 @@ class JsonldService
         // key_facts → additionalProperty (PropertyValue) for Knowledge Graph enrichment.
         $model->loadMissing('geoProfiles');
         $geoProfile = $model->geoProfiles->firstWhere('locale', $locale);
-        $keyFacts   = (array) ($geoProfile?->key_facts ?? []);
+        $keyFacts = (array) ($geoProfile?->key_facts ?? []);
 
         if (! empty($keyFacts)) {
             $props = [];
             foreach ($keyFacts as $kf) {
-                if (! is_array($kf)) continue;
+                if (! is_array($kf)) {
+                    continue;
+                }
                 $label = trim((string) ($kf['label'] ?? ''));
                 $value = trim((string) ($kf['value'] ?? ''));
                 if (filled($label) && filled($value)) {
@@ -1446,8 +1455,8 @@ class JsonldService
     private function buildBrandBreadcrumb(Model $model, string $locale = 'vi'): array
     {
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $name    = (string) ($model->getAttribute('name') ?? '');
-        $slug    = (string) ($model->getAttribute('slug') ?? '');
+        $name = (string) ($model->getAttribute('name') ?? '');
+        $slug = (string) ($model->getAttribute('slug') ?? '');
 
         return $this->buildBreadcrumbSchema([
             ['name' => 'Home',                                       'url' => $baseUrl],
@@ -1471,9 +1480,9 @@ class JsonldService
 
     private function buildValueMap(Model $model, string $locale = 'vi'): array
     {
-        $morphAlias   = $model->getMorphClass();
-        $baseUrl      = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $slug         = (string) ($model->getAttribute('slug') ?? '');
+        $morphAlias = $model->getMorphClass();
+        $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
+        $slug = (string) ($model->getAttribute('slug') ?? '');
         $canonicalUrl = $this->canonicalRouteFor($morphAlias, $slug, $locale);
 
         // Seed with all raw DB attributes (name, slug, sku, price, etc.)
@@ -1502,14 +1511,26 @@ class JsonldService
         if ($morphAlias === 'product' && method_exists($model, 'translation')) {
             $t = $model->translation($locale);
             if ($t) {
-                if (filled($t->price))             { $map['price']             = (float) $t->price; }
-                if (filled($t->sale_price))        { $map['sale_price']        = (float) $t->sale_price; }
-                if (filled($t->currency))          { $map['currency']          = $t->currency; }
-                if (filled($t->name))              { $map['name']              = $t->name; }
-                if (filled($t->short_description)) { $map['short_description'] = strip_tags((string) $t->short_description); }
-                if (filled($t->description))       { $map['description']       = strip_tags((string) $t->description); }
-                if (filled($t->slug))              {
-                    $map['slug']  = $t->slug;
+                if (filled($t->price)) {
+                    $map['price'] = (float) $t->price;
+                }
+                if (filled($t->sale_price)) {
+                    $map['sale_price'] = (float) $t->sale_price;
+                }
+                if (filled($t->currency)) {
+                    $map['currency'] = $t->currency;
+                }
+                if (filled($t->name)) {
+                    $map['name'] = $t->name;
+                }
+                if (filled($t->short_description)) {
+                    $map['short_description'] = strip_tags((string) $t->short_description);
+                }
+                if (filled($t->description)) {
+                    $map['description'] = strip_tags((string) $t->description);
+                }
+                if (filled($t->slug)) {
+                    $map['slug'] = $t->slug;
                     $canonicalUrl = $this->canonicalRouteFor($morphAlias, $t->slug, $locale);
                 }
             }
@@ -1519,10 +1540,14 @@ class JsonldService
         if (in_array($morphAlias, ['category', 'blog_category'], true) && method_exists($model, 'translation')) {
             $t = $model->translation($locale);
             if ($t) {
-                if (filled($t->name))        { $map['name']        = $t->name; }
-                if (filled($t->description)) { $map['description'] = $t->description; }
-                if (filled($t->slug))        {
-                    $map['slug']  = $t->slug;
+                if (filled($t->name)) {
+                    $map['name'] = $t->name;
+                }
+                if (filled($t->description)) {
+                    $map['description'] = $t->description;
+                }
+                if (filled($t->slug)) {
+                    $map['slug'] = $t->slug;
                     $canonicalUrl = $this->canonicalRouteFor($morphAlias, $t->slug, $locale);
                 }
             }
@@ -1532,12 +1557,16 @@ class JsonldService
         if ($morphAlias === 'blog_post' && method_exists($model, 'translation')) {
             $t = $model->translation($locale);
             if ($t) {
-                if (filled($t->title)) { $map['title'] = $t->title; }
-                if (filled($t->slug))  {
-                    $map['slug']  = $t->slug;
+                if (filled($t->title)) {
+                    $map['title'] = $t->title;
+                }
+                if (filled($t->slug)) {
+                    $map['slug'] = $t->slug;
                     $canonicalUrl = $this->canonicalRouteFor($morphAlias, $t->slug, $locale);
                 }
-                if (filled($t->excerpt)) { $map['excerpt'] = $t->excerpt; }
+                if (filled($t->excerpt)) {
+                    $map['excerpt'] = $t->excerpt;
+                }
             }
         }
 
@@ -1562,14 +1591,14 @@ class JsonldService
         // The raw DB column stores a relative storage path (e.g. "blog/2024/01/x.jpg").
         // Google requires an absolute URL in Article image — never a bare path.
         if ($morphAlias === 'blog_post') {
-            $featuredImage          = (string) ($model->getAttribute('featured_image') ?? '');
+            $featuredImage = (string) ($model->getAttribute('featured_image') ?? '');
             $map['featured_image_url'] = filled($featuredImage)
-                ? ($baseUrl . '/storage/' . ltrim($featuredImage, '/'))
+                ? ($baseUrl.'/storage/'.ltrim($featuredImage, '/'))
                 : '';
         }
 
         // Product: Schema.org availability string
-        $stockQty            = (int) ($model->getAttribute('stock_quantity') ?? 0);
+        $stockQty = (int) ($model->getAttribute('stock_quantity') ?? 0);
         $map['availability'] = $stockQty > 0
             ? 'https://schema.org/InStock'
             : 'https://schema.org/OutOfStock';

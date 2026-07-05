@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\FilterGroupType;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\BusinessProfile;
@@ -203,9 +204,9 @@ class ProductController extends Controller
                 'product.manufacturer',
                 'product.attributes',
                 'product.videos',
-                'product.optionTypes.values',
+                'product.variantDimensionValues.group',
                 'product.variants' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
-                'product.variants.optionValues.optionType',
+                'product.variants.optionValues.group',
                 'product.variants.image',
             ])
             ->first();
@@ -291,20 +292,24 @@ class ProductController extends Controller
             'stock' => $v->stock_quantity,
             'image_url' => $v->image?->url,
             'options' => $v->optionValues->map(fn ($ov) => [
-                'type_id' => $ov->option_type_id,
+                'type_id' => $ov->filter_group_id,
                 'value_id' => $ov->id,
-                'value' => $ov->value,
+                'value' => $ov->name,
             ])->values()->all(),
         ])->values()->all();
 
-        $optionTypesData = $product->optionTypes->map(fn ($t) => [
-            'id' => $t->id,
-            'name' => $t->name,
-            'values' => $t->values->map(fn ($v) => [
-                'id' => $v->id,
-                'value' => $v->value,
-            ])->values()->all(),
-        ])->values()->all();
+        $optionTypesData = $product->variantDimensionValues
+            ->groupBy('filter_group_id')
+            ->map(fn ($values, $groupId) => [
+                'id' => $groupId,
+                'name' => $values->first()->group->name,
+                'is_color' => $values->first()->group->type === FilterGroupType::Color,
+                'values' => $values->map(fn ($v) => [
+                    'id' => $v->id,
+                    'value' => $v->name,
+                    'color_hex' => $v->color_hex,
+                ])->values()->all(),
+            ])->values()->all();
 
         // Journal section cuối PDP — 4 bài mới nhất, cùng shape với homepage.
         $latestBlogs = app(BlogPostRepository::class)->latestDecorated($locale, 4);

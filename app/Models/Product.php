@@ -251,11 +251,6 @@ class Product extends Model
         return $this->hasMany(ProductAttribute::class)->orderBy('sort_order');
     }
 
-    public function optionTypes(): HasMany
-    {
-        return $this->hasMany(ProductOptionType::class)->orderBy('sort_order');
-    }
-
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class)->orderBy('sort_order');
@@ -274,6 +269,18 @@ class Product extends Model
     public function filterValues(): BelongsToMany
     {
         return $this->belongsToMany(FilterValue::class, 'product_filter_values');
+    }
+
+    /**
+     * Selected FilterValues restricted to groups flagged is_variant_dimension
+     * (e.g. Color, Size) — the input VariantGeneratorService cartesian-products
+     * to build ProductVariant rows. A facet-only group (e.g. Material) never
+     * shows up here even if selected in filterValues().
+     */
+    public function variantDimensionValues(): BelongsToMany
+    {
+        return $this->belongsToMany(FilterValue::class, 'product_filter_values')
+            ->whereHas('group', fn ($q) => $q->where('is_variant_dimension', true));
     }
 
     public function approvedReviews(): HasMany

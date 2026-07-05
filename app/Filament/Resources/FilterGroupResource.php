@@ -65,6 +65,11 @@ class FilterGroupResource extends Resource
                     Forms\Components\Toggle::make('is_active')
                         ->label('Active')
                         ->default(true),
+
+                    Forms\Components\Toggle::make('is_variant_dimension')
+                        ->label('Dùng làm biến thể (Variant)')
+                        ->helperText('Bật nếu nhóm này (VD: Color, Size) dùng để sinh SKU/giá/tồn kho riêng ở tab Variants của sản phẩm.')
+                        ->default(false),
                 ]),
 
             Section::make('Values')
@@ -131,6 +136,11 @@ class FilterGroupResource extends Resource
                     ->boolean()
                     ->sortable(),
 
+                Tables\Columns\IconColumn::make('is_variant_dimension')
+                    ->label('Variant')
+                    ->boolean()
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Updated')
                     ->dateTime('d/m/Y H:i')
@@ -153,9 +163,9 @@ class FilterGroupResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListFilterGroups::route('/'),
+            'index' => Pages\ListFilterGroups::route('/'),
             'create' => Pages\CreateFilterGroup::route('/create'),
-            'edit'   => Pages\EditFilterGroup::route('/{record}/edit'),
+            'edit' => Pages\EditFilterGroup::route('/{record}/edit'),
         ];
     }
 }

@@ -14,6 +14,7 @@ class FilterGroup extends Model
         'name_en',
         'slug',
         'type',
+        'is_variant_dimension',
         'sort_order',
         'is_active',
     ];
@@ -38,6 +39,7 @@ class FilterGroup extends Model
     protected $casts = [
         'type' => FilterGroupType::class,
         'is_active' => 'boolean',
+        'is_variant_dimension' => 'boolean',
         'sort_order' => 'integer',
     ];
 

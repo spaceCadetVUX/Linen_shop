@@ -9,37 +9,39 @@ use Illuminate\Support\Str;
 class VariantGeneratorService
 {
     /**
-     * Generate variants from all cartesian combinations of a product's option types.
+     * Generate variants from all cartesian combinations of a product's
+     * variant-dimension FilterValues (e.g. Color × Size).
      *
      * Rules:
      *  - Only CREATES new combinations — never modifies or deletes existing ones.
      *  - Skips combinations that already have a variant.
-     *  - Auto-generates SKU from product SKU + option value slugs.
-     *  - New variants inherit price/sale_price from the product; stock defaults to 0.
+     *  - Auto-generates SKU from product SKU + FilterValue slugs.
+     *  - New variants inherit price/sale_price (VND, flat columns) and
+     *    price_usd/sale_price_usd (from the product's "en" translation,
+     *    the only place a USD product price is entered) from the product;
+     *    stock defaults to 0.
      *
      * @return array{created: int, skipped: int, error: string|null}
      */
     public function generate(Product $product): array
     {
-        $product->loadMissing('optionTypes.values');
+        $product->loadMissing(['variantDimensionValues.group', 'translations']);
 
-        $optionTypes = $product->optionTypes;
+        // translation('en') falls back to the vi row (wrong currency) when no
+        // English translation exists — look it up directly, no fallback.
+        $usdTranslation = $product->translations->firstWhere('locale', 'en');
 
-        // ── Guard: must have at least 1 option type with values ───────────────
+        $groupedValues = $product->variantDimensionValues->groupBy('filter_group_id');
 
-        if ($optionTypes->isEmpty()) {
-            return ['created' => 0, 'skipped' => 0, 'error' => 'No option types defined. Add at least one option (e.g. Color) with values first.'];
-        }
+        // ── Guard: must have at least 1 dimension group with values ───────────
 
-        foreach ($optionTypes as $type) {
-            if ($type->values->isEmpty()) {
-                return ['created' => 0, 'skipped' => 0, 'error' => "Option \"{$type->name}\" has no values. Add at least one value before generating."];
-            }
+        if ($groupedValues->isEmpty()) {
+            return ['created' => 0, 'skipped' => 0, 'error' => 'Chưa chọn Filter Value nào thuộc nhóm variant-dimension. Vào tab Filters chọn giá trị (VD: Color, Size) trước, và đảm bảo nhóm đó có bật "Dùng làm biến thể".'];
         }
 
         // ── Build cartesian product ───────────────────────────────────────────
 
-        $valueSets    = $optionTypes->map(fn ($t) => $t->values)->values()->all();
+        $valueSets = $groupedValues->values()->all();
         $combinations = $this->cartesian($valueSets);
 
         // ── Map existing variants to their option-value-set key ───────────────
@@ -55,30 +57,33 @@ class VariantGeneratorService
 
         // ── Create missing combinations ───────────────────────────────────────
 
-        $created       = 0;
-        $skipped       = 0;
+        $created = 0;
+        $skipped = 0;
         $existingCount = count($existingKeys);
 
         foreach ($combinations as $combination) {
             $valueIds = collect($combination)->pluck('id')->sort()->values();
-            $key      = $valueIds->join(',');
+            $key = $valueIds->join(',');
 
             if (isset($existingKeys[$key])) {
                 $skipped++;
+
                 continue;
             }
 
-            // Auto SKU: PRODUCT-SKU-RED-M  (4-char slugs, uppercased)
+            // Auto SKU: PRODUCT-SKU-RED-M  (5-char slugs, uppercased)
             $sku = $this->buildSku($product->sku ?? 'VAR', $combination);
 
             // Create the variant row
             $variant = $product->variants()->create([
-                'sku'            => $sku,
-                'price'          => $product->price ?? 0,
-                'sale_price'     => $product->sale_price,
+                'sku' => $sku,
+                'price' => $product->price ?? 0,
+                'sale_price' => $product->sale_price,
+                'price_usd' => $usdTranslation?->price,
+                'sale_price_usd' => $usdTranslation?->sale_price,
                 'stock_quantity' => 0,
-                'is_active'      => true,
-                'sort_order'     => $existingCount + $created,
+                'is_active' => true,
+                'sort_order' => $existingCount + $created,
             ]);
 
             // Link to option values via pivot
@@ -107,7 +112,7 @@ class VariantGeneratorService
         }
 
         $first = array_shift($sets);
-        $rest  = $this->cartesian($sets);
+        $rest = $this->cartesian($sets);
         $result = [];
 
         foreach ($first as $item) {
@@ -128,21 +133,16 @@ class VariantGeneratorService
     private function buildSku(string $baseSku, array $combination): string
     {
         $suffix = collect($combination)
-            ->map(fn ($v) => Str::upper(
-                Str::substr(
-                    Str::slug($v->value, '-'),
-                    0, 5
-                )
-            ))
+            ->map(fn ($v) => Str::upper(Str::substr($v->slug, 0, 5)))
             ->filter()
             ->join('-');
 
-        $sku     = $baseSku . ($suffix ? '-' . $suffix : '');
+        $sku = $baseSku.($suffix ? '-'.$suffix : '');
         $attempt = $sku;
         $counter = 1;
 
         while (ProductVariant::where('sku', $attempt)->exists()) {
-            $attempt = $sku . '-' . $counter++;
+            $attempt = $sku.'-'.$counter++;
         }
 
         return $attempt;

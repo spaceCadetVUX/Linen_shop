@@ -563,49 +563,39 @@ class ProductResource extends Resource
                         ->icon('heroicon-o-squares-2x2')
                         ->schema([
 
-                            // ── Step 1: Define option types & values ──────────
-                            Section::make('Step 1 — Define Options')
-                                ->description('Add option types (e.g. Color, Size) and their possible values. Then click Generate.')
+                            // ── Step 1: Summary of variant-dimension values ───
+                            Section::make('Step 1 — Variant Dimensions')
+                                ->description('Chọn giá trị ở tab Filters. Chỉ nhóm có bật "Dùng làm biến thể" (Catalog → Filter Groups) mới xuất hiện ở đây.')
                                 ->icon('heroicon-o-tag')
                                 ->schema([
-                                    Forms\Components\Repeater::make('optionTypes')
-                                        ->relationship()
+                                    Placeholder::make('variant_dimensions_summary')
                                         ->label('')
-                                        ->schema([
-                                            Forms\Components\TextInput::make('name')
-                                                ->label('Option Name')
-                                                ->placeholder('e.g. Color, Size, Storage, Material')
-                                                ->required()
-                                                ->distinct()
-                                                ->columnSpan(1),
+                                        ->content(function ($livewire): HtmlString {
+                                            $record = $livewire->record;
 
-                                            Forms\Components\Repeater::make('values')
-                                                ->relationship()
-                                                ->label('Values')
-                                                ->schema([
-                                                    Forms\Components\TextInput::make('value')
-                                                        ->label('')
-                                                        ->placeholder('e.g. Red')
-                                                        ->required(),
-                                                ])
-                                                ->orderColumn('sort_order')
-                                                ->reorderable()
-                                                ->reorderableWithDragAndDrop()
-                                                ->addActionLabel('+ Add value')
-                                                ->defaultItems(1)
-                                                ->columns(1)
-                                                ->columnSpan(3),
-                                        ])
-                                        ->itemLabel(fn (array $state): ?string => filled($state['name'] ?? '')
-                                                ? '⚙ '.$state['name']
-                                                : null
-                                        )
-                                        ->collapsed()
-                                        ->orderColumn('sort_order')
-                                        ->reorderable()
-                                        ->addActionLabel('+ Add option')
-                                        ->defaultItems(0)
-                                        ->columns(4)
+                                            if (! $record?->exists) {
+                                                return new HtmlString(
+                                                    '<em class="text-sm text-gray-400">Save the product first, then pick values in the Filters tab.</em>'
+                                                );
+                                            }
+
+                                            $grouped = $record->variantDimensionValues()
+                                                ->with('group')
+                                                ->get()
+                                                ->groupBy(fn ($v) => $v->group?->name ?? '—');
+
+                                            if ($grouped->isEmpty()) {
+                                                return new HtmlString(
+                                                    '<em class="text-sm text-gray-400">Chưa chọn giá trị nào thuộc nhóm variant-dimension.</em>'
+                                                );
+                                            }
+
+                                            return new HtmlString(
+                                                $grouped->map(fn ($values, $groupName) => '<div style="margin-bottom:6px"><strong>'.e($groupName).':</strong> '
+                                                    .e($values->pluck('name')->join(', ')).'</div>')
+                                                    ->join('')
+                                            );
+                                        })
                                         ->columnSpanFull(),
                                 ]),
 
@@ -617,7 +607,7 @@ class ProductResource extends Resource
                                     ->color('primary')
                                     ->requiresConfirmation()
                                     ->modalHeading('Generate Variant Combinations')
-                                    ->modalDescription('This will create all missing combinations from your option types. Existing variants are never modified or deleted.')
+                                    ->modalDescription('This will create all missing combinations from your selected variant-dimension filter values. Existing variants are never modified or deleted.')
                                     ->modalSubmitActionLabel('Generate')
                                     ->action(function ($livewire): void {
                                         $product = $livewire->record;
@@ -672,7 +662,7 @@ class ProductResource extends Resource
                                     Forms\Components\Repeater::make('variants')
                                         ->relationship(
                                             modifyQueryUsing: fn ($query) => $query
-                                                ->with(['optionValues.optionType'])
+                                                ->with(['optionValues.group'])
                                                 ->orderBy('sort_order'),
                                         )
                                         ->label('')
@@ -687,22 +677,24 @@ class ProductResource extends Resource
                                                         );
                                                     }
 
-                                                    $record->loadMissing('optionValues.optionType');
-
-                                                    $label = $record->optionValues
-                                                        ->sortBy(fn ($v) => $v->optionType?->sort_order ?? 0)
-                                                        ->pluck('value')
-                                                        ->join(' / ');
+                                                    $record->loadMissing('optionValues.group');
 
                                                     $badges = $record->optionValues
-                                                        ->sortBy(fn ($v) => $v->optionType?->sort_order ?? 0)
+                                                        ->sortBy(fn ($v) => $v->group?->sort_order ?? 0)
                                                         ->map(function ($v): string {
-                                                            $typeName = e($v->optionType?->name ?? '');
-                                                            $val = e($v->value);
+                                                            $isColor = $v->group?->type === FilterGroupType::Color;
+                                                            $typeName = e($v->group?->name ?? '');
+                                                            $val = e($v->name);
+
+                                                            $swatch = $isColor
+                                                                ? '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'
+                                                                    .e($v->color_hex ?: '#ffffff')
+                                                                    .';border:1px solid rgba(0,0,0,.2);vertical-align:-1px;margin-right:4px"></span>'
+                                                                : '';
 
                                                             return "<span style='display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:9999px;font-size:0.75rem;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;'>
                                                                         <span style='color:#93c5fd;font-size:0.65rem;'>{$typeName}</span>
-                                                                        <strong>{$val}</strong>
+                                                                        <strong>{$swatch}{$val}</strong>
                                                                     </span>";
                                                         })
                                                         ->join(' ');
@@ -757,6 +749,20 @@ class ProductResource extends Resource
                                                 ->label('Sale Price')
                                                 ->numeric()
                                                 ->prefix('₫')
+                                                ->nullable()
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('price_usd')
+                                                ->label('Price (USD)')
+                                                ->numeric()
+                                                ->prefix('$')
+                                                ->nullable()
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('sale_price_usd')
+                                                ->label('Sale Price (USD)')
+                                                ->numeric()
+                                                ->prefix('$')
                                                 ->nullable()
                                                 ->columnSpan(1),
 
