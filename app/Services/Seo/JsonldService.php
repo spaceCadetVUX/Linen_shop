@@ -12,6 +12,7 @@ use App\Support\LocaleUrl;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class JsonldService
 {
@@ -540,6 +541,9 @@ class JsonldService
                 if ($prices->isNotEmpty()) {
                     $lowPrice = $prices->min();
                     $highPrice = $prices->max();
+                    $anyInStock = $variants->contains(
+                        fn ($v): bool => ((int) $v->stock_quantity) > 0
+                    );
 
                     $offerList = $variants->map(function ($variant) use ($currency, $productUrl): array {
                         $offer = [
@@ -561,12 +565,10 @@ class JsonldService
                         return $offer;
                     })->values()->all();
 
-                    // ── Edge case: all variants same price ────────────────────
-                    if ($lowPrice === $highPrice) {
-                        $anyInStock = $variants->contains(
-                            fn ($v): bool => ((int) $v->stock_quantity) > 0
-                        );
-
+                    // ── Single variant → plain Offer, no offerCount ───────────
+                    // AggregateOffer implies more than one purchase option — a
+                    // lone variant doesn't need "aggregating".
+                    if ($variants->count() === 1) {
                         return [
                             '@type' => 'Offer',
                             'price' => $lowPrice,
@@ -574,17 +576,19 @@ class JsonldService
                             'availability' => $anyInStock
                                 ? 'https://schema.org/InStock'
                                 : 'https://schema.org/OutOfStock',
-                            'offerCount' => $variants->count(),
                             'url' => $productUrl,
                             'seller' => $seller,
                         ];
                     }
 
-                    // ── Multiple prices → AggregateOffer ─────────────────────
-                    $anyInStock = $variants->contains(
-                        fn ($v): bool => ((int) $v->stock_quantity) > 0
-                    );
-
+                    // ── 2+ variants (same or different price) → AggregateOffer ─
+                    // `offerCount` only exists on AggregateOffer, not on a bare
+                    // Offer — a prior "all variants same price" branch returned
+                    // `@type: Offer` with `offerCount` attached anyway, which
+                    // Google's parser silently ignores as an unrecognized
+                    // property. lowPrice === highPrice is valid on AggregateOffer
+                    // when every variant shares one price, so no special case
+                    // is needed here.
                     return [
                         '@type' => 'AggregateOffer',
                         'lowPrice' => $lowPrice,
@@ -744,12 +748,12 @@ class JsonldService
 
         // ── Build item list ───────────────────────────────────────────────────
         $homeLabel = $locale === 'vi' ? 'Trang chủ' : 'Home';
-        $solutionsLabel = $locale === 'vi' ? 'Giải pháp' : 'Solutions';
-        $solutionsUrl = LocaleUrl::listUrl('category', $locale);
+        $categoryIndexLabel = LocaleUrl::listLabel('category', $locale);
+        $categoryIndexUrl = LocaleUrl::listUrl('category', $locale);
 
         $items = [
-            ['name' => $homeLabel,      'url' => $baseUrl],
-            ['name' => $solutionsLabel, 'url' => $solutionsUrl],
+            ['name' => $homeLabel,          'url' => $baseUrl],
+            ['name' => $categoryIndexLabel, 'url' => $categoryIndexUrl],
         ];
 
         foreach ($ancestors as $ancestor) {
@@ -863,7 +867,7 @@ class JsonldService
                             'thumbnail',
                             'translations' => fn ($q) => $q->whereIn('locale', $locales),
                         ])
-                        ->orderBy('products.sort_order')
+                        ->orderBy('products.created_at', 'desc')
                         ->limit(20)
                         ->get();
 
@@ -873,9 +877,12 @@ class JsonldService
                             $productName = (string) ($t?->name ?? $product->getAttribute('name') ?? '');
                             $productSlug = (string) ($t?->slug ?? $product->getAttribute('slug') ?? '');
 
-                            $item = [
-                                '@type' => 'ListItem',
-                                'position' => $index + 1,
+                            // `offers`/`availability` are Product/Offer-specific properties — they
+                            // don't exist on a bare ListItem (ListItem only inherits name/url/image
+                            // from Thing). Nesting under `item: {@type: Product, ...}` is what
+                            // Google's structured-data parser actually recognizes.
+                            $productNode = [
+                                '@type' => 'Product',
                                 'name' => $productName,
                                 'url' => LocaleUrl::for('product', $productSlug, $locale),
                             ];
@@ -883,14 +890,14 @@ class JsonldService
                             // Thumbnail — relation is already eager-loaded, no extra query.
                             $thumb = $product->getRelationValue('thumbnail');
                             if ($thumb && filled($thumb->url)) {
-                                $item['image'] = (string) $thumb->url;
+                                $productNode['image'] = (string) $thumb->url;
                             }
 
                             // Price and availability — use locale-specific translation when available.
                             $price = $t?->price ?? $product->getAttribute('price');
                             $currency = $t?->currency ?? $product->getAttribute('currency') ?? config('seo.currency', 'VND');
                             if (filled($price)) {
-                                $item['offers'] = [
+                                $productNode['offers'] = [
                                     '@type' => 'Offer',
                                     'price' => (float) $price,
                                     'priceCurrency' => $currency,
@@ -900,7 +907,11 @@ class JsonldService
                                 ];
                             }
 
-                            return $item;
+                            return [
+                                '@type' => 'ListItem',
+                                'position' => $index + 1,
+                                'item' => $productNode,
+                            ];
                         })->values()->all();
 
                         $payload['mainEntity'] = [
@@ -911,8 +922,17 @@ class JsonldService
                         ];
                     }
                 }
-            } catch (\Throwable) {
-                // Silently skip — products relationship may be unavailable in test/seeder context.
+            } catch (\Throwable $e) {
+                // Don't let a bad category crash the whole sync job — but log it. A prior
+                // silent catch() here hid a broken orderBy('products.sort_order') (column
+                // doesn't exist on `products`) for an unknown period; mainEntity/numberOfItems
+                // never generated for any category and nobody noticed.
+                Log::warning('JsonldService: failed to build category mainEntity/numberOfItems', [
+                    'category_id' => $model->getKey(),
+                    'locale' => $locale,
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                ]);
             }
         }
 

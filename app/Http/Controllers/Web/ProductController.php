@@ -24,7 +24,7 @@ class ProductController extends Controller
         private readonly ProductSearchService $productSearchService,
     ) {}
 
-    public function index(string $locale): View
+    public function index(string $locale): View|JsonResponse
     {
         $keyword = (string) request()->query('q', '');
         $brandSlug = (string) request()->query('brand', '');
@@ -57,6 +57,16 @@ class ProductController extends Controller
             $locale, $keyword, $filterGroups, $activeValueSlugs, $brandSlug,
             categoryId: null, perPage: 24, minPrice: $minPrice, maxPrice: $maxPrice,
         );
+
+        // Progressive-enhancement fragment for infinite scroll: JS re-requests
+        // the real nextPageUrl with X-Requested-With so it also works with JS off.
+        if (request()->ajax()) {
+            return response()->json([
+                'html' => view('partials.product-cards', compact('products'))->render(),
+                'hasMore' => $products->hasMorePages(),
+                'nextPageUrl' => $products->nextPageUrl(),
+            ]);
+        }
 
         $priceBounds = $this->productSearchService->getPriceBounds(categoryId: null);
 

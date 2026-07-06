@@ -2,17 +2,24 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\HomeEditorialScope;
 use App\Http\Controllers\Controller;
 use App\Models\BusinessProfile;
+use App\Models\Category;
 use App\Models\ProductTranslation;
 use App\Models\Setting;
 use App\Repositories\Eloquent\BlogPostRepository;
+use App\Services\Category\CategoryService;
 use App\Services\Seo\BusinessJsonldService;
+use App\Support\LocaleUrl;
 use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
 {
-    public function __construct(private BusinessJsonldService $jsonld) {}
+    public function __construct(
+        private BusinessJsonldService $jsonld,
+        private CategoryService $categoryService,
+    ) {}
 
     public function index(string $locale): View
     {
@@ -64,21 +71,32 @@ class HomeController extends Controller
             ? (str_starts_with($path, 'http') ? $path : asset('storage/' . ltrim($path, '/')))
             : null;
 
-        $editorialItems = array_map(function (int $i) use ($landing, $isEn, $imgUrl): array {
-            $defaults = [
-                ['name' => 'Áo linen',    'name_en' => 'Linen Tops',    'cta' => 'Khám phá', 'cta_en' => 'Explore', 'url' => '/shop/ao-linen',  'fallback_class' => 'edit-grid-img--linen'],
-                ['name' => 'Quần & Váy',  'name_en' => 'Pants & Skirts','cta' => 'Khám phá', 'cta_en' => 'Explore', 'url' => '/shop/quan-vay',  'fallback_class' => 'edit-grid-img--pants'],
-                ['name' => 'Bộ set linen','name_en' => 'Linen Sets',    'cta' => 'Khám phá', 'cta_en' => 'Explore', 'url' => '/shop/set-linen', 'fallback_class' => 'edit-grid-img--set'],
-            ][$i];
-            $raw = $landing["eg{$i}_image"] ?? null;
-            return [
-                'image_url'      => $imgUrl($raw),
-                'fallback_class' => $raw ? null : $defaults['fallback_class'],
-                'name'           => ($isEn ? ($landing["eg{$i}_name_en"] ?? null) : null) ?? $landing["eg{$i}_name"] ?? $defaults[$isEn ? 'name_en' : 'name'],
-                'cta'            => ($isEn ? ($landing["eg{$i}_cta_en"]  ?? null) : null) ?? $landing["eg{$i}_cta"]  ?? $defaults[$isEn ? 'cta_en'  : 'cta'],
-                'url'            => $landing["eg{$i}_url"] ?? $defaults['url'],
-            ];
-        }, [0, 1, 2]);
+        // Editorial grid — active categories (Category::is_active, sorted by sort_order),
+        // reuses CategoryService's cached tree (already loaded for the mega menu).
+        // Scope configurable via LandingSetup (extra['landing']['editorial_scope']).
+        $editorialScope = HomeEditorialScope::tryFrom((string) ($landing['editorial_scope'] ?? ''))
+            ?? HomeEditorialScope::Parents;
+        $editorialTree  = $this->categoryService->getTree();
+        $editorialCategories = match ($editorialScope) {
+            HomeEditorialScope::All      => $editorialTree->flatMap(fn (Category $root) => collect([$root])->concat($root->children)),
+            HomeEditorialScope::Children => $editorialTree->flatMap(fn (Category $root) => $root->children),
+            HomeEditorialScope::Parents  => $editorialTree,
+        };
+
+        $editorialItems = $editorialCategories
+            ->map(function (Category $category) use ($locale, $isEn, $imgUrl): array {
+                $translation = $category->translation($locale);
+
+                return [
+                    'image_url'      => $imgUrl($category->image_path),
+                    'fallback_class' => $category->image_path ? null : 'edit-grid-img--default',
+                    'name'           => $translation?->name ?? $category->name,
+                    'cta'            => $isEn ? 'Explore' : 'Khám phá',
+                    'url'            => LocaleUrl::for('category', $translation?->slug ?? $category->slug, $locale),
+                ];
+            })
+            ->values()
+            ->all();
         $heroEyebrow   = ($isEn ? ($landing['hero_eyebrow_en']    ?? null) : null) ?? $landing['hero_eyebrow']    ?? 'Mới ra mắt';
         $heroHeadline  = ($isEn ? ($landing['hero_headline_en']   ?? null) : null) ?? $landing['hero_headline']   ?? 'Bộ sưu tập Thu 2026';
         $heroCtaLabel  = ($isEn ? ($landing['hero_cta_label_en']  ?? null) : null) ?? $landing['hero_cta_label']  ?? 'Khám phá lookbook';

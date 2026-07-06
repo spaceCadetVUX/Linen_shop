@@ -80,7 +80,7 @@
      PRODUCT GRID — shared component, same as pages/category/show.blade.php
      ============================================================ --}}
 <section class="plp-grid-section shop-section" id="plpGridSection">
-  <x-product.grid :products="$products" empty-message="Chưa có sản phẩm nào." />
+  <x-product.grid :products="$products" empty-message="Chưa có sản phẩm nào." :auto-load="true" />
 </section>
 
 {{-- ============================================================

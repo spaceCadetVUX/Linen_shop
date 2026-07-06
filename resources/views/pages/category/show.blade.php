@@ -6,10 +6,7 @@
 
 @section('content')
 
-<x-ui.breadcrumb :items="[
-    ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale . '.index')],
-    ['label' => $translation->name, 'url' => null],
-]" />
+<x-ui.breadcrumb :items="$breadcrumbItems" />
 
 {{-- ============================================================
      CATEGORY BANNER
@@ -81,6 +78,45 @@
 <section class="plp-grid-section shop-section" id="plpGridSection">
   <x-product.grid :products="$products" empty-message="Chưa có sản phẩm nào trong danh mục này." />
 </section>
+
+{{-- ============================================================
+     RICH CONTENT — admin-managed (Filament category rich_content),
+     rendered at the bottom of the page, below the product grid.
+     ============================================================ --}}
+@if($richContentHtml)
+  <section class="category-rich-content">
+    <div class="jnl-post-body">
+      {!! $richContentHtml !!}
+    </div>
+  </section>
+@endif
+
+{{-- ============================================================
+     FAQ — admin-managed (GeoEntityProfile.faq, falls back to legacy
+     faq_items_{locale}). Reuses the PDP accordion pattern (.pd-accordions /
+     .pd-acc-trigger) so the toggle behaviour is wired for free by the
+     global app.js handler — same look everywhere FAQ shows up.
+     ============================================================ --}}
+@if(count($faqEntities))
+  <section class="category-faq">
+    <div class="jnl-post-body">
+      <h2 class="jnl-post-related-hd">{{ $locale === 'vi' ? 'Câu hỏi thường gặp' : 'Frequently asked questions' }}</h2>
+      <div class="pd-accordions">
+        @foreach($faqEntities as $faq)
+          <div class="pd-accordion">
+            <button class="pd-acc-trigger" aria-expanded="false" type="button">
+              <span>{{ $faq['question'] }}</span>
+              <span class="pd-acc-icon" aria-hidden="true">+</span>
+            </button>
+            <div class="pd-acc-body">
+              <p>{{ $faq['answer'] }}</p>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  </section>
+@endif
 
 {{-- ============================================================
      FILTER MODAL — shared component, wired to $filterGroups + price

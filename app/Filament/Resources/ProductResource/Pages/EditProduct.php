@@ -7,6 +7,7 @@ use App\Filament\Resources\ProductResource\Pages\Concerns\ManagesProductRelation
 use App\Models\FilterGroup;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Str;
 
 class EditProduct extends EditRecord
 {
@@ -64,17 +65,19 @@ class EditProduct extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $this->captureCategoryIdsBeforeSave();
+
         $vi = $data['translations']['vi'] ?? [];
 
         if (filled($vi['name'] ?? null)) {
-            $data['name']              = $vi['name'];
-            $data['slug']              = filled($vi['slug'] ?? null) ? $vi['slug'] : \Illuminate\Support\Str::slug($vi['name']);
+            $data['name'] = $vi['name'];
+            $data['slug'] = filled($vi['slug'] ?? null) ? $vi['slug'] : Str::slug($vi['name']);
             $data['short_description'] = $vi['short_description'] ?? null;
-            $data['description']       = $vi['description'] ?? null;
+            $data['description'] = $vi['description'] ?? null;
             // price / stock_quantity NOT NULL trên products — bỏ trống → giữ giá trị an toàn
-            $data['price']             = filled($vi['price'] ?? null) ? $vi['price'] : 0;
-            $data['sale_price']        = filled($vi['sale_price'] ?? null) ? $vi['sale_price'] : null;
-            $data['currency']          = $vi['currency'] ?? 'VND';
+            $data['price'] = filled($vi['price'] ?? null) ? $vi['price'] : 0;
+            $data['sale_price'] = filled($vi['sale_price'] ?? null) ? $vi['sale_price'] : null;
+            $data['currency'] = $vi['currency'] ?? 'VND';
         }
 
         if (array_key_exists('stock_quantity', $data) && ! filled($data['stock_quantity'])) {
@@ -89,5 +92,6 @@ class EditProduct extends EditRecord
         $this->saveTranslations();
         $this->saveFilterValues();
         $this->syncSearchIndex();
+        $this->syncCategoryJsonld();
     }
 }

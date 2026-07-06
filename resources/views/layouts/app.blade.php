@@ -6,13 +6,19 @@
   @php
     // Hậu tố tab title lấy từ Business Profile (site_name) — đổi tên shop
     // một chỗ, toàn site đổi theo. Page chỉ set phần tên riêng, KHÔNG kèm suffix.
-    $__siteName = \App\Models\Setting::get('site_name') ?: config('app.name', 'CacyLinen');
+    //
+    // $__pageTitle đã được Blade tự escape 1 lần: mọi trang set title qua dạng
+    // @section('title', $var) (2 tham số) — Illuminate\View\Concerns\ManagesLayouts::startSection()
+    // áp dụng e($content) ngay khi nhận giá trị. Vì vậy $__siteName cũng phải
+    // escape thủ công ở đây rồi render bằng {!! !!} bên dưới — nếu để {{ }}
+    // escape thêm lần nữa sẽ ra "&amp;amp;" khi title chứa &, <, >...
+    $__siteName = e(\App\Models\Setting::get('site_name') ?: config('app.name', 'CacyLinen'));
     $__pageTitle = trim($__env->yieldContent('title'));
     $__tabTitle = ($__pageTitle === '' || $__pageTitle === $__siteName)
         ? $__siteName
         : (str_ends_with($__pageTitle, '- '.$__siteName) ? $__pageTitle : $__pageTitle.' - '.$__siteName);
   @endphp
-  <title>{{ $__tabTitle }}</title>
+  <title>{!! $__tabTitle !!}</title>
   <meta name="description" content="@yield('meta-description', 'CacyLinen - Thời trang linen tối giản, bền vững.')">
   @include('partials.seo-head')
   <link rel="icon" href="{{ $faviconUrl ?? asset('favicon.ico') }}">

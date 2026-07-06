@@ -24,13 +24,18 @@
   $canonical = $canonicalUrl ?? url()->current();
   $siteName = \App\Models\Setting::get('site_name');
 
-  // JSON_HEX_TAG bắt buộc — content admin nhập chứa "</script>" sẽ breakout
-  // khỏi thẻ script nếu không escape "<" ">".
-  $jsonldFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP;
+  // JSON_HEX_TAG/JSON_HEX_AMP bắt buộc — content admin nhập chứa "</script>"
+  // sẽ breakout khỏi thẻ script nếu không escape "<" ">" "&". UNESCAPED_SLASHES
+  // + PRETTY_PRINT chỉ để dễ đọc khi view-source/debug — không escape "/" thành
+  // "\/" và xuống dòng có thụt lề, giống hệt payload preview bên Filament admin
+  // (CategoryResource, ProductResource... đều dùng cùng flag này).
+  $jsonldFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
+      | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT;
   $allSchemas = array_merge($jsonldSchemas ?? [], $businessSchemas ?? []);
 @endphp
 
 <link rel="canonical" href="{{ $canonical }}">
+<meta name="robots" content="{{ $seoMeta?->robots ?? 'index,follow' }}">
 
 @if(!empty($alternateUrls))
   @foreach($alternateUrls as $hreflang => $url)

@@ -78,13 +78,22 @@
           <span class="mega-group-name">Sản phẩm mới</span>
           <span class="mega-group-plus" aria-hidden="true">+</span>
         </div>
-        <a href="{{ url('/collections/new') }}" class="mega-feature-img-wrap">
-          <img
-            src="{{ asset('assets/images/collections/new-arrivals.jpg') }}"
-            alt="Sản phẩm mới - CacyLinen"
-            class="mega-feature-img"
-          >
-        </a>
+        {{-- Auto-slide every 5s, loops — JS in app.js toggles .is-active --}}
+        <div class="mega-feature-img-wrap" id="megaNewSlider">
+          @forelse ($megaMenuNewProducts as $i => $p)
+            <a href="{{ $p['url'] }}" class="mega-new-slide{{ $i === 0 ? ' is-active' : '' }}">
+              <img src="{{ $p['image'] }}" alt="{{ $p['name'] }}" class="mega-feature-img">
+            </a>
+          @empty
+            <a href="{{ url('/collections/new') }}" class="mega-new-slide is-active">
+              <img
+                src="{{ asset('assets/images/collections/new-arrivals.jpg') }}"
+                alt="Sản phẩm mới - CacyLinen"
+                class="mega-feature-img"
+              >
+            </a>
+          @endforelse
+        </div>
       </div>
 
       <div class="mega-group">
@@ -108,7 +117,7 @@
       @forelse ($megaMenuGroups as $group)
         <div class="mega-group">
           <div class="mega-group-hd">
-            <a href="{{ $group['url'] }}" class="mega-group-name mega-group-name--link">{{ $group['name'] }}</a>
+            <a href="{{ $group['url'] }}" class="mega-group-name mega-group-name--link" data-mega-cat="{{ $group['mega_cat'] }}" data-mega-label="{{ $group['name'] }}">{{ $group['name'] }}</a>
             <span class="mega-group-plus" aria-hidden="true">+</span>
           </div>
           @if (count($group['children']))

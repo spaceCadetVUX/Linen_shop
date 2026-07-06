@@ -47,8 +47,9 @@ class CategoryService
     }
 
     /**
-     * Root category → active children → up to 4 active products each, shaped
-     * for the header mega menu (column 2 groups/links + column 3 hover preview).
+     * Root category + active children → up to 4 newest active products each,
+     * shaped for the header mega menu (column 2 groups/links + column 3 hover
+     * preview — hovering either a parent or a child swaps column 3).
      *
      * Reuses the cached tree for the group/link structure; products are loaded
      * fresh per request (not part of the tree cache) since a boutique catalog
@@ -58,28 +59,38 @@ class CategoryService
     {
         $tree = $this->getTree();
 
+        $productsConstraint = fn ($q) => $q->where('products.is_active', true)
+            ->orderByDesc('products.created_at');
+
         $tree->loadMissing([
-            'children.products' => fn ($q) => $q->where('products.is_active', true),
+            'products' => $productsConstraint,
+            'products.thumbnail',
+            'products.translations',
+            'children.products' => $productsConstraint,
             'children.products.thumbnail',
             'children.products.translations',
         ]);
 
+        $shapeProducts = fn (Category $category) => $category->products->take(4)
+            ->map(fn (Product $product) => [
+                'name' => $product->translation($locale)?->name ?? $product->name,
+                'image' => $product->thumbnail?->url,
+                'url' => LocaleUrl::for('product', $product->translation($locale)?->slug ?? $product->slug, $locale),
+            ])
+            ->filter(fn (array $p) => filled($p['image']))
+            ->values()
+            ->all();
+
         return $tree->map(fn (Category $root) => [
             'name' => $root->translation($locale)?->name ?? $root->name,
             'url' => LocaleUrl::for('category', $root->translation($locale)?->slug ?? $root->slug, $locale),
+            'mega_cat' => $root->slug,
+            'products' => $shapeProducts($root),
             'children' => $root->children->map(fn (Category $child) => [
                 'label' => $child->translation($locale)?->name ?? $child->name,
                 'mega_cat' => $child->slug,
                 'url' => LocaleUrl::for('category', $child->translation($locale)?->slug ?? $child->slug, $locale),
-                'products' => $child->products->take(4)
-                    ->map(fn (Product $product) => [
-                        'name' => $product->translation($locale)?->name ?? $product->name,
-                        'image' => $product->thumbnail?->url,
-                        'url' => LocaleUrl::for('product', $product->translation($locale)?->slug ?? $product->slug, $locale),
-                    ])
-                    ->filter(fn (array $p) => filled($p['image']))
-                    ->values()
-                    ->all(),
+                'products' => $shapeProducts($child),
             ])->values()->all(),
         ])->values()->all();
     }

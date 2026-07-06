@@ -12,6 +12,7 @@ use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
 use App\Support\LocaleUrl;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Tiptap\Editor;
 use Tiptap\Extensions\StarterKit;
@@ -55,7 +56,7 @@ class CategoryController extends Controller
         ));
     }
 
-    public function show(string $locale, string $slug): View|RedirectResponse
+    public function show(string $locale, string $slug): View|RedirectResponse|JsonResponse
     {
         $translation = CategoryTranslation::where('locale', $locale)
             ->where('slug', $slug)
@@ -79,6 +80,23 @@ class CategoryController extends Controller
         if (! $category || ! $category->isPubliclyVisible()) {
             abort(404);
         }
+
+        // ── Breadcrumb ───────────────────────────────────────────────────────
+        // Nesting is capped at 2 levels (root → child, enforced in
+        // CategoryObserver::saving()), so a single parent lookup covers every
+        // case — mirrors the ancestor chain already in the BreadcrumbList
+        // JSON-LD (JsonldService::buildCategoryBreadcrumb()).
+        $breadcrumbItems = [
+            ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
+        ];
+        $parentTranslation = $category->parent?->translation($locale);
+        if ($parentTranslation) {
+            $breadcrumbItems[] = [
+                'label' => $parentTranslation->name,
+                'url' => LocaleUrl::for('category', $parentTranslation->slug, $locale),
+            ];
+        }
+        $breadcrumbItems[] = ['label' => $translation->name, 'url' => null];
 
         // ── Products in this category ─────────────────────────────────────────
         $keyword = (string) request()->query('q', '');
@@ -110,17 +128,31 @@ class CategoryController extends Controller
             categoryId: (string) $category->id, perPage: 24, minPrice: $minPrice, maxPrice: $maxPrice,
         );
 
+        // Progressive-enhancement fragment for "Xem thêm": JS re-requests the
+        // real nextPageUrl with X-Requested-With so it also works with JS off.
+        if (request()->ajax()) {
+            return response()->json([
+                'html' => view('partials.product-cards', compact('products'))->render(),
+                'hasMore' => $products->hasMorePages(),
+                'nextPageUrl' => $products->nextPageUrl(),
+            ]);
+        }
+
         $priceBounds = $this->productSearchService->getPriceBounds(categoryId: (string) $category->id);
 
         $brands = Brand::active()->orderBy('sort_order')->orderBy('name')->get();
 
         // ── FAQ ───────────────────────────────────────────────────────────────
+        // geoProfile.faq (Filament GEO/AI tab) takes priority; falls back to the
+        // legacy faq_items_{locale} column — same precedence as BlogController
+        // and the MCP category service.
         $faqField = 'faq_items_'.$locale;
-        $faqItems = is_array($category->$faqField ?? null) ? $category->$faqField : [];
-        $faqEntities = array_filter(array_map(
+        $faqItems = $category->geoProfile($locale)?->faq
+            ?? (is_array($category->$faqField ?? null) ? $category->$faqField : []);
+        $faqEntities = array_values(array_filter(array_map(
             fn ($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
             $faqItems
-        ));
+        )));
 
         // ── Rich content HTML ─────────────────────────────────────────────────
         $richContentHtml = null;
@@ -158,26 +190,21 @@ class CategoryController extends Controller
         $ogType = 'website';
         $currentUrl = request()->fullUrl();
 
-        // Canonical: bỏ query filter, giữ page (cùng rule với PLP).
-        $canonicalUrl = $products->currentPage() > 1
+        // Canonical: bỏ query filter, giữ page — NHƯNG chỉ khi không có filter nào
+        // active. "page=2&min_price=..." render ra nội dung khác hẳn "page=2" trần
+        // (sản phẩm khác nhau do bị lọc), nên không thể tự nhận nó là duplicate của
+        // "page=2" — phải rớt về trang 1 (base URL) như mọi tổ hợp filter khác,
+        // tránh tạo tín hiệu canonical sai (2 nội dung khác nhau nhưng khai trùng).
+        $hasActiveFilters = filled($keyword) || filled($brandSlug)
+            || ! empty($activeValueSlugs) || $minPrice !== null || $maxPrice !== null;
+        $canonicalUrl = (! $hasActiveFilters && $products->currentPage() > 1)
             ? url()->current().'?page='.$products->currentPage()
             : url()->current();
 
-        // ItemList của sản phẩm trên trang — runtime (đổi theo trang/filter),
-        // bổ sung cạnh CollectionPage/BreadcrumbList tĩnh từ pipeline DB.
-        $positionOffset = ($products->currentPage() - 1) * $products->perPage();
-        $jsonldSchemas[] = [
-            '@context' => 'https://schema.org',
-            '@type' => 'ItemList',
-            'name' => $fallbackTitle,
-            'numberOfItems' => $products->total(),
-            'itemListElement' => $products->getCollection()->values()->map(fn ($t, $i) => [
-                '@type' => 'ListItem',
-                'position' => $positionOffset + $i + 1,
-                'url' => route($locale.'.product.show', $t->slug),
-                'name' => $t->name,
-            ])->all(),
-        ];
+        // Không tự build thêm ItemList runtime ở đây nữa — CollectionPage.mainEntity
+        // (JsonldService::enrichCategorySchema, pipeline DB) đã là ItemList đầy đủ hơn
+        // (kèm image + offers). Có thêm 1 ItemList runtime thiếu dữ liệu hơn mô tả
+        // cùng collection chỉ tạo tín hiệu trùng lặp/mâu thuẫn, không có lợi gì thêm.
 
         view()->share('alternateUrls', $alternateUrls);
 
@@ -186,7 +213,7 @@ class CategoryController extends Controller
             'products', 'filterGroups', 'brands', 'activeValueSlugs', 'brandSlug', 'keyword',
             'priceBounds', 'minPrice', 'maxPrice',
             'faqItems', 'faqEntities',
-            'richContentHtml',
+            'richContentHtml', 'breadcrumbItems',
             'alternateUrls', 'seoMeta', 'jsonldSchemas', 'canonicalUrl',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType', 'currentUrl'
         ));

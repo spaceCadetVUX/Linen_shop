@@ -822,8 +822,9 @@ img    { display: block; }
 }
 .mega-col-title--link:hover { opacity: 0.6; }
 
-/* ── Editorial image in col 1 ── */
+/* ── Editorial image / new-products slider in col 1 ── */
 .mega-feature-img-wrap {
+  position: relative;
   display: block;
   aspect-ratio: 4 / 5;
   overflow: hidden;
@@ -836,6 +837,19 @@ img    { display: block; }
   transition: transform 0.9s var(--ease-out-expo);
 }
 .mega-feature-img-wrap:hover .mega-feature-img { transform: scale(1.06); }
+
+/* Auto-slide (5s loop, see app.js) — crossfade between slides */
+.mega-new-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 0.7s ease;
+}
+.mega-new-slide.is-active {
+  opacity: 1;
+  z-index: 1;
+}
 
 /* ── Product grid in col 3 ── */
 .mega-products-eyebrow {
@@ -918,26 +932,41 @@ img    { display: block; }
 
 .mega-group-name {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   text-transform: none;
-  color: var(--ash);
+  color: var(--ink);
 }
 .mega-group-name--link {
+  position: relative;
+  display: inline-block;
   text-decoration: none;
-  transition: color 0.2s ease;
 }
-.mega-group-name--link:hover { color: var(--ink); }
+/* sliding underline — same treatment as .mega-link (child) */
+.mega-group-name--link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 0.5px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+.mega-group-name--link:hover::after { transform: scaleX(1); }
 
 /* "+" hidden on desktop */
 .mega-group-plus { display: none; }
 
-/* Links */
+/* Links — indented under their parent .mega-group-name to read as children */
 .mega-group-links {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  padding-left: 12px;
 }
 
 .mega-link {
@@ -945,11 +974,11 @@ img    { display: block; }
   display: inline-flex;
   align-items: center;
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.01em;
   text-transform: none;
-  color: var(--graphite);
+  color: var(--ash);
   padding: 4px 0;
   transition: color 0.22s ease, transform 0.22s ease;
 }
@@ -1056,12 +1085,13 @@ img    { display: block; }
     padding: 14px 24px;
     margin-bottom: 0;
   }
-  .mega-group-hd:hover .mega-group-name { color: var(--ink); }
+  .mega-group-hd:hover .mega-group-name { opacity: 0.6; }
 
   .mega-group-name {
-    font-size: 13px;
-    color: var(--graphite);
-    letter-spacing: 0.04em;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.02em;
   }
 
   .mega-group-plus {
@@ -1092,7 +1122,7 @@ img    { display: block; }
     display: block;
     transform: none !important;
     padding: 9px 0;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--ash);
     border-bottom: 0.5px solid var(--stone);
   }
@@ -1486,9 +1516,10 @@ img    { display: block; }
 ============================================ */
 .edit-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  height: min(88vh, 900px);
-  min-height: 460px;
+  grid-template-columns: repeat(auto-fit, minmax(32%, 1fr));
+  grid-auto-rows: min(88vh, 900px);
+  gap: 0.5px;
+  background: rgba(255,255,255,0.14);
 }
 
 .edit-grid-item {
@@ -1496,18 +1527,18 @@ img    { display: block; }
   overflow: hidden;
   display: block;
   text-decoration: none;
+  background: #0c0c0c;
   opacity: 0;
   transform: translateY(22px);
   transition: opacity 0.85s ease, transform 0.85s ease;
 }
 
-.edit-grid-item + .edit-grid-item {
-  border-left: 0.5px solid rgba(255,255,255,0.14);
-}
-
 .edit-grid.in-view .edit-grid-item:nth-child(1) { opacity: 1; transform: none; }
 .edit-grid.in-view .edit-grid-item:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.12s; }
 .edit-grid.in-view .edit-grid-item:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.24s; }
+.edit-grid.in-view .edit-grid-item:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.36s; }
+.edit-grid.in-view .edit-grid-item:nth-child(5) { opacity: 1; transform: none; transition-delay: 0.48s; }
+.edit-grid.in-view .edit-grid-item:nth-child(6) { opacity: 1; transform: none; transition-delay: 0.6s; }
 
 .edit-grid-img {
   position: absolute;
@@ -1518,9 +1549,7 @@ img    { display: block; }
 }
 .edit-grid-item:hover .edit-grid-img { transform: scale(1.045); }
 
-.edit-grid-img--linen { background-image: url('https://elleandriley.com/cdn/shop/files/Tile11.jpg?v=1778542404'); }
-.edit-grid-img--pants { background-image: url('https://elleandriley.com/cdn/shop/files/Tile12.jpg?v=1778542436'); }
-.edit-grid-img--set   { background-image: url('https://elleandriley.com/cdn/shop/files/Tile13.jpg?v=1778542464'); }
+.edit-grid-img--default { background: linear-gradient(160deg, #2a2a28, #0c0c0c); }
 
 .edit-grid-item::after {
   content: '';
@@ -1574,14 +1603,13 @@ img    { display: block; }
 }
 
 @media (max-width: 1024px) {
-  .edit-grid { height: min(68vh, 700px); }
+  .edit-grid { grid-auto-rows: min(68vh, 700px); }
   .edit-grid-label { bottom: 24px; left: 20px; }
 }
 
 @media (max-width: 640px) {
-  .edit-grid { grid-template-columns: 1fr; height: auto; min-height: auto; }
+  .edit-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
   .edit-grid-item { height: 58vw; min-height: 220px; }
-  .edit-grid-item + .edit-grid-item { border-left: none; border-top: 0.5px solid rgba(255,255,255,0.14); }
   .edit-grid-label { bottom: 22px; left: 18px; }
   .edit-grid-name { font-size: clamp(20px, 6vw, 28px); }
 }
@@ -3111,6 +3139,22 @@ img    { display: block; }
 .pd-acc-body ul li { display: flex; gap: 10px; margin-bottom: 3px; }
 .pd-acc-body ul li::before { content: '–'; color: var(--silver); flex-shrink: 0; }
 
+/* FAQ accordion (category page) — .pd-acc-trigger's uppercase/letter-spaced
+   style suits short PDP spec labels ("CHẤT LIỆU & THÀNH PHẦN") but not full
+   FAQ sentences, so it's overridden here rather than changed globally.
+   Question stays bold + ink to read clearly against the lighter answer. */
+.category-faq .pd-acc-trigger {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.category-faq .pd-acc-body p {
+  font-weight: 300;
+  color: var(--graphite);
+}
+
 /* Trust bar */
 .pd-trust {
   display: flex;
@@ -3292,7 +3336,7 @@ img    { display: block; }
 .plp-banner {
   display: flex;
   width: 100%;
-  height: 70vh;
+  height: 100vh;
   min-height: 480px;
   background: var(--warm-white);
   margin-top: 24px;
@@ -6490,6 +6534,26 @@ a.shop-card-name:hover { color: var(--ash); }
   font-weight: 300;
   line-height: 1.9;
   letter-spacing: 0.015em;
+  color: var(--ink);
+}
+
+/* Tiptap table output (category rich_content, blog body) — same border
+   treatment as .sg-body/.pd-sg-body so tables aren't gridline-less. */
+.jnl-post-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin: 0;
+}
+.jnl-post-body th,
+.jnl-post-body td {
+  border: 0.5px solid var(--pebble);
+  padding: 10px 14px;
+  text-align: center;
+}
+.jnl-post-body th {
+  background: var(--ivory);
+  font-weight: 500;
   color: var(--ink);
 }
 

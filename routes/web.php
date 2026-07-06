@@ -10,8 +10,10 @@ use App\Http\Controllers\Web\LlmsController;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\SearchController;
-use App\Http\Controllers\Web\SizeGuideController;
 use App\Http\Controllers\Web\SitemapController;
+use App\Http\Controllers\Web\SizeGuideController;
+use App\Models\BlogPostTranslation;
+use App\Support\LocaleUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -99,8 +101,7 @@ Route::prefix('vi')
             ->name('vi.blog.category');
 
         // Legacy: redirect old /vi/chu-de/{slug} → /vi/blog/{slug}
-        Route::get('chu-de/{slug}', fn(string $locale, string $slug) => redirect("/{$locale}/blog/{$slug}", 301));
-
+        Route::get('chu-de/{slug}', fn (string $locale, string $slug) => redirect("/{$locale}/blog/{$slug}", 301));
 
         // Nested: /vi/bai-viet/{category_slug}/{slug}
         Route::get('bai-viet/{category_slug}/{slug}', [BlogController::class, 'show'])
@@ -108,7 +109,7 @@ Route::prefix('vi')
 
         // Legacy flat URL → 301 to nested (SEO backward compat)
         Route::get('bai-viet/{slug}', function (string $locale, string $slug) {
-            $translation = \App\Models\BlogPostTranslation::where('locale', 'vi')
+            $translation = BlogPostTranslation::where('locale', 'vi')
                 ->where('slug', $slug)
                 ->with(['blogPost.blogCategory.translations'])
                 ->first();
@@ -116,7 +117,8 @@ Route::prefix('vi')
                 abort(404);
             }
             $post = $translation->blogPost;
-            return redirect(\App\Support\LocaleUrl::forBlogPost($post, 'vi'), 301);
+
+            return redirect(LocaleUrl::forBlogPost($post, 'vi'), 301);
         })->name('vi.blog.show.legacy');
 
         // ── Tác giả ───────────────────────────────────────────────────────────
@@ -178,7 +180,7 @@ Route::prefix('en')
 
         // Legacy: old /en/blog/category/{slug} → /en/blog/{slug} (301)
         // Must be declared before blog/{category_slug}/{slug} to avoid collision
-        Route::get('blog/category/{slug}', fn(string $locale, string $slug) => redirect("/{$locale}/blog/{$slug}", 301));
+        Route::get('blog/category/{slug}', fn (string $locale, string $slug) => redirect("/{$locale}/blog/{$slug}", 301));
 
         // Blog post: /en/blog/{category_slug}/{post_slug}
         Route::get('blog/{category_slug}/{slug}', [BlogController::class, 'show'])
@@ -187,15 +189,16 @@ Route::prefix('en')
         // Blog category + legacy flat post redirect: /en/blog/{slug}
         Route::get('blog/{slug}', function (string $locale, string $slug) {
             // Legacy flat post URL → redirect to nested (301, SEO backward compat)
-            $translation = \App\Models\BlogPostTranslation::where('locale', 'en')
+            $translation = BlogPostTranslation::where('locale', 'en')
                 ->where('slug', $slug)
                 ->with(['blogPost.blogCategory.translations'])
                 ->first();
             if ($translation) {
-                return redirect(\App\Support\LocaleUrl::forBlogPost($translation->blogPost, 'en'), 301);
+                return redirect(LocaleUrl::forBlogPost($translation->blogPost, 'en'), 301);
             }
+
             // Serve as blog category page
-            return app(\App\Http\Controllers\Web\BlogController::class)->category($locale, $slug);
+            return app(BlogController::class)->category($locale, $slug);
         })->name('en.blog.category');
 
         // ── Authors ───────────────────────────────────────────────────────────
@@ -214,5 +217,23 @@ Route::prefix('en')
 // ── Fallback: no locale prefix → 301 to /vi/ ────────────────────────────────
 Route::fallback(function (Request $request) {
     $path = ltrim($request->path(), '/');
-    return redirect('/vi/' . $path, 301);
+
+    // 404 instead of redirecting when the path is already locale-prefixed
+    // (e.g. a missing asset under /vi/assets/...) or looks like a static
+    // asset path. Without this guard, a missing file under /assets/... loops
+    // forever: /assets/x.jpg → redirect /vi/assets/x.jpg (still no route/file
+    // match) → fallback fires again → /vi/vi/assets/x.jpg → ... until the
+    // browser gives up with ERR_TOO_MANY_REDIRECTS.
+    $firstSegment = explode('/', $path)[0] ?? '';
+    $isAlreadyLocalePrefixed = in_array($firstSegment, config('app.supported_locales', ['vi', 'en']), true);
+    $looksLikeStaticAsset = (bool) preg_match(
+        '/\.(jpe?g|png|gif|svg|webp|avif|ico|css|js|mjs|map|woff2?|ttf|eot|json|xml|txt|pdf)$/i',
+        $path
+    );
+
+    if ($isAlreadyLocalePrefixed || $looksLikeStaticAsset) {
+        abort(404);
+    }
+
+    return redirect('/vi/'.$path, 301);
 });

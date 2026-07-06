@@ -13,6 +13,7 @@ use App\Models\Seo\LlmsEntry;
 use App\Models\Seo\Redirect;
 use App\Models\Seo\SeoMeta;
 use App\Models\Seo\SitemapEntry;
+use App\Services\Product\ProductService;
 use App\Support\LocaleUrl;
 
 class ProductObserver
@@ -54,6 +55,8 @@ class ProductObserver
      */
     public function saved(Product $product): void
     {
+        app(ProductService::class)->bustLatestMegaCache();
+
         if (! $product->is_active) {
             $morphClass = $product->getMorphClass();
 
@@ -90,6 +93,8 @@ class ProductObserver
      */
     public function deleted(Product $product): void
     {
+        app(ProductService::class)->bustLatestMegaCache();
+
         $morphClass = $product->getMorphClass();
 
         SitemapEntry::where('model_type', $morphClass)
@@ -107,6 +112,8 @@ class ProductObserver
 
     public function restored(Product $product): void
     {
+        app(ProductService::class)->bustLatestMegaCache();
+
         $product->loadMissing('translations');
         $loadedLocales = $product->translations->pluck('locale')->all();
 

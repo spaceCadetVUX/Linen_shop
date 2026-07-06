@@ -172,11 +172,27 @@ updateNav();
     }, 190);
   }
 
-  document.querySelectorAll('.mega-col--collection .mega-link[data-mega-cat]').forEach(function (link) {
+  document.querySelectorAll('.mega-col--collection [data-mega-cat]').forEach(function (link) {
     link.addEventListener('mouseenter', function () {
       swap(link.dataset.megaCat, link.dataset.megaLabel || 'Sản phẩm tiêu biểu');
     });
   });
+}());
+
+/* ---------- Mega menu: col 1 "Sản phẩm mới" auto-slide (5s loop) ---------- */
+(function () {
+  var slider = document.getElementById('megaNewSlider');
+  if (!slider) return;
+
+  var slides = Array.prototype.slice.call(slider.querySelectorAll('.mega-new-slide'));
+  if (slides.length <= 1) return;
+
+  var current = 0;
+  setInterval(function () {
+    slides[current].classList.remove('is-active');
+    current = (current + 1) % slides.length;
+    slides[current].classList.add('is-active');
+  }, 5000);
 }());
 
 /* ---------- Scroll-reveal: cat blocks + section dividers ---------- */
@@ -580,7 +596,13 @@ updateNav();
   }());
 
 
-  /* ── Accordions — one open at a time ── */
+}());
+
+/* ---------- Accordions — one open at a time ----------
+   Shared by PDP specs AND the category-page FAQ (.pd-accordion is a generic
+   pattern, not PDP-only) — kept outside the ".pd-section"-guarded IIFE above
+   so it also wires up on pages without a PDP. ---------- */
+(function () {
   document.querySelectorAll('.pd-acc-trigger').forEach(trigger => {
     trigger.addEventListener('click', () => {
       const acc    = trigger.closest('.pd-accordion');

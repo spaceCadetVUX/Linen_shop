@@ -124,11 +124,15 @@ class AppServiceProvider extends ServiceProvider
 
             $productsByCat = [];
             foreach ($megaMenuGroups as $group) {
+                $productsByCat[$group['mega_cat']] = $group['products'];
                 foreach ($group['children'] as $child) {
                     $productsByCat[$child['mega_cat']] = $child['products'];
                 }
             }
             $view->with('megaMenuProductsByCat', $productsByCat);
+
+            // Column 1 "Sản phẩm mới" auto-slide — 4 newest active products.
+            $view->with('megaMenuNewProducts', app(\App\Services\Product\ProductService::class)->getLatestForMegaMenu($locale));
         });
     }
 

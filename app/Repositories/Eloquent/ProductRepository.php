@@ -207,4 +207,19 @@ class ProductRepository extends BaseRepository
             ->where('is_active', true)
             ->first();
     }
+
+    // ── Header / mega menu ───────────────────────────────────────────────────────
+
+    /**
+     * Newest active products for the header mega menu "Sản phẩm mới" slider.
+     */
+    public function latestActive(int $limit = 4): EloquentCollection
+    {
+        return $this->query()
+            ->active()
+            ->with(['thumbnail', 'translations'])
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get();
+    }
 }

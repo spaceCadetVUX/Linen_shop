@@ -17,15 +17,15 @@ class CreateProduct extends CreateRecord
     {
         $vi = $data['translations']['vi'] ?? [];
 
-        $data['name']              = $vi['name'] ?? null;
-        $data['slug']              = filled($vi['slug'] ?? null) ? $vi['slug'] : Str::slug($vi['name'] ?? '');
+        $data['name'] = $vi['name'] ?? null;
+        $data['slug'] = filled($vi['slug'] ?? null) ? $vi['slug'] : Str::slug($vi['name'] ?? '');
         $data['short_description'] = $vi['short_description'] ?? null;
-        $data['description']       = $vi['description'] ?? null;
+        $data['description'] = $vi['description'] ?? null;
         // price / stock_quantity NOT NULL trên products — draft (inactive) bỏ trống → 0
-        $data['price']             = filled($vi['price'] ?? null) ? $vi['price'] : 0;
-        $data['sale_price']        = filled($vi['sale_price'] ?? null) ? $vi['sale_price'] : null;
-        $data['currency']          = $vi['currency'] ?? 'VND';
-        $data['stock_quantity']    = filled($data['stock_quantity'] ?? null) ? $data['stock_quantity'] : 0;
+        $data['price'] = filled($vi['price'] ?? null) ? $vi['price'] : 0;
+        $data['sale_price'] = filled($vi['sale_price'] ?? null) ? $vi['sale_price'] : null;
+        $data['currency'] = $vi['currency'] ?? 'VND';
+        $data['stock_quantity'] = filled($data['stock_quantity'] ?? null) ? $data['stock_quantity'] : 0;
 
         return $data;
     }
@@ -35,5 +35,6 @@ class CreateProduct extends CreateRecord
         $this->saveTranslations();
         $this->saveFilterValues();
         $this->syncSearchIndex();
+        $this->syncCategoryJsonld();
     }
 }
