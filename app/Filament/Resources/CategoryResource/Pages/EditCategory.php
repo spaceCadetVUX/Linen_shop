@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\CategoryResource\Pages;
 
 use App\Filament\Resources\CategoryResource;
+use App\Models\Category;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Str;
 
 class EditCategory extends EditRecord
 {
@@ -36,6 +38,37 @@ class EditCategory extends EditRecord
         }
 
         return $data;
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Internal slug field is ->hidden() — keep categories.slug in sync with
+        // the vi translation slug on save (same behaviour as EditProduct).
+        $vi = $data['translations']['vi'] ?? [];
+        $base = filled($vi['slug'] ?? null) ? $vi['slug'] : Str::slug($vi['name'] ?? ($data['name'] ?? ''));
+
+        if ($base !== '') {
+            $data['slug'] = $this->uniqueSlug($base);
+        }
+
+        return $data;
+    }
+
+    /** categories.slug has a plain unique index (soft-deleted rows included). */
+    private function uniqueSlug(string $base): string
+    {
+        $slug = $base;
+        $i = 2;
+
+        while (Category::withTrashed()
+            ->where('slug', $slug)
+            ->whereKeyNot($this->getRecord()->getKey())
+            ->exists()) {
+            $slug = "{$base}-{$i}";
+            $i++;
+        }
+
+        return $slug;
     }
 
     protected function afterSave(): void

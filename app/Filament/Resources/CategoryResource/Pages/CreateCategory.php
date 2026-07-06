@@ -3,11 +3,40 @@
 namespace App\Filament\Resources\CategoryResource\Pages;
 
 use App\Filament\Resources\CategoryResource;
+use App\Models\Category;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Str;
 
 class CreateCategory extends CreateRecord
 {
     protected static string $resource = CategoryResource::class;
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // The internal slug field is ->hidden() in the form, so Livewire never
+        // dehydrates it — categories.slug is NOT NULL, derive it here
+        // (same approach as CreateProduct).
+        $vi = $data['translations']['vi'] ?? [];
+        $base = filled($vi['slug'] ?? null) ? $vi['slug'] : Str::slug($vi['name'] ?? ($data['name'] ?? ''));
+
+        $data['slug'] = $this->uniqueSlug($base !== '' ? $base : 'category');
+
+        return $data;
+    }
+
+    /** categories.slug has a plain unique index (soft-deleted rows included). */
+    private function uniqueSlug(string $base): string
+    {
+        $slug = $base;
+        $i = 2;
+
+        while (Category::withTrashed()->where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$i}";
+            $i++;
+        }
+
+        return $slug;
+    }
 
     protected function afterCreate(): void
     {
