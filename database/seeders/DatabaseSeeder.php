@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SitemapIndexSeeder::class,     // 4. sitemap child index registry
             LlmsDocumentSeeder::class,     // 5. llms.txt document registry
             PageTranslationSeeder::class,  // 6. placeholder legal/static pages
+            SizeGuideSeeder::class,        // 7. sample size guide (vi + en)
         ]);
     }
 }

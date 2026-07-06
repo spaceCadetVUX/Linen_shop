@@ -528,6 +528,21 @@ updateNav();
     updateVariantUi();
   }
 
+  /* ── Size guide modal — markup rendered by show.blade.php when the
+     product has a guide assigned. Overlay click, × and Escape close it. ── */
+  const sgModal = document.getElementById('pdSizeGuideModal');
+  if (sgModal) {
+    const sgOpen  = () => { sgModal.hidden = false; document.body.style.overflow = 'hidden'; };
+    const sgClose = () => { sgModal.hidden = true;  document.body.style.overflow = ''; };
+    document.querySelectorAll('[data-sg-open]').forEach(btn => btn.addEventListener('click', sgOpen));
+    sgModal.addEventListener('click', e => {
+      if (e.target === sgModal || e.target.closest('[data-sg-close]')) sgClose();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !sgModal.hidden) sgClose();
+    });
+  }
+
   /* ── Add to bag ── */
   const addBtn = document.getElementById('pdAddBtn');
   if (addBtn) {

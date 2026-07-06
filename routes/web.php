@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\LlmsController;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\SearchController;
+use App\Http\Controllers\Web\SizeGuideController;
 use App\Http\Controllers\Web\SitemapController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -122,6 +123,13 @@ Route::prefix('vi')
         Route::get('tac-gia/{slug}', [AuthorController::class, 'show'])
             ->name('vi.author.show');
 
+        // ── Hướng dẫn chọn size ──────────────────────────────────────────────
+        Route::get('huong-dan-size', [SizeGuideController::class, 'index'])
+            ->name('vi.size-guide');
+
+        // Legacy hardcoded link /size-guide (fallback redirects here without locale)
+        Route::get('size-guide', fn () => redirect(route('vi.size-guide'), 301));
+
         // ── Trang tĩnh — catch-all, phải đặt cuối cùng ───────────────────────
         Route::get('{slug}', [PageController::class, 'show'])
             ->name('vi.page.show');
@@ -193,6 +201,10 @@ Route::prefix('en')
         // ── Authors ───────────────────────────────────────────────────────────
         Route::get('authors/{slug}', [AuthorController::class, 'show'])
             ->name('en.author.show');
+
+        // ── Size guide ────────────────────────────────────────────────────────
+        Route::get('size-guide', [SizeGuideController::class, 'index'])
+            ->name('en.size-guide');
 
         // ── Static pages — catch-all, must be last ────────────────────────────
         Route::get('{slug}', [PageController::class, 'show'])

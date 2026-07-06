@@ -23,7 +23,7 @@
         <a href="{{ url('/about') }}">Về CacyLinen</a>
         <a href="{{ url('/contact') }}">Liên hệ</a>
         <a href="{{ url('/privacy-policy') }}">Chính sách bảo mật</a>
-        <a href="{{ url('/size-guide') }}">Hướng dẫn size</a>
+        <a href="{{ route(app()->getLocale() . '.size-guide') }}">Hướng dẫn size</a>
       </nav>
     </div>
 

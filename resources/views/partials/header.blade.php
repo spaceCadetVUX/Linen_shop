@@ -183,7 +183,7 @@
           <span class="mega-group-plus" aria-hidden="true">+</span>
         </div>
         <div class="mega-group-links">
-          <a href="{{ url('/size-guide') }}" class="mega-link">Hướng dẫn size</a>
+          <a href="{{ route(app()->getLocale() . '.size-guide') }}" class="mega-link">Hướng dẫn size</a>
           <a href="{{ url('/care-guide') }}" class="mega-link">Chăm sóc vải</a>
           <a href="{{ url('/contact') }}"   class="mega-link">Liên hệ</a>
         </div>

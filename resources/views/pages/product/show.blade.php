@@ -150,7 +150,11 @@
               <div class="pd-option-label">
                 <span>{{ $group['name'] }}</span>
                 @if($loop->first)
-                  <a href="{{ url('/size-guide') }}" class="pd-size-guide">Hướng dẫn chọn size →</a>
+                  @if($sizeGuide)
+                    <button type="button" class="pd-size-guide" data-sg-open>{{ $locale === 'vi' ? 'Hướng dẫn chọn size' : 'Size guide' }} →</button>
+                  @else
+                    <a href="{{ route($locale . '.size-guide') }}" class="pd-size-guide">{{ $locale === 'vi' ? 'Hướng dẫn chọn size' : 'Size guide' }} →</a>
+                  @endif
                 @endif
               </div>
               <div class="pd-sizes" role="radiogroup" aria-label="Chọn {{ $group['name'] }}">
@@ -165,6 +169,14 @@
               </div>
             </div>
           @endforeach
+        @endif
+
+        {{-- Product has a size guide but no non-color option row to hang the
+             link on (simple product / color-only) — show the trigger standalone --}}
+        @if($sizeGuide && collect($optionTypesData)->reject(fn ($g) => $g['is_color'])->isEmpty())
+          <div class="pd-option-group">
+            <button type="button" class="pd-size-guide" data-sg-open>{{ $locale === 'vi' ? 'Hướng dẫn chọn size' : 'Size guide' }} →</button>
+          </div>
         @endif
 
         <div class="pd-actions">
@@ -270,6 +282,25 @@
 
   </div>{{-- /.pd-layout --}}
 </section>
+
+{{-- ============================================================
+     SIZE GUIDE MODAL — opened by [data-sg-open] buttons above.
+     app.js handles open/close (overlay click, ×, Escape).
+     ============================================================ --}}
+@if($sizeGuide)
+  <div class="pd-sg-overlay" id="pdSizeGuideModal" hidden>
+    <div class="pd-sg-modal" role="dialog" aria-modal="true" aria-labelledby="pdSgTitle">
+      <button type="button" class="pd-sg-close" data-sg-close aria-label="{{ $locale === 'vi' ? 'Đóng' : 'Close' }}">&times;</button>
+      <h2 class="pd-sg-title" id="pdSgTitle">{{ $sizeGuide['name'] }}</h2>
+      <div class="pd-sg-body">{!! $sizeGuide['body'] !!}</div>
+      <div class="pd-sg-footer">
+        <a href="{{ route($locale . '.size-guide') }}" class="pd-size-guide">
+          {{ $locale === 'vi' ? 'Xem trang hướng dẫn đầy đủ' : 'View the full size guide' }} →
+        </a>
+      </div>
+    </div>
+  </div>
+@endif
 
 {{-- ============================================================
      RELATED PRODUCTS — same first category, max 8 (from controller).

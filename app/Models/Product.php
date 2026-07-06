@@ -61,6 +61,7 @@ class Product extends Model
         'is_active',
         'show_price',
         'show_original_price',
+        'size_guide_id',
         'faq_items_vi',
         'faq_items_en',
         'mcp_drafted_at',
@@ -244,6 +245,11 @@ class Product extends Model
     public function videos(): HasMany
     {
         return $this->hasMany(ProductVideo::class);
+    }
+
+    public function sizeGuide(): BelongsTo
+    {
+        return $this->belongsTo(SizeGuide::class);
     }
 
     public function attributes(): HasMany

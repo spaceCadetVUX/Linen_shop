@@ -117,6 +117,18 @@ class ProductResource extends Resource
                                 ->nullable()
                                 ->native(false),
 
+                            Forms\Components\Select::make('size_guide_id')
+                                ->label('Hướng dẫn size')
+                                ->relationship('sizeGuide', 'key')
+                                ->getOptionLabelFromRecordUsing(
+                                    fn ($record) => $record->translationVi?->name ?: $record->key
+                                )
+                                ->helperText('Hiện link "Hướng dẫn chọn size" + modal trên trang sản phẩm. Quản lý tại Content → Size Guides.')
+                                ->searchable()
+                                ->preload()
+                                ->nullable()
+                                ->native(false),
+
                             Forms\Components\TextInput::make('sku')
                                 ->label('SKU')
                                 ->required(fn (Get $get): bool => (bool) $get('is_active'))

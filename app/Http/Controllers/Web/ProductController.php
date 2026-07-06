@@ -208,6 +208,7 @@ class ProductController extends Controller
                 'product.variants' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order'),
                 'product.variants.optionValues.group',
                 'product.variants.image',
+                'product.sizeGuide.translations',
             ])
             ->first();
 
@@ -311,13 +312,22 @@ class ProductController extends Controller
                 ])->values()->all(),
             ])->values()->all();
 
+        // Size guide modal — only when the assigned guide is active and has
+        // content for this locale (falls back to fallback_locale inside translation()).
+        $sizeGuideT = $product->sizeGuide?->is_active
+            ? $product->sizeGuide->translation($locale)
+            : null;
+        $sizeGuide = ($sizeGuideT && filled($sizeGuideT->body))
+            ? ['name' => $sizeGuideT->name, 'body' => $sizeGuideT->body]
+            : null;
+
         // Journal section cuối PDP — 4 bài mới nhất, cùng shape với homepage.
         $latestBlogs = app(BlogPostRepository::class)->latestDecorated($locale, 4);
 
         return view('pages.product.show', compact(
             'product', 'translation', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
-            'relatedProducts', 'variantsData', 'optionTypesData', 'latestBlogs'
+            'relatedProducts', 'variantsData', 'optionTypesData', 'latestBlogs', 'sizeGuide'
         ));
     }
 }

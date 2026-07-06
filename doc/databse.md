@@ -259,6 +259,34 @@ cache                    sessions
 
 ---
 
+#### `size_guides`
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | bigint | PK, auto-increment | |
+| `key` | varchar(100) | NOT NULL, UNIQUE | Internal identifier — e.g. `ao-nu`, `quan-nu` |
+| `is_active` | boolean | NOT NULL, default true | |
+| `sort_order` | integer | NOT NULL, default 0 | |
+| `created_at` | timestamp | NOT NULL | |
+| `updated_at` | timestamp | NOT NULL | |
+
+> **Indexes:** `is_active`
+> Assigned to products via `products.size_guide_id` (FK, nullable, SET NULL). Rendered as a modal on the PDP and aggregated on `/{locale}/size-guide`.
+
+#### `size_guide_translations`
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | bigint | PK, auto-increment | |
+| `size_guide_id` | bigint | FK → size_guides.id, CASCADE | |
+| `locale` | varchar(5) | NOT NULL | |
+| `name` | varchar(255) | NOT NULL | "Áo nữ" / "Women's Tops" |
+| `body` | text | nullable | Rich HTML — measurement table + notes (Filament RichEditor) |
+| `created_at` | timestamp | NOT NULL | |
+| `updated_at` | timestamp | NOT NULL | |
+
+> **Indexes:** `locale`, `size_guide_id`; UNIQUE (`size_guide_id`, `locale`)
+
+---
+
 ### 3.3 Cart & Orders
 
 #### `carts`
