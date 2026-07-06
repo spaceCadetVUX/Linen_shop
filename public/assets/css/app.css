@@ -3295,7 +3295,7 @@ img    { display: block; }
   height: 70vh;
   min-height: 480px;
   background: var(--warm-white);
-  margin-top: var(--nav-h);
+  margin-top: 24px;
 }
 
 .plp-banner-img-col {
@@ -3983,6 +3983,7 @@ a.shop-card-name:hover { color: var(--ash); }
     flex-direction: column;
     height: auto;
     min-height: auto;
+    margin-top: 16px;
   }
   .plp-banner-img-col {
     flex: none;
