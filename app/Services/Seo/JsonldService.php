@@ -541,9 +541,19 @@ class JsonldService
                 if ($prices->isNotEmpty()) {
                     $lowPrice = $prices->min();
                     $highPrice = $prices->max();
-                    $anyInStock = $variants->contains(
-                        fn ($v): bool => ((int) $v->stock_quantity) > 0
+
+                    // Aggregate-level availability: InStock wins if any variant is
+                    // actually purchasable now, else PreOrder if any variant takes
+                    // pre-orders, else every variant is OutOfStock (forced or by
+                    // stock_quantity = 0 — see ProductVariant::resolvedAvailabilityUrl()).
+                    $variantAvailabilities = $variants->map(
+                        fn ($v): string => $v->resolvedAvailabilityUrl()
                     );
+                    $aggregateAvailability = match (true) {
+                        $variantAvailabilities->contains('https://schema.org/InStock') => 'https://schema.org/InStock',
+                        $variantAvailabilities->contains('https://schema.org/PreOrder') => 'https://schema.org/PreOrder',
+                        default => 'https://schema.org/OutOfStock',
+                    };
 
                     $offerList = $variants->map(function ($variant) use ($currency, $productUrl): array {
                         $offer = [
@@ -551,9 +561,7 @@ class JsonldService
                             'sku' => $variant->sku,
                             'price' => (float) ($variant->sale_price ?? $variant->price),
                             'priceCurrency' => $currency,
-                            'availability' => ((int) $variant->stock_quantity) > 0
-                                ? 'https://schema.org/InStock'
-                                : 'https://schema.org/OutOfStock',
+                            'availability' => $variant->resolvedAvailabilityUrl(),
                             'url' => $productUrl,
                         ];
 
@@ -573,9 +581,7 @@ class JsonldService
                             '@type' => 'Offer',
                             'price' => $lowPrice,
                             'priceCurrency' => $currency,
-                            'availability' => $anyInStock
-                                ? 'https://schema.org/InStock'
-                                : 'https://schema.org/OutOfStock',
+                            'availability' => $aggregateAvailability,
                             'url' => $productUrl,
                             'seller' => $seller,
                         ];
@@ -595,9 +601,7 @@ class JsonldService
                         'highPrice' => $highPrice,
                         'offerCount' => $variants->count(),
                         'priceCurrency' => $currency,
-                        'availability' => $anyInStock
-                            ? 'https://schema.org/InStock'
-                            : 'https://schema.org/OutOfStock',
+                        'availability' => $aggregateAvailability,
                         'offers' => $offerList,
                         'seller' => $seller,
                     ];
@@ -617,18 +621,24 @@ class JsonldService
 
     /**
      * Build a BreadcrumbList payload for a product.
-     * Structure: Home → Products → {Primary Category} → {Product}
+     * Structure: Home → Products → [Root → ... → Parent →] {Primary Category} → {Product}
      *
-     * Primary category = lowest sort_order among assigned categories.
+     * Primary category = Product::resolvePrimaryCategory() (primary_category_id,
+     * falling back to lowest sort_order among assigned categories), then its full
+     * ancestor chain is walked via Category::ancestorChain() — same resolution
+     * used by the product detail view, so visible breadcrumb and JSON-LD match.
      * Falls back to Home → Products → Product if no categories are assigned.
-     * Multiple categories: only primary used in breadcrumb; all categories
-     * are injected into the Product schema body via the `category` field.
+     * Multiple categories: only primary (+ its ancestors) used in breadcrumb;
+     * all categories are injected into the Product schema body via `category`.
      */
     private function buildProductBreadcrumb(Model $model, string $locale = 'vi'): array
     {
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-        $shopUrl = LocaleUrl::listUrl('product', $locale);
-        $shopLabel = LocaleUrl::listLabel('product', $locale);
+        // Shop listing lives at a route name, not the `product` LocaleUrl prefix
+        // (that prefix is for /san-pham/{slug} detail pages, not the shop index —
+        // using listUrl() here previously pointed BreadcrumbList at a 404).
+        $shopUrl = route("{$locale}.product.shop");
+        $shopLabel = $locale === 'vi' ? 'Cửa hàng' : 'Shop';
 
         $t = method_exists($model, 'translation') ? $model->translation($locale) : null;
         $name = (string) ($t?->name ?? $model->getAttribute('name') ?? '');
@@ -639,20 +649,14 @@ class JsonldService
             ['name' => $shopLabel,  'url' => $shopUrl],
         ];
 
-        // Primary category: use primary_category_id if set, else first by sort_order.
-        if (method_exists($model, 'categories')) {
-            $model->loadMissing('categories.translations');
-            $categories = $model->getRelationValue('categories');
+        // Primary category, plus its full ancestor chain (root → nearest parent → primary).
+        if (method_exists($model, 'resolvePrimaryCategory')) {
+            $primary = $model->resolvePrimaryCategory();
 
-            if ($categories && $categories->isNotEmpty()) {
-                $primaryId = $model->getAttribute('primary_category_id');
-                $primary = $primaryId
-                    ? $categories->firstWhere('id', $primaryId) ?? $categories->sortBy('sort_order')->first()
-                    : $categories->sortBy('sort_order')->first();
-
-                $catTr = method_exists($primary, 'translation') ? $primary->translation($locale) : null;
-                $catName = (string) ($catTr?->name ?? $primary->name ?? '');
-                $catSlug = (string) ($catTr?->slug ?? $primary->slug ?? '');
+            foreach ($primary?->ancestorChain() ?? [] as $ancestor) {
+                $catTr = method_exists($ancestor, 'translation') ? $ancestor->translation($locale) : null;
+                $catName = (string) ($catTr?->name ?? $ancestor->getAttribute('name') ?? '');
+                $catSlug = (string) ($catTr?->slug ?? $ancestor->getAttribute('slug') ?? '');
 
                 if (filled($catSlug)) {
                     $items[] = [
@@ -712,41 +716,15 @@ class JsonldService
 
     /**
      * Build a BreadcrumbList payload for a catalog category page.
-     * Walks the full ancestor chain — supports unlimited nesting depth.
+     * Walks the full ancestor chain via Category::ancestorChain() — supports
+     * unlimited nesting depth, same resolution used for the product breadcrumb.
      *
      * Structure: Home → [Root →] [...] → [Parent →] {Category}
-     *
-     * Each ancestor is resolved with its locale-aware translation (name + slug).
-     * A seen-ID guard prevents infinite loops from circular parent_id references.
-     * Each loadMissing() call adds one DB query — acceptable for a background job
-     * since category trees are typically 2–4 levels deep.
      */
     private function buildCategoryBreadcrumb(Model $model, string $locale = 'vi'): array
     {
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
 
-        // ── Walk up the ancestor chain ────────────────────────────────────────
-        // Collect ancestors from nearest parent → root, then reverse to root → parent.
-        $ancestors = [];
-        $seenIds = [$model->getKey()]; // guard against circular parent_id references
-        $cursor = $model;
-
-        while (method_exists($cursor, 'parent')) {
-            $cursor->loadMissing('parent');
-            $parent = $cursor->getRelationValue('parent');
-
-            if (! $parent || in_array($parent->getKey(), $seenIds, strict: true)) {
-                break;
-            }
-
-            $seenIds[] = $parent->getKey();
-            $ancestors[] = $parent;
-            $cursor = $parent;
-        }
-
-        $ancestors = array_reverse($ancestors); // now root → nearest parent
-
-        // ── Build item list ───────────────────────────────────────────────────
         $homeLabel = $locale === 'vi' ? 'Trang chủ' : 'Home';
         $categoryIndexLabel = LocaleUrl::listLabel('category', $locale);
         $categoryIndexUrl = LocaleUrl::listUrl('category', $locale);
@@ -756,10 +734,12 @@ class JsonldService
             ['name' => $categoryIndexLabel, 'url' => $categoryIndexUrl],
         ];
 
-        foreach ($ancestors as $ancestor) {
-            $t = method_exists($ancestor, 'translation') ? $ancestor->translation($locale) : null;
-            $name = (string) ($t?->name ?? $ancestor->getAttribute('name') ?? '');
-            $slug = (string) ($t?->slug ?? $ancestor->getAttribute('slug') ?? '');
+        $chain = method_exists($model, 'ancestorChain') ? $model->ancestorChain() : [$model];
+
+        foreach ($chain as $category) {
+            $t = method_exists($category, 'translation') ? $category->translation($locale) : null;
+            $name = (string) ($t?->name ?? $category->getAttribute('name') ?? '');
+            $slug = (string) ($t?->slug ?? $category->getAttribute('slug') ?? '');
 
             if (filled($name)) {
                 $items[] = [
@@ -768,13 +748,6 @@ class JsonldService
                 ];
             }
         }
-
-        // ── Current category ──────────────────────────────────────────────────
-        $t = method_exists($model, 'translation') ? $model->translation($locale) : null;
-        $name = (string) ($t?->name ?? $model->getAttribute('name') ?? '');
-        $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
-
-        $items[] = ['name' => $name, 'url' => LocaleUrl::for('category', $slug, $locale)];
 
         return $this->buildBreadcrumbSchema($items);
     }

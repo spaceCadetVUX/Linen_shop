@@ -199,7 +199,22 @@
       </div>
 
       <div class="mega-brand-footer">
-        <a href="#" class="mega-intl-link">Việt Nam (VND ₫) ↗</a>
+        <div class="mega-intl-switch">
+          <button type="button" class="mega-intl-trigger" aria-haspopup="true">
+            <svg class="mega-intl-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M3 12h18M12 3c2.4 2.6 3.7 5.7 3.7 9s-1.3 6.4-3.7 9c-2.4-2.6-3.7-5.7-3.7-9s1.3-6.4 3.7-9z"/>
+            </svg>
+            <span class="mega-intl-current">{{ $currentLocale === 'en' ? 'English · USD $' : 'Tiếng Việt · VND ₫' }}</span>
+            <svg class="mega-intl-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="m6 9 6 6 6-6"/>
+            </svg>
+          </button>
+          <div class="mega-intl-panel" role="menu">
+            <a href="{{ $viUrl }}" class="mega-intl-option @if($currentLocale === 'vi') is-active @endif" role="menuitem">Tiếng Việt · VND ₫</a>
+            <a href="{{ $enUrl }}" class="mega-intl-option @if($currentLocale === 'en') is-active @endif" role="menuitem">English · USD $</a>
+          </div>
+        </div>
       </div>
     </div>
 

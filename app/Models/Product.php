@@ -187,6 +187,28 @@ class Product extends Model
         return $this->belongsTo(Category::class, 'primary_category_id');
     }
 
+    /**
+     * Resolve the category to use for breadcrumbs/canonical placement:
+     * primary_category_id if set, else the lowest sort_order among assigned
+     * categories. Shared by JsonldService and the product detail view so the
+     * visible breadcrumb and the BreadcrumbList JSON-LD never disagree.
+     */
+    public function resolvePrimaryCategory(): ?Category
+    {
+        $this->loadMissing('categories.translations');
+        $categories = $this->getRelationValue('categories');
+
+        if (! $categories || $categories->isEmpty()) {
+            return null;
+        }
+
+        $primaryId = $this->getAttribute('primary_category_id');
+
+        return $primaryId
+            ? $categories->firstWhere('id', $primaryId) ?? $categories->sortBy('sort_order')->first()
+            : $categories->sortBy('sort_order')->first();
+    }
+
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);

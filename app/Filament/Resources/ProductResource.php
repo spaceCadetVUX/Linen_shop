@@ -4,9 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Enums\FilterGroupType;
 use App\Enums\OgType;
+use App\Enums\VariantAvailability;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Models\Category;
 use App\Models\FilterGroup;
+use App\Models\FilterValue;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Services\Audit\ProductAuditService;
@@ -185,6 +187,55 @@ class ProductResource extends Resource
                                             Forms\Components\RichEditor::make('translations.vi.description')
                                                 ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Mô tả đầy đủ (vi)</span>'))
                                                 ->columnSpanFull(),
+
+                                            Forms\Components\Repeater::make('translations.vi.info_sections')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Thông tin chi tiết bổ sung (vi)</span>'))
+                                                ->helperText('Mỗi mục hiện thành 1 accordion riêng trên trang sản phẩm — vd: Chất liệu & Thành phần, Hướng dẫn bảo quản, Giao hàng & Đổi trả.')
+                                                ->schema([
+                                                    Forms\Components\TextInput::make('title')
+                                                        ->label('Tiêu đề')
+                                                        ->required()
+                                                        ->columnSpanFull(),
+                                                    Forms\Components\RichEditor::make('content')
+                                                        ->label('Nội dung')
+                                                        ->required()
+                                                        ->columnSpanFull(),
+                                                ])
+                                                ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                                                ->addActionLabel('+ Thêm mục')
+                                                ->collapsed()
+                                                ->reorderable()
+                                                ->reorderableWithDragAndDrop()
+                                                ->defaultItems(0)
+                                                ->columnSpanFull(),
+
+                                            Section::make('FAQ (vi)')
+                                                ->description('Câu hỏi thường gặp — đưa vào JSON-LD FAQPage và llms.txt.')
+                                                ->schema([
+                                                    Forms\Components\Repeater::make('faq_items_vi')
+                                                        ->label('')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('question')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
+                                                                ->required()
+                                                                ->columnSpanFull(),
+
+                                                            Forms\Components\Textarea::make('answer')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
+                                                                ->rows(2)
+                                                                ->required()
+                                                                ->columnSpanFull(),
+                                                        ])
+                                                        ->afterStateHydrated(function (Forms\Components\Repeater $component, $record): void {
+                                                            $component->state($record?->faq_items_vi ?? []);
+                                                        })
+                                                        ->maxItems(10)
+                                                        ->defaultItems(0)
+                                                        ->addActionLabel('+ Thêm Q&A')
+                                                        ->columnSpanFull(),
+                                                ])
+                                                ->collapsed()
+                                                ->columnSpanFull(),
                                         ])
                                         ->columns(2),
 
@@ -212,6 +263,55 @@ class ProductResource extends Resource
 
                                             Forms\Components\RichEditor::make('translations.en.description')
                                                 ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Description (en)</span>'))
+                                                ->columnSpanFull(),
+
+                                            Forms\Components\Repeater::make('translations.en.info_sections')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Additional detail sections (en)</span>'))
+                                                ->helperText('Each item renders as its own accordion on the product page — e.g. Material & Composition, Care instructions, Shipping & Returns.')
+                                                ->schema([
+                                                    Forms\Components\TextInput::make('title')
+                                                        ->label('Title')
+                                                        ->required()
+                                                        ->columnSpanFull(),
+                                                    Forms\Components\RichEditor::make('content')
+                                                        ->label('Content')
+                                                        ->required()
+                                                        ->columnSpanFull(),
+                                                ])
+                                                ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                                                ->addActionLabel('+ Add section')
+                                                ->collapsed()
+                                                ->reorderable()
+                                                ->reorderableWithDragAndDrop()
+                                                ->defaultItems(0)
+                                                ->columnSpanFull(),
+
+                                            Section::make('FAQ (en)')
+                                                ->description('Frequently asked questions — injected into JSON-LD FAQPage schema and llms.txt.')
+                                                ->schema([
+                                                    Forms\Components\Repeater::make('faq_items_en')
+                                                        ->label('')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('question')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
+                                                                ->required()
+                                                                ->columnSpanFull(),
+
+                                                            Forms\Components\Textarea::make('answer')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
+                                                                ->rows(2)
+                                                                ->required()
+                                                                ->columnSpanFull(),
+                                                        ])
+                                                        ->afterStateHydrated(function (Forms\Components\Repeater $component, $record): void {
+                                                            $component->state($record?->faq_items_en ?? []);
+                                                        })
+                                                        ->maxItems(10)
+                                                        ->defaultItems(0)
+                                                        ->addActionLabel('+ Add Q&A')
+                                                        ->columnSpanFull(),
+                                                ])
+                                                ->collapsed()
                                                 ->columnSpanFull(),
                                         ])
                                         ->columns(2),
@@ -415,64 +515,72 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 5: Videos ─────────────────────────────────────────
+                    // Temporarily locked — see Placeholder below. Original fields
+                    // kept commented so the feature can be restored without rework.
                     Tab::make('Videos')
                         ->schema([
-                            Forms\Components\Repeater::make('videos')
-                                ->relationship()
-                                ->schema([
-                                    // ── Files ─────────────────────────────────
-                                    Forms\Components\FileUpload::make('path')
-                                        ->label('Video File')
-                                        ->disk('public')
-                                        ->directory(fn () => 'products/'.now()->format('Y/m'))
-                                        ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/ogg'])
-                                        ->required()
-                                        ->columnSpan(1),
-
-                                    Forms\Components\FileUpload::make('thumbnail_path')
-                                        ->label('Thumbnail')
-                                        ->disk('public')
-                                        ->directory(fn () => 'products/'.now()->format('Y/m'))
-                                        ->image()
-                                        ->imagePreviewHeight('100')
-                                        ->columnSpan(1),
-
-                                    // ── SEO fields ────────────────────────────
-                                    Forms\Components\TextInput::make('title')
-                                        ->label('Title')
-                                        ->maxLength(255)
-                                        ->hint('Required for VideoObject rich results')
-                                        ->hintIcon('heroicon-o-magnifying-glass')
-                                        ->hintColor('warning')
-                                        ->columnSpan(2),
-
-                                    Forms\Components\Textarea::make('description')
-                                        ->label('Description')
-                                        ->rows(2)
-                                        ->hint('Required for VideoObject rich results')
-                                        ->hintIcon('heroicon-o-magnifying-glass')
-                                        ->hintColor('warning')
-                                        ->columnSpan(2),
-
-                                    Forms\Components\TextInput::make('duration')
-                                        ->label('Duration (ISO 8601)')
-                                        ->placeholder('PT2M30S')
-                                        ->hint('e.g. PT30S = 30s, PT2M30S = 2m30s, PT1H = 1h')
-                                        ->hintIcon('heroicon-o-clock')
-                                        ->hintColor('info')
-                                        ->columnSpan(2),
-                                ])
-                                ->orderColumn('sort_order')
-                                ->reorderable()
-                                ->reorderableWithDragAndDrop()
-                                ->defaultItems(0)
-                                ->columns(2)
+                            Placeholder::make('videos_locked_notice')
+                                ->label('')
+                                ->content('Tính năng này đang tạm khóa. Liên hệ dev để biết thêm thông tin.')
                                 ->columnSpanFull(),
+
+                            // Forms\Components\Repeater::make('videos')
+                            //     ->relationship()
+                            //     ->schema([
+                            //         // ── Files ─────────────────────────────────
+                            //         Forms\Components\FileUpload::make('path')
+                            //             ->label('Video File')
+                            //             ->disk('public')
+                            //             ->directory(fn () => 'products/'.now()->format('Y/m'))
+                            //             ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/ogg'])
+                            //             ->required()
+                            //             ->columnSpan(1),
+                            //
+                            //         Forms\Components\FileUpload::make('thumbnail_path')
+                            //             ->label('Thumbnail')
+                            //             ->disk('public')
+                            //             ->directory(fn () => 'products/'.now()->format('Y/m'))
+                            //             ->image()
+                            //             ->imagePreviewHeight('100')
+                            //             ->columnSpan(1),
+                            //
+                            //         // ── SEO fields ────────────────────────────
+                            //         Forms\Components\TextInput::make('title')
+                            //             ->label('Title')
+                            //             ->maxLength(255)
+                            //             ->hint('Required for VideoObject rich results')
+                            //             ->hintIcon('heroicon-o-magnifying-glass')
+                            //             ->hintColor('warning')
+                            //             ->columnSpan(2),
+                            //
+                            //         Forms\Components\Textarea::make('description')
+                            //             ->label('Description')
+                            //             ->rows(2)
+                            //             ->hint('Required for VideoObject rich results')
+                            //             ->hintIcon('heroicon-o-magnifying-glass')
+                            //             ->hintColor('warning')
+                            //             ->columnSpan(2),
+                            //
+                            //         Forms\Components\TextInput::make('duration')
+                            //             ->label('Duration (ISO 8601)')
+                            //             ->placeholder('PT2M30S')
+                            //             ->hint('e.g. PT30S = 30s, PT2M30S = 2m30s, PT1H = 1h')
+                            //             ->hintIcon('heroicon-o-clock')
+                            //             ->hintColor('info')
+                            //             ->columnSpan(2),
+                            //     ])
+                            //     ->orderColumn('sort_order')
+                            //     ->reorderable()
+                            //     ->reorderableWithDragAndDrop()
+                            //     ->defaultItems(0)
+                            //     ->columns(2)
+                            //     ->columnSpanFull(),
                         ]),
 
                     // ── Tab 6: Attributes ─────────────────────────────────────
                     Tab::make('Attributes')
                         ->icon('heroicon-o-list-bullet')
+                        ->hidden()
                         ->schema([
                             Forms\Components\Repeater::make('attributes')
                                 ->relationship()
@@ -671,6 +779,35 @@ class ProductResource extends Resource
                                 ->description('Fill in SKU, price and stock for each generated combination. Stock = 0 → "OutOfStock" on Google.')
                                 ->icon('heroicon-o-rectangle-stack')
                                 ->schema([
+                                    Forms\Components\Select::make('bulk_availability_status')
+                                        ->label('Đặt trạng thái cho tất cả biến thể')
+                                        ->options([
+                                            VariantAvailability::Auto->value => 'Tự động (theo Stock)',
+                                            VariantAvailability::OutOfStock->value => 'Hết hàng (ép)',
+                                            VariantAvailability::PreOrder->value => 'Pre-order',
+                                        ])
+                                        ->native(false)
+                                        ->dehydrated(false)
+                                        ->helperText('Ghi đè trạng thái của tất cả biến thể trong danh sách bên dưới. Vẫn sửa lại riêng từng biến thể được sau khi áp dụng.')
+                                        ->suffixAction(
+                                            Action::make('apply_bulk_availability')
+                                                ->label('Áp dụng')
+                                                ->icon('heroicon-o-check')
+                                                ->action(function (Get $get, Set $set) {
+                                                    $value = $get('bulk_availability_status');
+                                                    if (blank($value)) {
+                                                        return;
+                                                    }
+
+                                                    $variants = $get('variants') ?? [];
+                                                    foreach ($variants as $key => $variant) {
+                                                        $variants[$key]['availability_status'] = $value;
+                                                    }
+                                                    $set('variants', $variants);
+                                                })
+                                        )
+                                        ->columnSpanFull(),
+
                                     Forms\Components\Repeater::make('variants')
                                         ->relationship(
                                             modifyQueryUsing: fn ($query) => $query
@@ -717,6 +854,49 @@ class ProductResource extends Resource
                                                             : '<em class="text-sm text-gray-400">No combination assigned</em>'
                                                     );
                                                 })
+                                                ->columnSpanFull(),
+
+                                            // ── Combination (editable) ─────────
+                                            // Binds directly to ProductVariant::optionValues() — same
+                                            // FilterValue rows used for facet filtering. Needed for
+                                            // "+ Add variant manually" (no combination without this)
+                                            // and to fix a wrong combination on an existing variant.
+                                            Forms\Components\Select::make('optionValues')
+                                                ->label('Combination (Color / Size / ...)')
+                                                ->relationship('optionValues', 'name')
+                                                ->multiple()
+                                                ->options(function (Get $get): array {
+                                                    $productId = $get('../../id') ?? $get('product_id');
+                                                    $product = $productId ? Product::find($productId) : null;
+
+                                                    if (! $product) {
+                                                        return [];
+                                                    }
+
+                                                    return $product->variantDimensionValues()
+                                                        ->with('group')
+                                                        ->get()
+                                                        ->groupBy(fn ($v) => $v->group?->name ?? '—')
+                                                        ->map(fn ($values) => $values->pluck('name', 'id')->all())
+                                                        ->all();
+                                                })
+                                                ->rule(function (Get $get) {
+                                                    return function (string $attribute, $value, Closure $fail) {
+                                                        if (! is_array($value)) {
+                                                            return;
+                                                        }
+
+                                                        $groupIds = FilterValue::whereIn('id', $value)->pluck('filter_group_id');
+
+                                                        if ($groupIds->count() !== $groupIds->unique()->count()) {
+                                                            $fail('Mỗi nhóm (Color, Size, ...) chỉ được chọn 1 giá trị.');
+                                                        }
+                                                    };
+                                                })
+                                                ->required()
+                                                ->preload()
+                                                ->native(false)
+                                                ->helperText('Chọn đúng 1 giá trị cho mỗi nhóm — ví dụ 1 Color + 1 Size. Bắt buộc cho variant thêm bằng "+ Add variant manually".')
                                                 ->columnSpanFull(),
 
                                             // ── SKU ───────────────────────────
@@ -784,9 +964,34 @@ class ProductResource extends Resource
                                                 ->numeric()
                                                 ->default(0)
                                                 ->required()
-                                                ->suffix(fn ($state) => (int) $state === 0
-                                                    ? '⚠ OutOfStock on Google'
-                                                    : 'in stock')
+                                                ->suffix(function ($state, Get $get) {
+                                                    $override = $get('availability_status');
+
+                                                    if ($override === VariantAvailability::PreOrder->value) {
+                                                        return '🕐 Pre-order on Google';
+                                                    }
+
+                                                    if ($override === VariantAvailability::OutOfStock->value) {
+                                                        return '⚠ OutOfStock (ép) on Google';
+                                                    }
+
+                                                    return (int) $state === 0
+                                                        ? '⚠ OutOfStock on Google'
+                                                        : 'in stock';
+                                                })
+                                                ->columnSpan(1),
+
+                                            Forms\Components\Select::make('availability_status')
+                                                ->label('Trạng thái')
+                                                ->options([
+                                                    VariantAvailability::Auto->value => 'Tự động (theo Stock)',
+                                                    VariantAvailability::OutOfStock->value => 'Hết hàng (ép)',
+                                                    VariantAvailability::PreOrder->value => 'Pre-order',
+                                                ])
+                                                ->default(VariantAvailability::Auto->value)
+                                                ->native(false)
+                                                ->live()
+                                                ->helperText('Tự động: Stock=0 → Hết hàng, Stock>0 → Có sẵn. 2 lựa chọn còn lại ép cứng, bỏ qua Stock.')
                                                 ->columnSpan(1),
 
                                             Forms\Components\Toggle::make('is_active')
@@ -809,7 +1014,8 @@ class ProductResource extends Resource
                                         ->addActionLabel('+ Add variant manually')
                                         ->defaultItems(0)
                                         ->columns(2)
-                                        ->columnSpanFull(),
+                                        ->columnSpanFull()
+                                        ->extraAttributes(['class' => 'variants-repeater']),
                                 ]),
                         ]),
 
@@ -1241,33 +1447,6 @@ class ProductResource extends Resource
                                                         ->collapsed(),
 
                                                 ]),
-
-                                            Section::make('FAQ (vi)')
-                                                ->description('Câu hỏi thường gặp — đưa vào JSON-LD FAQPage và llms.txt.')
-                                                ->schema([
-                                                    Forms\Components\Repeater::make('faq_items_vi')
-                                                        ->label('')
-                                                        ->schema([
-                                                            Forms\Components\TextInput::make('question')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
-                                                                ->required()
-                                                                ->columnSpanFull(),
-
-                                                            Forms\Components\Textarea::make('answer')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
-                                                                ->rows(2)
-                                                                ->required()
-                                                                ->columnSpanFull(),
-                                                        ])
-                                                        ->afterStateHydrated(function (Forms\Components\Repeater $component, $record): void {
-                                                            $component->state($record?->faq_items_vi ?? []);
-                                                        })
-                                                        ->maxItems(10)
-                                                        ->defaultItems(0)
-                                                        ->addActionLabel('+ Thêm Q&A')
-                                                        ->columnSpanFull(),
-                                                ])
-                                                ->collapsed(),
                                         ]),
 
                                     Tab::make('🇬🇧 English')
@@ -1320,33 +1499,6 @@ class ProductResource extends Resource
                                                         ->collapsed(),
 
                                                 ]),
-
-                                            Section::make('FAQ (en)')
-                                                ->description('Frequently asked questions — injected into JSON-LD FAQPage schema and llms.txt.')
-                                                ->schema([
-                                                    Forms\Components\Repeater::make('faq_items_en')
-                                                        ->label('')
-                                                        ->schema([
-                                                            Forms\Components\TextInput::make('question')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
-                                                                ->required()
-                                                                ->columnSpanFull(),
-
-                                                            Forms\Components\Textarea::make('answer')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
-                                                                ->rows(2)
-                                                                ->required()
-                                                                ->columnSpanFull(),
-                                                        ])
-                                                        ->afterStateHydrated(function (Forms\Components\Repeater $component, $record): void {
-                                                            $component->state($record?->faq_items_en ?? []);
-                                                        })
-                                                        ->maxItems(10)
-                                                        ->defaultItems(0)
-                                                        ->addActionLabel('+ Add Q&A')
-                                                        ->columnSpanFull(),
-                                                ])
-                                                ->collapsed(),
                                         ]),
                                 ])
                                 ->columnSpanFull(),

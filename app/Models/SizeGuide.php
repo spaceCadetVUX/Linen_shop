@@ -12,6 +12,7 @@ class SizeGuide extends Model
     protected $fillable = [
         'key',
         'is_active',
+        'is_default',
         'sort_order',
     ];
 
@@ -19,8 +20,18 @@ class SizeGuide extends Model
     {
         return [
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (SizeGuide $guide) {
+            if ($guide->is_default) {
+                static::where('id', '!=', $guide->id ?? 0)->update(['is_default' => false]);
+            }
+        });
     }
 
     public function translations(): HasMany
@@ -63,5 +74,10 @@ class SizeGuide extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeDefault(Builder $query): Builder
+    {
+        return $query->where('is_default', true);
     }
 }

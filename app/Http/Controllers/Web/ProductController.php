@@ -9,6 +9,7 @@ use App\Models\BusinessProfile;
 use App\Models\FilterGroup;
 use App\Models\ProductTranslation;
 use App\Models\Setting;
+use App\Models\SizeGuide;
 use App\Repositories\Eloquent\BlogPostRepository;
 use App\Services\Catalog\ProductSearchService;
 use App\Services\Seo\JsonldService;
@@ -243,14 +244,14 @@ class ProductController extends Controller
             abort(404);
         }
 
-        // Related products: same category, same locale, exclude self, limit 8
-        $firstCategory = $product->categories->first();
+        // Related products: same primary category, same locale, exclude self, limit 8
+        $primaryCategory = $product->resolvePrimaryCategory();
         $relatedProducts = collect();
-        if ($firstCategory) {
+        if ($primaryCategory) {
             $relatedIds = ProductTranslation::where('locale', $locale)
                 ->where('id', '!=', $translation->id)
                 ->whereHas('product', fn ($q) => $q->active()
-                    ->whereHas('categories', fn ($q2) => $q2->where('categories.id', $firstCategory->id))
+                    ->whereHas('categories', fn ($q2) => $q2->where('categories.id', $primaryCategory->id))
                 )
                 ->with(['product.images'])
                 ->limit(8)
@@ -300,7 +301,11 @@ class ProductController extends Controller
             'price' => (float) ($v->sale_price && $v->sale_price < $v->price ? $v->sale_price : $v->price),
             'base_price' => (float) $v->price,
             'sale_price' => $v->sale_price ? (float) $v->sale_price : null,
+            'base_price_usd' => $v->price_usd ? (float) $v->price_usd : null,
+            'sale_price_usd' => $v->sale_price_usd ? (float) $v->sale_price_usd : null,
             'stock' => $v->stock_quantity,
+            'status' => $v->resolvedStatusKey(),
+            'image_id' => $v->image_id,
             'image_url' => $v->image?->url,
             'options' => $v->optionValues->map(fn ($ov) => [
                 'type_id' => $ov->filter_group_id,
@@ -322,11 +327,12 @@ class ProductController extends Controller
                 ])->values()->all(),
             ])->values()->all();
 
-        // Size guide modal — only when the assigned guide is active and has
-        // content for this locale (falls back to fallback_locale inside translation()).
-        $sizeGuideT = $product->sizeGuide?->is_active
-            ? $product->sizeGuide->translation($locale)
-            : null;
+        // Size guide modal — product's own guide when assigned & active, otherwise
+        // the one guide marked "is_default" in Content → Size Guides (fallback).
+        $sizeGuideModel = $product->sizeGuide?->is_active
+            ? $product->sizeGuide
+            : SizeGuide::active()->default()->first();
+        $sizeGuideT = $sizeGuideModel?->translation($locale);
         $sizeGuide = ($sizeGuideT && filled($sizeGuideT->body))
             ? ['name' => $sizeGuideT->name, 'body' => $sizeGuideT->body]
             : null;

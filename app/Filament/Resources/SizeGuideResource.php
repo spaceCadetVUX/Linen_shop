@@ -47,8 +47,12 @@ class SizeGuideResource extends Resource
                 ->default(0),
 
             Forms\Components\Toggle::make('is_active')
-                ->default(true)
-                ->columnSpanFull(),
+                ->default(true),
+
+            Forms\Components\Toggle::make('is_default')
+                ->label('Đặt làm fallback')
+                ->helperText('Guide dùng cho sản phẩm CHƯA gán "Hướng dẫn size" riêng ở tab General. Chỉ 1 guide được đặt làm fallback — chọn cái này sẽ tự bỏ chọn guide fallback cũ.')
+                ->default(false),
 
             Tabs::make('Tabs')
                 ->tabs([
@@ -130,6 +134,12 @@ class SizeGuideResource extends Resource
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('danger'),
+
+                Tables\Columns\IconColumn::make('is_default')
+                    ->label('Fallback')
+                    ->boolean()
+                    ->trueColor('warning')
+                    ->falseColor('gray'),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()

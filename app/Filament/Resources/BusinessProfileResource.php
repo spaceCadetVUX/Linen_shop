@@ -154,14 +154,40 @@ class BusinessProfileResource extends Resource
                     // ── Online ────────────────────────────────────────────────
                     Tab::make('Online Presence')
                         ->schema([
-                            Forms\Components\KeyValue::make('social_links')
-                                ->label('Social Links')
-                                ->keyLabel('Platform')
-                                ->valueLabel('URL')
-                                ->keyPlaceholder('facebook')
-                                ->valuePlaceholder('https://facebook.com/...')
-                                ->reorderable()
-                                ->columnSpanFull(),
+                            Section::make('Social Links')
+                                ->description('Hiển thị dạng icon ở footer + dùng cho JSON-LD sameAs.')
+                                ->schema([
+                                    Forms\Components\TextInput::make('social_links.facebook')
+                                        ->label('Facebook')
+                                        ->url()
+                                        ->placeholder('https://facebook.com/cacylinen'),
+
+                                    Forms\Components\TextInput::make('social_links.instagram')
+                                        ->label('Instagram')
+                                        ->url()
+                                        ->placeholder('https://instagram.com/cacylinen'),
+
+                                    Forms\Components\TextInput::make('social_links.youtube')
+                                        ->label('YouTube')
+                                        ->url()
+                                        ->placeholder('https://youtube.com/@cacylinen'),
+
+                                    Forms\Components\TextInput::make('social_links.tiktok')
+                                        ->label('TikTok')
+                                        ->url()
+                                        ->placeholder('https://tiktok.com/@cacylinen'),
+
+                                    Forms\Components\TextInput::make('social_links.twitter')
+                                        ->label('X (Twitter)')
+                                        ->url()
+                                        ->placeholder('https://x.com/cacylinen'),
+
+                                    Forms\Components\TextInput::make('social_links.zalo')
+                                        ->label('Zalo')
+                                        ->url()
+                                        ->placeholder('https://zalo.me/...'),
+                                ])
+                                ->columns(2),
 
                             Forms\Components\Repeater::make('business_hours')
                                 ->label('Business Hours')

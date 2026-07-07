@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VariantAvailability;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,7 @@ class ProductVariant extends Model
         'price_usd',
         'sale_price_usd',
         'stock_quantity',
+        'availability_status',
         'is_active',
         'sort_order',
     ];
@@ -59,6 +61,32 @@ class ProductVariant extends Model
     public function getEffectivePriceUsdAttribute(): ?string
     {
         return $this->sale_price_usd ?? $this->price_usd;
+    }
+
+    /**
+     * Schema.org availability URL for this variant's Offer.
+     * "Auto" derives InStock/OutOfStock from stock_quantity; OutOfStock/PreOrder
+     * are explicit admin overrides that ignore stock_quantity entirely.
+     */
+    public function resolvedAvailabilityUrl(): string
+    {
+        return match ($this->availability_status) {
+            VariantAvailability::OutOfStock->value => 'https://schema.org/OutOfStock',
+            VariantAvailability::PreOrder->value => 'https://schema.org/PreOrder',
+            default => $this->stock_quantity > 0
+                ? 'https://schema.org/InStock'
+                : 'https://schema.org/OutOfStock',
+        };
+    }
+
+    /** Same resolution as resolvedAvailabilityUrl(), as a short key for the storefront (app.js). */
+    public function resolvedStatusKey(): string
+    {
+        return match ($this->availability_status) {
+            VariantAvailability::OutOfStock->value => 'out_of_stock',
+            VariantAvailability::PreOrder->value => 'pre_order',
+            default => $this->stock_quantity > 0 ? 'in_stock' : 'out_of_stock',
+        };
     }
 
     /**

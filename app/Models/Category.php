@@ -147,6 +147,33 @@ class Category extends Model
         return $this->hasMany(Category::class, 'parent_id');
     }
 
+    /**
+     * Full ancestor chain from root down to and including this category.
+     * Guards against circular parent_id references. Used to build breadcrumbs
+     * for both category pages and product pages so they stay consistent.
+     */
+    public function ancestorChain(): array
+    {
+        $chain = [];
+        $seenIds = [$this->getKey()];
+        $cursor = $this;
+
+        while (true) {
+            $chain[] = $cursor;
+            $cursor->loadMissing('parent.translations');
+            $parent = $cursor->getRelationValue('parent');
+
+            if (! $parent || in_array($parent->getKey(), $seenIds, strict: true)) {
+                break;
+            }
+
+            $seenIds[] = $parent->getKey();
+            $cursor = $parent;
+        }
+
+        return array_reverse($chain);
+    }
+
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class);

@@ -907,17 +907,80 @@ img    { display: block; }
 .mega-product-card.is-entering:nth-child(3) { animation-delay: 0.20s; }
 .mega-product-card.is-entering:nth-child(4) { animation-delay: 0.30s; }
 
-/* ── Brand col footer link ── */
+/* ── Brand col footer: language + currency chip ── */
 .mega-brand-footer { margin-top: auto; padding-top: 24px; }
-.mega-intl-link {
+
+.mega-intl-switch { position: relative; display: inline-block; }
+
+.mega-intl-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 0.5px solid var(--pebble);
+  border-radius: 4px;
+  background: var(--white);
   font-family: var(--font-body);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--silver);
-  transition: color 0.2s ease;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--graphite);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
 }
-.mega-intl-link:hover { color: var(--ink); }
+.mega-intl-switch:hover .mega-intl-trigger,
+.mega-intl-switch:focus-within .mega-intl-trigger {
+  border-color: var(--graphite);
+}
+
+.mega-intl-icon,
+.mega-intl-chevron {
+  flex-shrink: 0;
+  color: var(--ash);
+  pointer-events: none;
+}
+.mega-intl-chevron { transition: transform 0.2s ease; }
+.mega-intl-switch:hover .mega-intl-chevron,
+.mega-intl-switch:focus-within .mega-intl-chevron {
+  transform: rotate(180deg);
+}
+
+/* Panel opens upward — trigger sits at the bottom of the column */
+.mega-intl-panel {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  background: var(--white);
+  border: 0.5px solid var(--pebble);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+  z-index: 20;
+}
+.mega-intl-switch:hover .mega-intl-panel,
+.mega-intl-switch:focus-within .mega-intl-panel {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.mega-intl-option {
+  display: block;
+  padding: 10px 14px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--ash);
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.mega-intl-option:hover { background: var(--stone); color: var(--ink); }
+.mega-intl-option.is-active { color: var(--ink); font-weight: 500; }
 
 /* Group */
 .mega-group { margin-bottom: 24px; }
@@ -933,7 +996,7 @@ img    { display: block; }
 .mega-group-name {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0.02em;
   text-transform: none;
   color: var(--ink);
@@ -975,7 +1038,7 @@ img    { display: block; }
   align-items: center;
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 300;
   letter-spacing: 0.01em;
   text-transform: none;
   color: var(--ash);
@@ -1089,7 +1152,7 @@ img    { display: block; }
 
   .mega-group-name {
     font-size: 17px;
-    font-weight: 600;
+    font-weight: 400;
     color: var(--ink);
     letter-spacing: 0.02em;
   }
@@ -2601,37 +2664,6 @@ img    { display: block; }
   gap: 24px;
 }
 
-.footer-selects { display: flex; gap: 10px; }
-
-.footer-select-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.footer-select {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--graphite);
-  background: var(--white);
-  border: 0.5px solid var(--pebble);
-  border-radius: 4px;
-  padding: 8px 30px 8px 12px;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  transition: border-color var(--ease);
-}
-.footer-select:hover { border-color: var(--graphite); }
-
-.footer-select-chevron {
-  position: absolute;
-  right: 9px;
-  pointer-events: none;
-  color: var(--ash);
-}
-
 /* Payment icons */
 .footer-payments {
   display: flex;
@@ -2788,7 +2820,6 @@ img    { display: block; }
   padding-right: 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
 
 /* Each image block */
@@ -3139,6 +3170,46 @@ img    { display: block; }
 .pd-acc-body ul li { display: flex; gap: 10px; margin-bottom: 3px; }
 .pd-acc-body ul li::before { content: '–'; color: var(--silver); flex-shrink: 0; }
 
+/* Detailed info — always-visible preview (~2 clear lines), fading out from
+   line 3, expandable via the toggle button below it. */
+.pd-detail-info { margin-bottom: 28px; }
+
+.pd-detail-info-body {
+  max-height: 7.4em; /* ~4 lines @ 1.85 line-height — lines 1-2 clear, 3-4 fade out */
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--graphite);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+  transition: max-height 0.4s var(--ease-out-expo);
+}
+.pd-detail-info-body.is-expanded {
+  max-height: 2000px;
+  -webkit-mask-image: none;
+          mask-image: none;
+}
+.pd-detail-info-body p { margin-bottom: 10px; }
+
+.pd-detail-info-toggle {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pd-detail-info-toggle:hover { color: var(--ash); }
+
 /* FAQ accordion (category page) — .pd-acc-trigger's uppercase/letter-spaced
    style suits short PDP spec labels ("CHẤT LIỆU & THÀNH PHẦN") but not full
    FAQ sentences, so it's overridden here rather than changed globally.
@@ -3228,18 +3299,25 @@ img    { display: block; }
 .pd-view-all span  { transition: transform 0.25s ease; }
 .pd-view-all:hover span { transform: translateX(4px); }
 
+/* Matches .plp-grid (shop / all-products page) column-count, gap rhythm and
+   card background — same <x-product.card>, kept visually identical here. */
 .pd-related-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  column-gap: 4px;
+  row-gap: 80px;
   padding: 0 var(--pad-x);
 }
+.pd-related-grid .shop-card { background: var(--white); }
 
 /* ── Responsive — Tablet ── */
 @media (max-width: 1100px) {
   .pd-gallery { padding-left: var(--pad-x); padding-right: 16px; }
   .pd-info    { padding-left: 16px; padding-right: var(--pad-x); }
-  .pd-related-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 1024px) {
+  .pd-related-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ── Responsive — Mobile ── */
@@ -3303,12 +3381,11 @@ img    { display: block; }
   }
 
 
-  .pd-related-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .pd-related-grid { grid-template-columns: repeat(2, 1fr); }
   .pd-related-header { padding-bottom: 28px; }
 }
 
 @media (max-width: 640px) {
-  .pd-related-grid { gap: 8px; }
   .pd-related-header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .pd-breadcrumb { padding-top: calc(var(--nav-h) + 20px); }
   .pd-title { font-size: clamp(24px, 7vw, 32px); }
@@ -3317,7 +3394,6 @@ img    { display: block; }
 }
 
 @media (max-width: 640px) {
-  .pd-related-grid { gap: 8px; }
   .pd-related-header { flex-direction: column; align-items: flex-start; gap: 12px; }
   .pd-breadcrumb { padding-top: calc(var(--nav-h) + 20px); }
   .pd-title { font-size: clamp(24px, 7vw, 32px); }

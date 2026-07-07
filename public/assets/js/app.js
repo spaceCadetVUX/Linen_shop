@@ -451,12 +451,37 @@ updateNav();
   const variantData = window.__pdVariantData || { optionTypes: [], variants: [] };
   const variants    = variantData.variants || [];
   const hasVariants = variants.length > 0;
-  const selected    = {}; // { [type_id]: value_id } — seeded from server-rendered .active buttons
+  const selected    = {}; // { [type_id]: value_id }
 
   const optionButtons = document.querySelectorAll('.pd-swatch[data-type-id], .pd-size-btn[data-type-id]');
-  optionButtons.forEach(btn => {
-    if (btn.classList.contains('active')) selected[btn.dataset.typeId] = btn.dataset.valueId;
-  });
+  const colorLabel    = document.getElementById('pdColorLabel');
+
+  /* ── Gallery jump: scroll to the variant's own image (color swatch → its photo).
+     Falls back to image index 0 when the variant has no image_id ("same as
+     product"), so switching away from a variant that HAD a dedicated photo
+     doesn't leave the gallery stuck on it. ── */
+  const gallery      = document.getElementById('pdGallery');
+  const galleryImgs   = gallery ? Array.from(gallery.querySelectorAll('.pd-gimg-wrap')) : [];
+  const galleryDots   = document.querySelectorAll('#pdGalleryDots .pd-gallery-dot');
+  const scrollGalleryToImage = (imageId, instant) => {
+    if (!gallery || !galleryImgs.length) return;
+    const found = imageId ? galleryImgs.findIndex(el => el.dataset.imageId === String(imageId)) : -1;
+    const idx = found >= 0 ? found : 0;
+    galleryImgs[idx].scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'nearest', inline: 'start' });
+    galleryDots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  };
+
+  // Reflect the `selected` map onto the DOM: active/aria-checked buttons + color label.
+  const applySelectionToDom = () => {
+    optionButtons.forEach(btn => {
+      const isSelected = String(selected[btn.dataset.typeId]) === String(btn.dataset.valueId);
+      btn.classList.toggle('active', isSelected);
+      if (btn.classList.contains('pd-swatch')) {
+        btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+        if (isSelected) colorLabel && (colorLabel.textContent = btn.dataset.color);
+      }
+    });
+  };
 
   // Exact match: the variant whose option set equals every currently selected value.
   const findVariant = () => {
@@ -467,23 +492,68 @@ updateNav();
     ) || null;
   };
 
-  // A value is pickable if some in-stock variant combines it with the OTHER
-  // dimensions' current selections (e.g. Red is sold out only in size M).
-  const isValueAvailable = (typeId, valueId) => variants.some(v => {
-    if (v.stock <= 0) return false;
-    const optsByType = {};
-    v.options.forEach(o => { optsByType[o.type_id] = String(o.value_id); });
-    if (optsByType[typeId] !== String(valueId)) return false;
-    return Object.keys(selected).every(tId => String(tId) === String(typeId) || optsByType[tId] === String(selected[tId]));
-  });
+  // If picking `valueId` for `typeId` doesn't form a real in-stock combo with
+  // the OTHER currently selected dimensions (e.g. this color only comes in a
+  // size other than the one selected), snap those other dimensions to a
+  // combo that actually exists instead of leaving the selection dead. Without
+  // this, a value that's disabled only because of the CURRENT other-dimension
+  // choice could never be reached — clicking it was blocked, and there was no
+  // other way to change the conflicting dimension first.
+  const reconcileSelection = (typeId) => {
+    if (findVariant()) return;
+
+    const candidate = variants.find(v => v.status !== 'out_of_stock'
+      && v.options.some(o => String(o.type_id) === String(typeId) && String(o.value_id) === String(selected[typeId]))
+    );
+
+    if (candidate) {
+      candidate.options.forEach(o => { selected[o.type_id] = String(o.value_id); });
+    }
+  };
+
+  // A value is truly dead only when NO selectable variant has it at all —
+  // "selectable" includes pre-order (status='pre_order'), only a forced/actual
+  // out_of_stock variant is greyed out. Regardless of what's currently selected
+  // on the other dimensions, since reconcileSelection() adjusts those
+  // automatically on click.
+  const isValuePossible = (typeId, valueId) => variants.some(v => v.status !== 'out_of_stock'
+    && v.options.some(o => String(o.type_id) === String(typeId) && String(o.value_id) === String(valueId))
+  );
+
+  // Prefer an IN-STOCK variant, then a pre-order one, over blindly trusting
+  // the server's index-0 `.active` default — the first color/size combination
+  // isn't necessarily the one actually available, which left buttons greyed
+  // out on first load whenever that combo was sold out.
+  const defaultVariant = variants.find(v => v.status === 'in_stock')
+    || variants.find(v => v.status === 'pre_order')
+    || variants[0] || null;
+
+  if (defaultVariant) {
+    defaultVariant.options.forEach(o => { selected[o.type_id] = String(o.value_id); });
+    applySelectionToDom();
+    scrollGalleryToImage(defaultVariant.image_id, true);
+  } else {
+    // No variant data at all (simple product, or dimensions picked but no
+    // combinations generated yet) — fall back to whatever the server rendered.
+    optionButtons.forEach(btn => {
+      if (btn.classList.contains('active')) selected[btn.dataset.typeId] = btn.dataset.valueId;
+    });
+  }
 
   const formatVnd = amount => Math.round(amount).toLocaleString('vi-VN') + ' ₫';
+  const formatUsd = amount => '$' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // EN locale shows the variant's own USD price (price_usd/sale_price_usd,
+  // set per-variant in Filament) when the admin filled it in. Falls back to
+  // the VND fields — same as the rest of the site — when a variant has no
+  // USD price set, rather than showing a blank/zero price.
+  const isEn = document.documentElement.lang === 'en';
 
   const updateAvailability = () => {
     optionButtons.forEach(btn => {
-      const available = isValueAvailable(btn.dataset.typeId, btn.dataset.valueId);
-      btn.classList.toggle('sold-out', !available);
-      btn.disabled = !available;
+      const possible = isValuePossible(btn.dataset.typeId, btn.dataset.valueId);
+      btn.classList.toggle('sold-out', !possible);
+      btn.disabled = !possible;
     });
   };
 
@@ -494,34 +564,36 @@ updateNav();
     const addBtn         = document.getElementById('pdAddBtn');
 
     if (variantIdInput) variantIdInput.value = variant ? variant.id : '';
+    if (variant) scrollGalleryToImage(variant.image_id, false);
 
     if (variant && priceEl) {
-      const hasSale = variant.sale_price && variant.sale_price < variant.base_price;
+      const useUsd  = isEn && variant.base_price_usd != null;
+      const base    = useUsd ? variant.base_price_usd : variant.base_price;
+      const sale    = useUsd ? variant.sale_price_usd : variant.sale_price;
+      const format  = useUsd ? formatUsd : formatVnd;
+      const hasSale = sale && sale < base;
+
       priceEl.innerHTML = hasSale
-        ? `<span class="t-price-old">${formatVnd(variant.base_price)}</span> ${formatVnd(variant.sale_price)}`
-        : formatVnd(variant.base_price);
+        ? `<span class="t-price-old">${format(base)}</span> ${format(sale)}`
+        : format(base);
     }
 
     if (addBtn && !addBtn.classList.contains('pd-added')) {
-      const outOfStock = !!variant && variant.stock <= 0;
-      addBtn.disabled = outOfStock;
-      addBtn.textContent = outOfStock ? 'Hết hàng' : 'Thêm vào giỏ hàng';
+      // Pre-order gets its own label but stays disabled — cart/checkout doesn't
+      // track variant stock yet, so it can't actually take a pre-order purchase.
+      const status = variant ? variant.status : 'out_of_stock';
+      addBtn.disabled = status !== 'in_stock';
+      addBtn.textContent = status === 'pre_order' ? 'Đặt trước' : (status === 'out_of_stock' ? 'Hết hàng' : 'Thêm vào giỏ hàng');
     }
   };
 
   /* ── Colour swatches ── */
-  const colorLabel = document.getElementById('pdColorLabel');
   document.querySelectorAll('.pd-swatch[data-type-id]').forEach(sw => {
     sw.addEventListener('click', () => {
       if (sw.disabled) return;
-      document.querySelectorAll(`.pd-swatch[data-type-id="${sw.dataset.typeId}"]`).forEach(s => {
-        s.classList.remove('active');
-        s.setAttribute('aria-checked', 'false');
-      });
-      sw.classList.add('active');
-      sw.setAttribute('aria-checked', 'true');
-      if (colorLabel) colorLabel.textContent = sw.dataset.color;
       selected[sw.dataset.typeId] = sw.dataset.valueId;
+      reconcileSelection(sw.dataset.typeId);
+      applySelectionToDom();
       updateAvailability();
       updateVariantUi();
     });
@@ -531,9 +603,9 @@ updateNav();
   document.querySelectorAll('.pd-size-btn[data-type-id]').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.disabled) return;
-      document.querySelectorAll(`.pd-size-btn[data-type-id="${btn.dataset.typeId}"]`).forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
       selected[btn.dataset.typeId] = btn.dataset.valueId;
+      reconcileSelection(btn.dataset.typeId);
+      applySelectionToDom();
       updateAvailability();
       updateVariantUi();
     });
@@ -616,6 +688,23 @@ updateNav();
         trigger.setAttribute('aria-expanded', 'true');
       }
     });
+  });
+}());
+
+/* ---------- Detailed info — read more / collapse ---------- */
+(function () {
+  const toggle = document.getElementById('pdDetailInfoToggle');
+  const body   = document.getElementById('pdDetailInfoBody');
+  if (!toggle || !body) return;
+
+  const isEn = document.documentElement.lang === 'en';
+  const moreLabel = isEn ? 'Show more' : 'Xem thêm';
+  const lessLabel = isEn ? 'Collapse'  : 'Thu gọn';
+
+  toggle.addEventListener('click', () => {
+    const expanded = body.classList.toggle('is-expanded');
+    toggle.textContent = expanded ? lessLabel : moreLabel;
+    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   });
 }());
 

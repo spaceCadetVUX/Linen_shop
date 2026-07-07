@@ -18,6 +18,7 @@ use App\Models\CategoryTranslation;
 use App\Models\Manufacturer;
 use App\Models\Product;
 use App\Models\ProductTranslation;
+use App\Models\ProductVariant;
 use App\Models\Review;
 use App\Models\Seo\Redirect;
 use App\Models\Setting;
@@ -35,6 +36,7 @@ use App\Observers\CategoryTranslationObserver;
 use App\Observers\ManufacturerObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ProductTranslationObserver;
+use App\Observers\ProductVariantObserver;
 use App\Observers\RedirectObserver;
 use App\Observers\ReviewObserver;
 use GuzzleHttp\Client as GuzzleClient;
@@ -157,6 +159,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Category::observe(CategoryObserver::class);
         Product::observe(ProductObserver::class);
+        ProductVariant::observe(ProductVariantObserver::class);
         Brand::observe(BrandObserver::class);
         Manufacturer::observe(ManufacturerObserver::class);
         Review::observe(ReviewObserver::class);

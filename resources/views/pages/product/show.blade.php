@@ -5,9 +5,11 @@
 @section('body-class', 'page-pd')
 
 @php
-    // First category (already eager-loaded with translations in ProductController::show)
-    $firstCategory = $product->categories->first();
-    $catT          = $firstCategory?->translations->firstWhere('locale', $locale);
+    // Primary category (+ its ancestor chain) — same resolution as JsonldService::buildProductBreadcrumb
+    // so the visible breadcrumb never disagrees with the BreadcrumbList JSON-LD.
+    $primaryCategory = $product->resolvePrimaryCategory();
+    $categoryChain   = $primaryCategory?->ancestorChain() ?? [];
+    $catT            = $primaryCategory?->translations->firstWhere('locale', $locale);
 
     // Price — same logic as <x-product.card>: translation may override, sale shown when lower
     $price        = $translation->price ?? $product->price;
@@ -28,10 +30,14 @@
     <a href="{{ route($locale . '.index') }}">{{ $locale === 'vi' ? 'Trang chủ' : 'Home' }}</a>
     <span class="pd-bc-sep" aria-hidden="true">/</span>
     <a href="{{ route($locale . '.product.shop') }}">{{ $locale === 'vi' ? 'Cửa hàng' : 'Shop' }}</a>
-    @if($catT)
+    @foreach($categoryChain as $chainCategory)
+      @php
+        $chainCatT = $chainCategory->translations->firstWhere('locale', $locale);
+      @endphp
+      @continue(!$chainCatT)
       <span class="pd-bc-sep" aria-hidden="true">/</span>
-      <a href="{{ \App\Support\LocaleUrl::for('category', $catT->slug, $locale) }}">{{ $catT->name }}</a>
-    @endif
+      <a href="{{ \App\Support\LocaleUrl::for('category', $chainCatT->slug, $locale) }}">{{ $chainCatT->name }}</a>
+    @endforeach
     <span class="pd-bc-sep" aria-hidden="true">/</span>
     <span aria-current="page">{{ $translation->name }}</span>
   </div>
@@ -50,7 +56,7 @@
     <div class="pd-gallery" id="pdGallery">
 
       @forelse($product->images as $image)
-        <div class="pd-gimg-wrap">
+        <div class="pd-gimg-wrap" data-image-id="{{ $image->id }}">
           @if($loop->first && $salePrice && $product->show_price)
             <div class="pd-img-badge"><span class="badge badge-muted">Sale</span></div>
           @endif
@@ -184,98 +190,38 @@
           <button class="pd-add-btn" id="pdAddBtn" type="button">Thêm vào giỏ hàng</button>
         </div>
 
-        {{-- Accordions — app.js toggles aria-expanded + animates height --}}
-        {{-- TODO: content still static — data source TBD (product attributes?) --}}
-        <div class="pd-accordions">
-
-          <div class="pd-accordion">
-            <button class="pd-acc-trigger" aria-expanded="false" type="button">
-              <span>Chất liệu &amp; Thành phần</span>
-              <span class="pd-acc-icon" aria-hidden="true">+</span>
-            </button>
-            <div class="pd-acc-body">
-              <ul>
-                <li>70% Cashmere Mông Cổ Grade A</li>
-                <li>28% Lurex (sợi kim loại mạ bạc)</li>
-                <li>2% Elastane</li>
-                <li>Độ mịn: 2-ply fine gauge</li>
-                <li>Sản xuất tại Ý</li>
-              </ul>
+        {{-- Detailed info — always visible, clamped to ~2 clear lines with a
+             fade from line 3, expandable via "Xem thêm"/"Show more". app.js
+             toggles .is-expanded + swaps the toggle label. --}}
+        @if($translation->description_html)
+          <div class="pd-detail-info" id="pdDetailInfo">
+            <div class="pd-detail-info-body" id="pdDetailInfoBody">
+              {!! $translation->description_html !!}
             </div>
-          </div>
-
-          <div class="pd-accordion">
-            <button class="pd-acc-trigger" aria-expanded="false" type="button">
-              <span>Hướng dẫn bảo quản</span>
-              <span class="pd-acc-icon" aria-hidden="true">+</span>
+            <button type="button" class="pd-detail-info-toggle" id="pdDetailInfoToggle" aria-expanded="false">
+              {{ $locale === 'vi' ? 'Xem thêm' : 'Show more' }}
             </button>
-            <div class="pd-acc-body">
-              <ul>
-                <li>Giặt tay nước lạnh, không vắt mạnh</li>
-                <li>Không giặt máy — không sấy</li>
-                <li>Phơi phẳng nằm ngang</li>
-                <li>Ủi mặt trái, nhiệt độ thấp</li>
-                <li>Không tẩy — không giặt khô</li>
-              </ul>
-            </div>
           </div>
+        @endif
 
-          <div class="pd-accordion">
-            <button class="pd-acc-trigger" aria-expanded="false" type="button">
-              <span>Kích cỡ &amp; Dáng dệt</span>
-              <span class="pd-acc-icon" aria-hidden="true">+</span>
-            </button>
-            <div class="pd-acc-body">
-              <p style="margin-bottom:10px;">Người mẫu cao 175 cm, mặc size S.</p>
-              <ul>
-                <li>Dáng fitted — ôm nhẹ</li>
-                <li>Chiều dài thân: 54 cm (size S)</li>
-                <li>Ngang vai: 34 cm (size S)</li>
-                <li>Phù hợp mặc tucked-in hoặc tự nhiên</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="pd-accordion">
-            <button class="pd-acc-trigger" aria-expanded="false" type="button">
-              <span>Giao hàng &amp; Đổi trả</span>
-              <span class="pd-acc-icon" aria-hidden="true">+</span>
-            </button>
-            <div class="pd-acc-body">
-              <ul>
-                <li>Nội thành HCM &amp; HN: 1–2 ngày làm việc</li>
-                <li>Toàn quốc: 2–4 ngày làm việc</li>
-                <li>Miễn phí vận chuyển từ 1.500.000 ₫</li>
-                <li>Đổi trả 14 ngày — nguyên tag, chưa qua sử dụng</li>
-                <li>Không áp dụng đổi trả cho hàng sale</li>
-              </ul>
-            </div>
-          </div>
-
-        </div>{{-- /.pd-accordions --}}
-
-        <div class="pd-trust">
-          <div class="pd-trust-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-            <span>100% Linen thật — nguồn gốc minh bạch</span>
-          </div>
-          <div class="pd-trust-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-              <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-            </svg>
-            <span>Miễn phí giao hàng từ 1.500.000 ₫</span>
-          </div>
-          <div class="pd-trust-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-            </svg>
-            <span>Đổi trả dễ dàng trong 14 ngày</span>
-          </div>
-        </div>
+        {{-- Accordions — dynamic, managed per-locale in Filament (Product edit
+             → Content tab → "Thông tin chi tiết bổ sung"). app.js toggles
+             aria-expanded + animates height via .pd-acc-body max-height. --}}
+        @if(!empty($translation->info_sections_html))
+          <div class="pd-accordions">
+            @foreach($translation->info_sections_html as $section)
+              <div class="pd-accordion">
+                <button class="pd-acc-trigger" aria-expanded="false" type="button">
+                  <span>{{ $section['title'] }}</span>
+                  <span class="pd-acc-icon" aria-hidden="true">+</span>
+                </button>
+                <div class="pd-acc-body">
+                  {!! $section['html'] !!}
+                </div>
+              </div>
+            @endforeach
+          </div>{{-- /.pd-accordions --}}
+        @endif
 
       </div>{{-- /.pd-info-inner --}}
     </div>{{-- /.pd-info --}}
@@ -308,7 +254,7 @@
      Hidden entirely when the product has no related items.
      ============================================================ --}}
 @if($relatedProducts->isNotEmpty())
-<section class="pd-related" id="pdRelated">
+<section class="pd-related shop-section" id="pdRelated">
   <div class="pd-related-header">
     <div>
       <p class="pd-related-eyebrow">{{ $locale === 'vi' ? 'Có thể bạn thích' : 'You may also like' }}</p>

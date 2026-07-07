@@ -226,8 +226,72 @@ class LlmsGeneratorService
         $summary = implode("\n\n", array_filter($summaryParts));
 
         // ── Key facts block ───────────────────────────────────────────────────
-        // Sections: [Brand / Manufacturer] + [Technical Specs] + [Key Facts]
+        // Sections: [Pricing & Availability] + [Brand / Manufacturer] + [Technical Specs] + [Key Facts]
         $keyFactsSections = [];
+
+        // Pricing & Availability (product-specific — same resolution rules as
+        // JsonldService::buildOffersPayload / ProductVariant::resolvedStatusKey,
+        // so this never disagrees with the JSON-LD Offer on the same page.
+        // Skipped entirely when show_price = false, matching the PDP/JSON-LD.
+        if ($morphAlias === 'product' && $model->getAttribute('show_price') !== false) {
+            $sku = (string) ($model->getAttribute('sku') ?? '');
+
+            $variants = null;
+            if (method_exists($model, 'activeVariants')) {
+                $model->loadMissing('activeVariants');
+                $variants = $model->getRelationValue('activeVariants');
+            }
+
+            if ($variants && $variants->isNotEmpty()) {
+                $useUsd = $locale === 'en' && $variants->contains(fn ($v) => filled($v->price_usd));
+
+                $prices = $variants->map(fn ($v): float => (float) ($useUsd
+                    ? ($v->sale_price_usd ?? $v->price_usd ?? $v->sale_price ?? $v->price)
+                    : ($v->sale_price ?? $v->price)));
+                $currencyLabel = $useUsd ? 'USD' : 'VND';
+                $lowPrice = $prices->min();
+                $highPrice = $prices->max();
+                $priceLine = $lowPrice === $highPrice
+                    ? $this->formatLlmsMoney($lowPrice, $currencyLabel)
+                    : $this->formatLlmsMoney($lowPrice, $currencyLabel).'–'.$this->formatLlmsMoney($highPrice, $currencyLabel);
+
+                $statusKeys = $variants->map(fn ($v): string => $v->resolvedStatusKey());
+                $statusKey = match (true) {
+                    $statusKeys->contains('in_stock') => 'in_stock',
+                    $statusKeys->contains('pre_order') => 'pre_order',
+                    default => 'out_of_stock',
+                };
+            } else {
+                $price = (float) ($translation?->price ?? $model->getAttribute('price') ?? 0);
+                $salePrice = $translation?->sale_price ?? $model->getAttribute('sale_price');
+                $hasSale = filled($salePrice) && (float) $salePrice < $price;
+                $currencyLabel = 'VND';
+
+                $priceLine = $this->formatLlmsMoney($hasSale ? (float) $salePrice : $price, $currencyLabel);
+                if ($hasSale) {
+                    $priceLine .= $locale === 'vi'
+                        ? ' (giảm từ '.$this->formatLlmsMoney($price, $currencyLabel).')'
+                        : ' (was '.$this->formatLlmsMoney($price, $currencyLabel).')';
+                }
+
+                $statusKey = ((int) $model->getAttribute('stock_quantity')) > 0 ? 'in_stock' : 'out_of_stock';
+            }
+
+            $statusLabel = match ($statusKey) {
+                'in_stock' => $locale === 'vi' ? 'Còn hàng' : 'In stock',
+                'pre_order' => 'Pre-order',
+                default => $locale === 'vi' ? 'Hết hàng' : 'Out of stock',
+            };
+
+            $pricingLines = [];
+            $pricingLines[] = ($locale === 'vi' ? '  - Giá: ' : '  - Price: ').$priceLine;
+            if (filled($sku)) {
+                $pricingLines[] = '  - SKU: '.$sku;
+            }
+            $pricingLines[] = ($locale === 'vi' ? '  - Trạng thái: ' : '  - Availability: ').$statusLabel;
+
+            $keyFactsSections[] = ($locale === 'vi' ? 'Giá & Tồn kho:' : 'Pricing & Availability:')."\n".implode("\n", $pricingLines);
+        }
 
         // Brand & Manufacturer (product-specific — silently skip if not present)
         $brandLines = [];
@@ -571,6 +635,14 @@ class LlmsGeneratorService
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    /** Plain-text money formatting for the Pricing & Availability block — no HTML/entities. */
+    private function formatLlmsMoney(float $amount, string $currency): string
+    {
+        return $currency === 'USD'
+            ? '$'.number_format($amount, 2)
+            : number_format($amount, 0, ',', '.').' ₫';
+    }
 
     /**
      * Build the combined plain-text llms.txt content for a single locale.
