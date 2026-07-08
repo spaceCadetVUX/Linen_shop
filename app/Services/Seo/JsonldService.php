@@ -1122,8 +1122,6 @@ class JsonldService
      */
     private function enrichArticleSchema(array $payload, Model $model, string $locale = 'vi'): array
     {
-        $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
-
         // ── @id — canonical entity identifier ────────────────────────────────
         if (isset($payload['url']) && ! isset($payload['@id'])) {
             $payload['@id'] = $payload['url'];
@@ -1164,8 +1162,12 @@ class JsonldService
                     'name' => (string) $author->name,
                 ];
 
-                if (filled($author->slug)) {
-                    $person['@id'] = $baseUrl.'/authors/'.$author->slug.'#person';
+                $authorUrl = filled($author->slug)
+                    ? route($locale.'.author.show', $author->slug)
+                    : null;
+
+                if ($authorUrl) {
+                    $person['@id'] = $authorUrl.'#person';
                 }
 
                 if (filled($author->title)) {
@@ -1174,8 +1176,8 @@ class JsonldService
 
                 $sameAs = $author->same_as;
 
-                if (filled($author->slug)) {
-                    $person['url'] = $baseUrl.'/authors/'.$author->slug;
+                if ($authorUrl) {
+                    $person['url'] = $authorUrl;
                 } elseif (! empty($sameAs)) {
                     // Fallback: use first social/web profile URL so Google can anchor the author identity
                     $person['url'] = $sameAs[0];
@@ -1476,7 +1478,14 @@ class JsonldService
         $morphAlias = $model->getMorphClass();
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
         $slug = (string) ($model->getAttribute('slug') ?? '');
-        $canonicalUrl = $this->canonicalRouteFor($morphAlias, $slug, $locale);
+
+        // blog_post has no own `slug` column (dropped in favor of per-locale
+        // translations) — the generic slug-based canonicalRouteFor() would
+        // resolve to an empty slug. Use the nested category/post URL builder,
+        // same one used by BreadcrumbList and hreflang alternates.
+        $canonicalUrl = ($model instanceof BlogPost)
+            ? LocaleUrl::forBlogPost($model, $locale)
+            : $this->canonicalRouteFor($morphAlias, $slug, $locale);
 
         // Seed with all raw DB attributes (name, slug, sku, price, etc.)
         $map = $model->getAttributes();

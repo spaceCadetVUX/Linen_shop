@@ -18,6 +18,8 @@
 
 @section('content')
 
+<x-ui.breadcrumb :items="$breadcrumbItems" />
+
     <!-- ==============================  JOURNAL POST  ============================== -->
     <div class="jnl-post-page">
 
@@ -45,9 +47,20 @@
         @endif
         @if($blog->author)
           <div class="jnl-post-author">
-            <span class="jnl-post-author-name">{{ $blog->author->name }}</span>
-            <span class="jnl-post-author-sep">—</span>
-            <span class="jnl-post-author-role">CacyLinen</span>
+            @if($blog->author->avatar_url)
+              <img src="{{ $blog->author->avatar_url }}" alt="{{ $blog->author->name }}" class="jnl-post-author-avatar">
+            @endif
+            <div class="jnl-post-author-info">
+              @if($blog->author->slug)
+                <a href="{{ route($locale . '.author.show', $blog->author->slug) }}" class="jnl-post-author-name">{{ $blog->author->name }}</a>
+              @else
+                <span class="jnl-post-author-name">{{ $blog->author->name }}</span>
+              @endif
+              @if($blog->author->title)
+                <span class="jnl-post-author-sep">—</span>
+                <span class="jnl-post-author-role">{{ $blog->author->title }}</span>
+              @endif
+            </div>
           </div>
         @endif
       </header>
@@ -99,6 +112,32 @@
         </aside>
 
       </div><!-- /.jnl-post-layout -->
+
+      {{-- ============================================================
+           FAQ — admin-managed (GeoEntityProfile.faq, falls back to legacy
+           faq_items_{locale}). Reuses the PDP/category accordion pattern
+           (.pd-accordions / .pd-acc-trigger) — toggle wired globally in app.js.
+           ============================================================ --}}
+      @if(count($blog->faqs))
+        <section class="jnl-post-faq">
+          <div class="jnl-post-body">
+            <h2 class="jnl-post-related-hd">{{ $locale === 'vi' ? 'Câu hỏi thường gặp' : 'Frequently asked questions' }}</h2>
+            <div class="pd-accordions">
+              @foreach($blog->faqs as $faq)
+                <div class="pd-accordion">
+                  <button class="pd-acc-trigger" aria-expanded="false" type="button">
+                    <span>{{ $faq['question'] }}</span>
+                    <span class="pd-acc-icon" aria-hidden="true">+</span>
+                  </button>
+                  <div class="pd-acc-body">
+                    <p>{{ $faq['answer'] }}</p>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          </div>
+        </section>
+      @endif
 
       @if($relatedPosts->isNotEmpty())
         <hr class="jnl-post-rule">

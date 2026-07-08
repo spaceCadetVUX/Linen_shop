@@ -6582,9 +6582,28 @@ a.shop-card-name:hover { color: var(--ash); }
   letter-spacing: 0.06em;
 }
 
+.jnl-post-author-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.jnl-post-author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .jnl-post-author-name {
   font-weight: 500;
   color: var(--ink);
+}
+
+a.jnl-post-author-name {
+  text-decoration: none;
+  color: inherit;
 }
 
 .jnl-post-author-sep { color: var(--pebble); }

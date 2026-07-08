@@ -350,8 +350,12 @@ class BlogController extends Controller
             ->where('model_id', (string) $post->id)
             ->where('locale', $locale)
             ->first();
-        $faqs = $geoProfile?->faq
+        $faqItems = $geoProfile?->faq
             ?? ($locale === 'vi' ? ($post->faq_items_vi ?? []) : ($post->faq_items_en ?? []));
+        $faqs = array_values(array_filter(array_map(
+            fn ($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
+            $faqItems
+        )));
 
         // ── Blog DTO ───────────────────────────────────────────────────────────
         $catTr    = $post->blogCategory?->translations->firstWhere('locale', $locale);
@@ -381,6 +385,20 @@ class BlogController extends Controller
         }
 
         $readMins = max(1, (int) ceil(str_word_count(strip_tags($bodyHtml)) / 200));
+
+        // ── Breadcrumb (visible) — mirrors JsonldService::buildBlogPostBreadcrumb()
+        // so the visible trail never disagrees with the BreadcrumbList JSON-LD.
+        $breadcrumbItems = [
+            ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
+            ['label' => 'Blog', 'url' => route($locale.'.blog.index')],
+        ];
+        if ($post->blogCategory && filled($catTr?->name ?? $post->blogCategory->name)) {
+            $breadcrumbItems[] = [
+                'label' => $catTr?->name ?? $post->blogCategory->name,
+                'url' => LocaleUrl::for('blog_category', $catTr?->slug ?? $post->blogCategory->slug, $locale),
+            ];
+        }
+        $breadcrumbItems[] = ['label' => $translation->title, 'url' => null];
 
         $blog = (object) [
             'title'                    => $translation->title,
@@ -484,7 +502,8 @@ class BlogController extends Controller
         return view('pages.blog.show', compact(
             'blog', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
-            'categories', 'latestPosts', 'morePostsList', 'relatedPosts', 'allTags'
+            'categories', 'latestPosts', 'morePostsList', 'relatedPosts', 'allTags',
+            'breadcrumbItems'
         ) + ['noScrollSmoother' => true]);
     }
 }
