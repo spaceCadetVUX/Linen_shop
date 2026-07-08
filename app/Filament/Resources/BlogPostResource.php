@@ -58,7 +58,8 @@ class BlogPostResource extends Resource
                                 ->relationship('blogCategory', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->nullable(),
+                                ->required()
+                                ->helperText('Bắt buộc — URL bài viết công khai (/bai-viet/{category}/{slug}) phụ thuộc vào category. Bài không có category sẽ bị gãy link.'),
 
                             MediaFileUpload::make('featured_image')
                                 ->label('Featured Image')

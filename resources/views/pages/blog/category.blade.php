@@ -6,6 +6,8 @@
 
 @section('content')
 
+<x-ui.breadcrumb :items="$breadcrumbItems" />
+
     <!-- ==============================  BLOG CATEGORY  ============================== -->
     {{-- Temporary UI: reuses the jnl-* structure from pages/blog/index.blade.php --}}
     <div class="jnl-page">
@@ -67,7 +69,43 @@
         </div>
       @endif
 
-      {{-- TODO: $faqs (GEO profile) not rendered yet — no FAQ section design for this page --}}
+      {{-- ============================================================
+           RICH CONTENT — admin-managed (BlogCategoryResource RichEditor),
+           rendered at the bottom of the page, below the articles grid.
+           ============================================================ --}}
+      @if($richContentHtml)
+        <section class="category-rich-content">
+          <div class="jnl-post-body">
+            {!! $richContentHtml !!}
+          </div>
+        </section>
+      @endif
+
+      {{-- ============================================================
+           FAQ — admin-managed (GeoEntityProfile.faq). Reuses the PDP/category
+           accordion pattern (.pd-accordions / .pd-acc-trigger) — toggle wired
+           globally in app.js.
+           ============================================================ --}}
+      @if(count($faqs))
+        <section class="jnl-post-faq">
+          <div class="jnl-post-body">
+            <h2 class="jnl-post-related-hd">{{ $locale === 'vi' ? 'Câu hỏi thường gặp' : 'Frequently asked questions' }}</h2>
+            <div class="pd-accordions">
+              @foreach($faqs as $faq)
+                <div class="pd-accordion">
+                  <button class="pd-acc-trigger" aria-expanded="false" type="button">
+                    <span>{{ $faq['question'] }}</span>
+                    <span class="pd-acc-icon" aria-hidden="true">+</span>
+                  </button>
+                  <div class="pd-acc-body">
+                    <p>{{ $faq['answer'] }}</p>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          </div>
+        </section>
+      @endif
 
     </div><!-- /.jnl-page -->
 

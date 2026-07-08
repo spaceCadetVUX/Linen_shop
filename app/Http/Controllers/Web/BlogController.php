@@ -281,17 +281,42 @@ class BlogController extends Controller
 
         $blogCategory->loadMissing('seoMetas');
 
+        // ── Rich content — admin-managed (BlogCategoryResource RichEditor).
+        // Stored as plain HTML (rich_content has no 'array' cast, unlike product
+        // CategoryTranslation), so no Tiptap JSON→HTML conversion needed here.
+        $richContentHtml = filled($translation->rich_content) ? $translation->rich_content : null;
+
         $geoProfile = GeoEntityProfile::where('model_type', 'blog_category')
             ->where('model_id', (string) $blogCategory->id)
             ->where('locale', $locale)
             ->first();
-        $faqs = $geoProfile?->faq ?? [];
+        $faqItems = $geoProfile?->faq ?? [];
+        $faqs = array_values(array_filter(array_map(
+            fn ($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
+            $faqItems
+        )));
+
+        // ── Breadcrumb (visible) — mirrors JsonldService::buildBlogCategoryBreadcrumb()
+        // so the visible trail never disagrees with the BreadcrumbList JSON-LD.
+        $breadcrumbItems = [
+            ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
+            ['label' => 'Blog', 'url' => route($locale.'.blog.index')],
+        ];
+        $parentTranslation = $blogCategory->parent?->translation($locale);
+        if ($parentTranslation) {
+            $breadcrumbItems[] = [
+                'label' => $parentTranslation->name,
+                'url' => LocaleUrl::for('blog_category', $parentTranslation->slug, $locale),
+            ];
+        }
+        $breadcrumbItems[] = ['label' => $translation->name, 'url' => null];
 
         view()->share('alternateUrls', $alternateUrls);
 
         return view('pages.blog.category', compact(
             'blogCategory', 'translation', 'blogs', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
-            'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType', 'faqs'
+            'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType', 'faqs', 'breadcrumbItems',
+            'richContentHtml'
         ) + ['noScrollSmoother' => true]);
     }
 
@@ -455,6 +480,7 @@ class BlogController extends Controller
                 $rawImg = $p?->featured_image;
                 $p->slug                     = $tr->slug;
                 $p->title                    = $tr->title;
+                $p->excerpt                  = $tr->excerpt;
                 $p->category                 = $cTr?->name ?? $p?->blogCategory?->name;
                 $p->category_slug            = $cTr?->slug ?? $p?->blogCategory?->slug;
                 $p->featured_image           = $rawImg ? 'storage/' . ltrim($rawImg, '/') : null;
@@ -486,6 +512,7 @@ class BlogController extends Controller
                     $rawImg = $p?->featured_image;
                     $p->slug                     = $tr->slug;
                     $p->title                    = $tr->title;
+                    $p->excerpt                  = $tr->excerpt;
                     $p->category                 = $cTr?->name ?? $p?->blogCategory?->name;
                     $p->category_slug            = $cTr?->slug ?? $p?->blogCategory?->slug;
                     $p->featured_image           = $rawImg ? 'storage/' . ltrim($rawImg, '/') : null;

@@ -142,6 +142,13 @@ class McpBlogPostService
     {
         $post = $this->findBySlug($slug, ['translations', 'seoMetas', 'geoProfiles', 'blogCategory.translations', 'author', 'tags', 'jsonldSchemas']);
 
+        // Public post URL is nested under its category (/bai-viet/{category}/{slug});
+        // a category-less post is unreachable (redirect loop) once published —
+        // same rule enforced on the Filament admin form (BlogPostResource).
+        if (! $post->blog_category_id) {
+            abort(422, "Cannot publish '{$slug}': blog_category is required. Call save_blog_post with blog_category_slug first.");
+        }
+
         $publishedAt = isset($data['published_at'])
             ? Carbon::parse($data['published_at'])
             : now();
@@ -250,11 +257,12 @@ class McpBlogPostService
         $total++; if ($hasFeaturedImage) $score++;
         if (!$hasFeaturedImage) $warnings[] = 'featured_image chưa có';
 
-        // has_blog_category (warning)
+        // has_blog_category (blocking — public post URL requires a category slug;
+        // a category-less published post is unreachable, see LocaleUrl::forBlogPost())
         $hasBlogCategory = filled($post->blog_category_id);
         $checks['general']['has_blog_category'] = ['pass' => $hasBlogCategory];
         $total++; if ($hasBlogCategory) $score++;
-        if (!$hasBlogCategory) $warnings[] = 'blog_category chưa có';
+        if (!$hasBlogCategory) $blocking[] = 'blog_category chưa có — bắt buộc để URL bài viết hoạt động';
 
         $scorePercent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
 
