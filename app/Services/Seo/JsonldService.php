@@ -1085,6 +1085,8 @@ class JsonldService
             return;
         }
 
+        $pageUrl = $this->resolvePublicUrl($model, $morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale);
+
         JsonldSchema::updateOrCreate(
             [
                 'model_type' => $morphAlias,
@@ -1098,8 +1100,8 @@ class JsonldService
                 'payload' => [
                     '@context' => 'https://schema.org',
                     '@type' => 'FAQPage',
-                    '@id' => LocaleUrl::for($morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale).'#faq',
-                    'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => LocaleUrl::for($morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale)],
+                    '@id' => $pageUrl.'#faq',
+                    'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $pageUrl],
                     'mainEntity' => $mainEntity,
                 ],
                 'is_active' => true,
@@ -1473,19 +1475,30 @@ class JsonldService
         return LocaleUrl::for($morphAlias, $slug, $locale);
     }
 
+    /**
+     * Public-facing URL for a model, honoring blog_post's nested category/post
+     * URL structure. blog_post has no own `slug` column (dropped in favor of
+     * per-locale translations) and its canonical route is nested under its
+     * category (/bai-viet/{category}/{slug}), so it can never go through the
+     * generic slug-based canonicalRouteFor()/LocaleUrl::for() — every call site
+     * that needs a model's real public URL must go through here instead of
+     * re-deriving it locally (canonical_url and FAQPage @id both regressed to
+     * the broken flat URL before this was centralized).
+     */
+    private function resolvePublicUrl(Model $model, string $morphAlias, string $slug, string $locale): string
+    {
+        return ($model instanceof BlogPost)
+            ? LocaleUrl::forBlogPost($model, $locale)
+            : $this->canonicalRouteFor($morphAlias, $slug, $locale);
+    }
+
     private function buildValueMap(Model $model, string $locale = 'vi'): array
     {
         $morphAlias = $model->getMorphClass();
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
         $slug = (string) ($model->getAttribute('slug') ?? '');
 
-        // blog_post has no own `slug` column (dropped in favor of per-locale
-        // translations) — the generic slug-based canonicalRouteFor() would
-        // resolve to an empty slug. Use the nested category/post URL builder,
-        // same one used by BreadcrumbList and hreflang alternates.
-        $canonicalUrl = ($model instanceof BlogPost)
-            ? LocaleUrl::forBlogPost($model, $locale)
-            : $this->canonicalRouteFor($morphAlias, $slug, $locale);
+        $canonicalUrl = $this->resolvePublicUrl($model, $morphAlias, $slug, $locale);
 
         // Seed with all raw DB attributes (name, slug, sku, price, etc.)
         $map = $model->getAttributes();
@@ -1564,7 +1577,7 @@ class JsonldService
                 }
                 if (filled($t->slug)) {
                     $map['slug'] = $t->slug;
-                    $canonicalUrl = $this->canonicalRouteFor($morphAlias, $t->slug, $locale);
+                    $canonicalUrl = $this->resolvePublicUrl($model, $morphAlias, $t->slug, $locale);
                 }
                 if (filled($t->excerpt)) {
                     $map['excerpt'] = $t->excerpt;
