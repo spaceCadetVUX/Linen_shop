@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\Product\ProductController;
 use App\Http\Controllers\Api\V1\Product\ProductSearchController;
 use App\Http\Controllers\Api\V1\Review\ReviewController;
 use App\Http\Controllers\Api\V1\Site\SiteConfigController;
+use App\Http\Controllers\Api\V1\Wishlist\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -90,6 +91,11 @@ Route::prefix('v1')->group(function () {
     Route::put('cart/items/{cartItem}',         [CartItemController::class, 'update']);
     Route::delete('cart/items/{cartItem}',      [CartItemController::class, 'destroy']);
     Route::middleware('auth:sanctum')->post('cart/merge', [CartController::class, 'merge']);
+
+    // ── Wishlist ──────────────────────────────────────────────────────────
+    // Guest + auth, same resolution as Cart (X-Session-ID for guests).
+    Route::get('wishlist',         [WishlistController::class, 'index']);
+    Route::post('wishlist/toggle', [WishlistController::class, 'toggle']);
 
     // ── Addresses (S50) ──────────────────────────────────────────────────
     Route::middleware('auth:sanctum')->group(function () {
