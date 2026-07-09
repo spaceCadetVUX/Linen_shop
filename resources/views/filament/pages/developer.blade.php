@@ -76,6 +76,11 @@
 
     <div style="display:flex; flex-direction:column; gap:1.5rem;">
 
+        {{-- ── Robots.txt ─────────────────────────────────────────────────── --}}
+        <form wire:submit.prevent="saveRobots">
+            {{ $this->form }}
+        </form>
+
         {{-- ── Tech stack ─────────────────────────────────────────────────── --}}
         <x-filament::section>
             <x-slot name="heading">Tech stack</x-slot>

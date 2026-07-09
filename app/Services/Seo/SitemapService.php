@@ -14,6 +14,14 @@ class SitemapService
     /**
      * Morph alias → SEO defaults for sitemap entries.
      * URL generation uses LocaleUrl::for() — not route() — so paths match config/localeurl.php.
+     *
+     * 'brand' / 'manufacturer' deliberately NOT listed here: BrandObserver/
+     * ManufacturerObserver already dispatch SyncSitemapEntry on save (per
+     * HasSitemapEntry trait), but there is no Web route rendering a brand/
+     * manufacturer detail page yet (only Api\V1\Catalog\*Controller exists) —
+     * config/localeurl.php's 'brand'/'manufacturer' paths are reserved for
+     * that future page. Adding them here now would publish 404 URLs into
+     * the sitemap. Add once the Web show page ships.
      */
     private const MODEL_CONFIG = [
         'product'       => ['changefreq' => SitemapChangefreq::Daily,  'priority' => 0.8],

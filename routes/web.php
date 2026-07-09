@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\LlmsController;
 use App\Http\Controllers\Web\PageController;
 use App\Http\Controllers\Web\ProductController;
+use App\Http\Controllers\Web\RobotsController;
 use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\SitemapController;
 use App\Http\Controllers\Web\SizeGuideController;
@@ -26,6 +27,9 @@ Route::get('/', function () {
 
 // ── System: Health Check ─────────────────────────────────────────────────────
 Route::get('health', HealthController::class);
+
+// ── SEO: Robots ───────────────────────────────────────────────────────────────
+Route::get('robots.txt', [RobotsController::class, 'index']);
 
 // ── SEO: Sitemap XML ─────────────────────────────────────────────────────────
 Route::get('sitemap.xml', [SitemapController::class, 'index']);

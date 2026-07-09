@@ -1,0 +1,15 @@
+$profile = App\Models\BusinessProfile::instance();
+echo 'profile_ok id=' . $profile->id . PHP_EOL;
+$extra = (array) ($profile->extra ?? []);
+$extra['robots_txt'] = "User-agent: test\nDisallow: /foo/";
+$profile->extra = $extra;
+$profile->saveQuietly();
+echo 'saved_ok' . PHP_EOL;
+$fresh = App\Models\BusinessProfile::instance()->fresh();
+echo 'reload_robots_txt=' . ($fresh->extra['robots_txt'] ?? 'NULL') . PHP_EOL;
+echo 'default_body_len=' . strlen(App\Http\Controllers\Web\RobotsController::defaultBody()) . PHP_EOL;
+// revert test write
+$extra['robots_txt'] = null;
+$profile->extra = $extra;
+$profile->saveQuietly();
+echo 'reverted_ok' . PHP_EOL;

@@ -2,8 +2,15 @@
 
 namespace App\Filament\Pages;
 
+use App\Http\Controllers\Web\RobotsController;
+use App\Models\BusinessProfile;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\DB;
 
 class DeveloperPage extends Page
@@ -14,6 +21,72 @@ class DeveloperPage extends Page
     protected static ?int                  $navigationSort  = 40;
 
     protected string $view = 'filament.pages.developer';
+
+    public ?array $data = [];
+
+    public function mount(): void
+    {
+        $robotsTxt = (string) (BusinessProfile::instance()->extra['robots_txt'] ?? '');
+
+        $this->form->fill([
+            'robots_txt' => $robotsTxt !== '' ? $robotsTxt : RobotsController::defaultBody(),
+        ]);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        $sitemapLine = 'Sitemap: '.rtrim(config('app.url'), '/').'/sitemap.xml';
+
+        return $schema
+            ->schema([
+                Section::make('Robots.txt')
+                    ->icon('heroicon-o-document-text')
+                    ->description('Nội dung rule robots.txt — dòng "Sitemap:" luôn tự thêm vào cuối theo APP_URL hiện tại, không sửa được ở đây để tránh lặp lại bug hardcode sai domain.')
+                    ->schema([
+                        Textarea::make('robots_txt')
+                            ->label(false)
+                            ->rows(18)
+                            ->extraInputAttributes(['style' => 'font-family:ui-monospace,monospace;font-size:0.8125rem;'])
+                            ->helperText("Sẽ tự thêm dòng cuối: {$sitemapLine}")
+                            ->columnSpanFull(),
+                    ]),
+            ])
+            ->statePath('data');
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('viewRobots')
+                ->label('Xem robots.txt')
+                ->icon('heroicon-o-arrow-top-right-on-square')
+                ->color('gray')
+                ->url('/robots.txt')
+                ->openUrlInNewTab(),
+
+            Action::make('saveRobots')
+                ->label('Lưu robots.txt')
+                ->icon('heroicon-o-check')
+                ->action('saveRobots'),
+        ];
+    }
+
+    public function saveRobots(): void
+    {
+        $data = $this->form->getState();
+
+        $profile = BusinessProfile::instance();
+        $extra = (array) ($profile->extra ?? []);
+        $extra['robots_txt'] = trim((string) ($data['robots_txt'] ?? ''));
+
+        $profile->extra = $extra;
+        $profile->saveQuietly();
+
+        Notification::make()
+            ->title('Đã lưu robots.txt')
+            ->success()
+            ->send();
+    }
 
     public function getSystemInfo(): array
     {

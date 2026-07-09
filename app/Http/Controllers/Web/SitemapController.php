@@ -18,8 +18,13 @@ class SitemapController extends Controller
             ->orderBy('name')
             ->get();
 
+        // sitemap-static.xml has no sitemap_indexes row (hardcoded pages, not
+        // DB-driven) — inject it manually so home/about/shop/blog-index stay
+        // discoverable through the master index crawlers actually read.
+        $staticUrl = url('sitemap-static.xml');
+
         return response()
-            ->view('sitemap.index', compact('indexes'))
+            ->view('sitemap.index', compact('indexes', 'staticUrl'))
             ->header('Content-Type', 'application/xml; charset=UTF-8')
             ->header('Cache-Control', 'public, max-age=3600');
     }
