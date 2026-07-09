@@ -22,7 +22,9 @@ class StoreReviewRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'content' => ['required', 'string', 'min:3', 'max:2000'],
             'images' => ['nullable', 'array', 'max:5'],
-            'images.*' => ['image', 'max:4096'],
+            // mimes (not the broader `image` rule) — excludes svg/bmp/gif,
+            // real customer photos are always raster camera/phone formats.
+            'images.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ];
     }
 }

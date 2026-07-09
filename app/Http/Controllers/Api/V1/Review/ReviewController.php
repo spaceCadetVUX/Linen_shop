@@ -22,7 +22,10 @@ class ReviewController extends Controller
 
     public function index(string $slug, Request $request): JsonResponse
     {
-        $product = $this->productService->getBySlug($slug);
+        // Any-locale lookup — this route has no {locale} segment, and the
+        // slug passed in is whatever the current PDP shows (VI or EN
+        // translation slug, which can differ from the base products.slug).
+        $product = $this->productService->getBySlugAnyLocale($slug);
 
         $reviews = $this->reviewService->listForProduct(
             product: $product,
@@ -38,7 +41,10 @@ class ReviewController extends Controller
 
     public function store(string $slug, StoreReviewRequest $request): JsonResponse
     {
-        $product = $this->productService->getBySlug($slug);
+        // Any-locale lookup — this route has no {locale} segment, and the
+        // slug passed in is whatever the current PDP shows (VI or EN
+        // translation slug, which can differ from the base products.slug).
+        $product = $this->productService->getBySlugAnyLocale($slug);
 
         $review = $this->reviewService->submit(
             product: $product,

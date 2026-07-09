@@ -100,6 +100,18 @@
           </button>
         </div>
 
+        @if($reviewSummary['count'] > 0)
+          <a href="#pdReviews" class="pd-rating-badge">
+            <span class="pd-rating-stars" aria-hidden="true">
+              @for($i = 1; $i <= 5; $i++)
+                <span class="pd-star @if($i <= round($reviewSummary['average'])) is-filled @endif">★</span>
+              @endfor
+            </span>
+            <span class="pd-rating-num">{{ number_format($reviewSummary['average'], 1) }}</span>
+            <span class="pd-rating-count">({{ $reviewSummary['count'] }} {{ $locale === 'vi' ? 'đánh giá' : ($reviewSummary['count'] == 1 ? 'review' : 'reviews') }})</span>
+          </a>
+        @endif
+
         @if($product->show_price)
           <div class="pd-price-row">
             @if($salePrice)
@@ -325,7 +337,7 @@
   </div>
 
   @if($reviews->hasPages())
-    <nav class="pd-reviews-pagination">{{ $reviews->onEachSide(1)->links() }}</nav>
+    <nav class="pd-reviews-pagination">{{ $reviews->onEachSide(1)->withQueryString()->links() }}</nav>
   @endif
 
   <div class="pd-review-form-wrap">
@@ -337,9 +349,11 @@
       </div>
       <div class="pd-review-form-rating">
         <span class="pd-review-form-rating-label">{{ $locale === 'vi' ? 'Chọn số sao' : 'Your rating' }}</span>
+        {{-- No pre-checked default — a default rating biases submissions toward it
+             when someone doesn't bother touching the widget. Must pick one to submit. --}}
         <div class="pd-review-rating-input" role="radiogroup">
           @for($i = 5; $i >= 1; $i--)
-            <input type="radio" name="rating" id="pdRating{{ $i }}" value="{{ $i }}" @if($i === 5) checked @endif>
+            <input type="radio" name="rating" id="pdRating{{ $i }}" value="{{ $i }}" required>
             <label for="pdRating{{ $i }}" class="pd-star-choice">★</label>
           @endfor
         </div>

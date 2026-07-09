@@ -34,6 +34,20 @@ class ProductService
     }
 
     /**
+     * Same as getBySlug(), but resolves per-locale translation slugs too.
+     * Use for endpoints called with whatever slug the current-locale PDP
+     * shows (e.g. reviews) — see ProductRepository::findActiveBySlugAnyLocale().
+     */
+    public function getBySlugAnyLocale(string $slug): Product
+    {
+        $product = $this->productRepository->findActiveBySlugAnyLocale($slug);
+
+        abort_if(! $product, 404, 'Product not found.');
+
+        return $product;
+    }
+
+    /**
      * Products for the header mega menu "Sản phẩm mới" slider (column 1).
      * Admin-curated via Mega Menu Setting (extra.mega_menu.new_products_ids,
      * order preserved); falls back to the 4 newest active products when the

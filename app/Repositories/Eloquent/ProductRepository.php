@@ -208,6 +208,34 @@ class ProductRepository extends BaseRepository
             ->first();
     }
 
+    /**
+     * Same as findActiveBySlug(), but also matches per-locale translation
+     * slugs (product_translations.slug) — needed anywhere the caller only
+     * knows the slug shown on the current locale's PDP, which can differ
+     * from the base products.slug column (e.g. EN translation slug).
+     *
+     * Checks products.slug FIRST (globally unique — safe) and only falls
+     * back to product_translations.slug if nothing matched. translations.slug
+     * is only unique per (locale, slug), not globally, so an OR'd single
+     * query could in theory match a different product's translation slug
+     * than intended; two-step lookup keeps the safe, unambiguous match
+     * as the priority and only risks the rarer collision on the fallback.
+     */
+    public function findActiveBySlugAnyLocale(string $slug): ?Product
+    {
+        $product = $this->findActiveBySlug($slug);
+
+        if ($product) {
+            return $product;
+        }
+
+        /** @var Product|null */
+        return $this->query()
+            ->where('is_active', true)
+            ->whereHas('translations', fn ($t) => $t->where('slug', $slug))
+            ->first();
+    }
+
     // ── Header / mega menu ───────────────────────────────────────────────────────
 
     /**

@@ -192,8 +192,9 @@ class ReviewResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListReviews::route('/'),
-            'edit'  => Pages\EditReview::route('/{record}/edit'),
+            'index'  => Pages\ListReviews::route('/'),
+            'create' => Pages\CreateReview::route('/create'),
+            'edit'   => Pages\EditReview::route('/{record}/edit'),
         ];
     }
 }

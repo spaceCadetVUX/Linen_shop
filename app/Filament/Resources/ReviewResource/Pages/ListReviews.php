@@ -3,16 +3,20 @@
 namespace App\Filament\Resources\ReviewResource\Pages;
 
 use App\Filament\Resources\ReviewResource;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListReviews extends ListRecords
 {
     protected static string $resource = ReviewResource::class;
 
-    // No Create button — reviews must come from real users via frontend.
-    // Admin can only approve / reject / delete.
+    // Admin can enter a review on a customer's behalf (e.g. relayed via
+    // Zalo/phone) — must reflect what that real customer actually said,
+    // never fabricated content used to pad the rating.
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            CreateAction::make(),
+        ];
     }
 }
