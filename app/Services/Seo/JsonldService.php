@@ -2,7 +2,6 @@
 
 namespace App\Services\Seo;
 
-use App\Enums\BlogPostStatus;
 use App\Enums\JsonldSchemaType;
 use App\Models\BlogPost;
 use App\Models\Product;
@@ -983,7 +982,7 @@ class JsonldService
 
         if (method_exists($model, 'posts')) {
             try {
-                $postCount = $model->posts()->where('status', BlogPostStatus::Published)->count();
+                $postCount = $model->posts()->published()->count();
                 $payload['numberOfItems'] = $postCount;
 
                 if ($postCount > 0) {
@@ -991,7 +990,7 @@ class JsonldService
                     $locales = array_unique([$locale, $fallbackLocale]);
 
                     $topPosts = $model->posts()
-                        ->where('status', BlogPostStatus::Published)
+                        ->published()
                         ->with(['translations' => fn ($q) => $q->whereIn('locale', $locales)])
                         ->orderBy('published_at', 'desc')
                         ->limit(20)
@@ -1083,9 +1082,12 @@ class JsonldService
         $geoProfile = $model->geoProfile($locale);
         $faq = (array) ($geoProfile?->faq ?? []);
 
-        // Products store FAQ on the root model (faq_items_vi/en), not in geoProfiles.faq.
-        // Fall back when geoProfile has no faq data.
-        if (empty($faq) && $morphAlias === 'product') {
+        // Products and blog posts store legacy FAQ on the root model
+        // (faq_items_vi/en), not in geoProfiles.faq. Fall back when geoProfile
+        // has no faq data — mirrors the same fallback BlogController::show()
+        // uses to render the visible FAQ accordion, so the schema never goes
+        // missing for a post whose FAQ was never migrated to GeoEntityProfile.
+        if (empty($faq) && in_array($morphAlias, ['product', 'blog_post'], true)) {
             $faqField = 'faq_items_'.$locale;
             $faq = (array) ($model->getAttribute($faqField) ?? []);
         }

@@ -2,48 +2,56 @@
 
 namespace App\Http\Controllers\Web;
 
-use App\Http\Controllers\Controller;
 use App\Enums\BlogPostStatus;
+use App\Http\Controllers\Controller;
 use App\Models\BlogCategory;
 use App\Models\BlogCategoryTranslation;
-use App\Models\BlogPost;
 use App\Models\BlogPostTranslation;
 use App\Models\BlogTag;
 use App\Models\BusinessProfile;
-use App\Models\Setting;
 use App\Models\Seo\GeoEntityProfile;
+use App\Models\Setting;
+use App\Repositories\Eloquent\BlogPostRepository;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
 use App\Support\LocaleUrl;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
+use Tiptap\Editor;
+use Tiptap\Extensions\StarterKit;
+use Tiptap\Nodes\Image;
+use Tiptap\Nodes\Table;
+use Tiptap\Nodes\TableCell;
+use Tiptap\Nodes\TableHeader;
+use Tiptap\Nodes\TableRow;
 
 class BlogController extends Controller
 {
+    public function __construct(private BlogPostRepository $blogPostRepository) {}
+
     public function index(string $locale): View
     {
-        $search         = request()->string('q')->toString() ?: null;
+        $search = request()->string('q')->toString() ?: null;
         $categoryFilter = array_filter((array) request('blog_category', []));
 
         // ── Category filter pills ──────────────────────────────────────────────
         $blogCategories = BlogCategory::active()
             ->whereNull('parent_id')
             ->with([
-                'translations'          => fn ($q) => $q->where('locale', $locale),
-                'children'              => fn ($q) => $q->active()
+                'translations' => fn ($q) => $q->where('locale', $locale),
+                'children' => fn ($q) => $q->active()
                     ->withCount(['posts as blog_count' => fn ($q) => $q->published()])
                     ->with(['translations' => fn ($q) => $q->where('locale', $locale)]),
             ])
             ->withCount(['posts as root_count' => fn ($q) => $q->published()])
             ->orderBy('sort_order')
             ->get()
-            ->each(function ($cat) use ($locale) {
-                $tr        = $cat->translations->first();
+            ->each(function ($cat) {
+                $tr = $cat->translations->first();
                 $cat->name = $tr?->name ?? $cat->name;
                 $cat->slug = $tr?->slug ?? $cat->slug;
-                $cat->children->each(function ($child) use ($locale) {
-                    $tr          = $child->translations->first();
+                $cat->children->each(function ($child) {
+                    $tr = $child->translations->first();
                     $child->name = $tr?->name ?? $child->name;
                     $child->slug = $tr?->slug ?? $child->slug;
                 });
@@ -51,50 +59,7 @@ class BlogController extends Controller
             });
 
         // ── Blog posts query ───────────────────────────────────────────────────
-        $postsQuery = BlogPostTranslation::where('locale', $locale)
-            ->join('blog_posts', 'blog_posts.id', '=', 'blog_post_translations.blog_post_id')
-            ->where('blog_posts.status', BlogPostStatus::Published)
-            ->where('blog_posts.published_at', '<=', now())
-            ->whereNull('blog_posts.deleted_at')
-            ->select('blog_post_translations.*')
-            ->with([
-                'blogPost' => fn ($q) => $q->with([
-                    'blogCategory.translations' => fn ($q) => $q->where('locale', $locale),
-                ]),
-            ])
-            ->orderByDesc('blog_posts.published_at');
-
-        if ($search) {
-            $postsQuery->where(fn ($q) => $q
-                ->where('blog_post_translations.title', 'ilike', "%{$search}%")
-                ->orWhere('blog_post_translations.excerpt', 'ilike', "%{$search}%")
-            );
-        }
-
-        if ($categoryFilter) {
-            $postsQuery->whereExists(fn ($q) => $q
-                ->from('blog_category_translations')
-                ->whereColumn('blog_category_translations.blog_category_id', 'blog_posts.blog_category_id')
-                ->where('blog_category_translations.locale', $locale)
-                ->whereIn('blog_category_translations.slug', $categoryFilter)
-            );
-        }
-
-        $rawBlogs = $postsQuery->paginate(12)->withQueryString();
-
-        $blogs = $rawBlogs->through(function ($tr) {
-            $post                           = $tr->blogPost;
-            $catTr                          = $post?->blogCategory?->translations->first();
-            $rawImage                       = $post?->featured_image;
-            $post->slug                     = $tr->slug;
-            $post->title                    = $tr->title;
-            $post->excerpt                  = $tr->excerpt;
-            $post->category                 = $catTr?->name ?? $post?->blogCategory?->name;
-            $post->category_slug            = $catTr?->slug ?? $post?->blogCategory?->slug;
-            $post->featured_image           = $rawImage ? 'storage/' . ltrim($rawImage, '/') : null;
-            $post->formatted_published_date = $post?->published_at?->translatedFormat('d M, Y');
-            return $post;
-        });
+        $blogs = $this->blogPostRepository->paginateIndexDecorated($locale, $search, array_values($categoryFilter), 12);
 
         // Resolve display name for the active category filter label
         $categoryName = null;
@@ -170,25 +135,25 @@ class BlogController extends Controller
         ];
 
         return view('pages.blog.index', [
-            'blogs'               => $blogs,
-            'blogCategories'      => $blogCategories,
-            'searchTerm'          => $search,
-            'category'            => $categoryName,
+            'blogs' => $blogs,
+            'blogCategories' => $blogCategories,
+            'searchTerm' => $search,
+            'category' => $categoryName,
             'activeCategorySlugs' => array_values($categoryFilter),
-            'locale'              => $locale,
-            'seoMeta'             => null,
-            'jsonldSchemas'       => $jsonldSchemas,
-            'canonicalUrl'        => $canonicalUrl,
-            'blogHeroUrl'         => $blogHeroUrl,
-            'blogHeroAlt'         => $blogHeroAlt,
-            'fallbackTitle'       => $fallbackTitle,
+            'locale' => $locale,
+            'seoMeta' => null,
+            'jsonldSchemas' => $jsonldSchemas,
+            'canonicalUrl' => $canonicalUrl,
+            'blogHeroUrl' => $blogHeroUrl,
+            'blogHeroAlt' => $blogHeroAlt,
+            'fallbackTitle' => $fallbackTitle,
             'fallbackDescription' => $locale === 'vi'
                 ? (Setting::get('blog_index_description') ?: 'Cập nhật kiến thức, xu hướng và câu chuyện từ chúng tôi.')
                 : (Setting::get('blog_index_description_en') ?: 'Insights, trends and stories from our team.'),
-            'fallbackImage'       => (($ogRaw = Setting::get('default_og_image')) && filled($ogRaw))
-                                        ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/' . ltrim($ogRaw, '/')))
+            'fallbackImage' => (($ogRaw = Setting::get('default_og_image')) && filled($ogRaw))
+                                        ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/'.ltrim($ogRaw, '/')))
                                         : null,
-            'ogType'              => 'website',
+            'ogType' => 'website',
         ]);
     }
 
@@ -219,17 +184,17 @@ class BlogController extends Controller
             abort(404);
         }
 
-        $alternateUrls       = app(SeoService::class)->alternateUrls($blogCategory);
-        $seoMeta             = $blogCategory->seoMeta($locale);
-        $jsonldSchemas       = app(JsonldService::class)->getActiveSchemas($blogCategory, $locale)
+        $alternateUrls = app(SeoService::class)->alternateUrls($blogCategory);
+        $seoMeta = $blogCategory->seoMeta($locale);
+        $jsonldSchemas = app(JsonldService::class)->getActiveSchemas($blogCategory, $locale)
             ->pluck('payload')
             ->toArray();
-        $fallbackTitle       = $translation->name;
+        $fallbackTitle = $translation->name;
         $fallbackDescription = $translation->description ?? '';
-        $fallbackImage       = (($ogRaw = Setting::get('default_og_image')) && filled($ogRaw))
-                                    ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/' . ltrim($ogRaw, '/')))
+        $fallbackImage = (($ogRaw = Setting::get('default_og_image')) && filled($ogRaw))
+                                    ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/'.ltrim($ogRaw, '/')))
                                     : null;
-        $ogType              = 'website';
+        $ogType = 'website';
 
         // ── Subcategory pills ──────────────────────────────────────────────────
         $blogCategory->loadMissing([
@@ -238,8 +203,8 @@ class BlogController extends Controller
                 ->with(['translations' => fn ($q) => $q->where('locale', $locale)])
                 ->orderBy('sort_order'),
         ]);
-        $blogCategory->children->each(function ($child) use ($locale) {
-            $tr          = $child->translations->first();
+        $blogCategory->children->each(function ($child) {
+            $tr = $child->translations->first();
             $child->name = $tr?->name ?? $child->name;
             $child->slug = $tr?->slug ?? $child->slug;
         });
@@ -249,35 +214,12 @@ class BlogController extends Controller
             ->merge($blogCategory->children->pluck('id'))
             ->unique();
 
-        $rawPosts = BlogPostTranslation::where('blog_post_translations.locale', $locale)
-            ->join('blog_posts', 'blog_posts.id', '=', 'blog_post_translations.blog_post_id')
-            ->where('blog_posts.status', BlogPostStatus::Published)
-            ->where('blog_posts.published_at', '<=', now())
-            ->whereNull('blog_posts.deleted_at')
-            ->whereIn('blog_posts.blog_category_id', $categoryIds)
-            ->select('blog_post_translations.*')
-            ->with([
-                'blogPost' => fn ($q) => $q->with([
-                    'blogCategory.translations' => fn ($q) => $q->where('locale', $locale),
-                ]),
-            ])
-            ->orderByDesc('blog_posts.published_at')
-            ->paginate(12)
-            ->withQueryString();
+        $blogs = $this->blogPostRepository->paginateByCategoryIdsDecorated($locale, $categoryIds->all(), 12);
 
-        $blogs = $rawPosts->through(function ($tr) {
-            $post                           = $tr->blogPost;
-            $catTr                          = $post?->blogCategory?->translations->first();
-            $rawImage                       = $post?->featured_image;
-            $post->slug                     = $tr->slug;
-            $post->title                    = $tr->title;
-            $post->excerpt                  = $tr->excerpt;
-            $post->category                 = $catTr?->name ?? $post?->blogCategory?->name;
-            $post->category_slug            = $catTr?->slug ?? $post?->blogCategory?->slug;
-            $post->featured_image           = $rawImage ? 'storage/' . ltrim($rawImage, '/') : null;
-            $post->formatted_published_date = $post?->published_at?->translatedFormat('d M, Y');
-            return $post;
-        });
+        // Self-referencing canonical for pagination — same rule as blog index()/PLP.
+        $canonicalUrl = $blogs->currentPage() > 1
+            ? route($locale.'.blog.category', $translation->slug).'?page='.$blogs->currentPage()
+            : route($locale.'.blog.category', $translation->slug);
 
         $blogCategory->loadMissing('seoMetas');
 
@@ -316,7 +258,7 @@ class BlogController extends Controller
         return view('pages.blog.category', compact(
             'blogCategory', 'translation', 'blogs', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType', 'faqs', 'breadcrumbItems',
-            'richContentHtml'
+            'richContentHtml', 'canonicalUrl'
         ) + ['noScrollSmoother' => true]);
     }
 
@@ -336,6 +278,7 @@ class BlogController extends Controller
 
             if ($viTranslation) {
                 $post = $viTranslation->blogPost->load('blogCategory.translations');
+
                 return redirect(LocaleUrl::forBlogPost($post, $viTranslation->locale), 302);
             }
 
@@ -357,7 +300,7 @@ class BlogController extends Controller
         ]);
 
         // Validate category slug — redirect to canonical if wrong
-        $catTr              = $post->blogCategory?->translations->firstWhere('locale', $locale);
+        $catTr = $post->blogCategory?->translations->firstWhere('locale', $locale);
         $actualCategorySlug = $catTr?->slug ?? $post->blogCategory?->slug;
 
         if ($post->blog_category_id && $actualCategorySlug && $categorySlug !== $actualCategorySlug) {
@@ -365,7 +308,7 @@ class BlogController extends Controller
         }
 
         $alternateUrls = app(SeoService::class)->alternateUrls($post);
-        $seoMeta       = $post->seoMeta($locale);
+        $seoMeta = $post->seoMeta($locale);
         $jsonldSchemas = app(JsonldService::class)->getActiveSchemas($post, $locale)
             ->pluck('payload')
             ->toArray();
@@ -383,9 +326,9 @@ class BlogController extends Controller
         )));
 
         // ── Blog DTO ───────────────────────────────────────────────────────────
-        $catTr    = $post->blogCategory?->translations->firstWhere('locale', $locale);
+        $catTr = $post->blogCategory?->translations->firstWhere('locale', $locale);
         $rawImage = $post->featured_image;
-        $rawBody  = $translation->body ?? '';
+        $rawBody = $translation->body ?? '';
 
         // Convert Tiptap JSON → HTML if needed
         $bodyHtml = $rawBody;
@@ -393,14 +336,14 @@ class BlogController extends Controller
             $decoded = json_decode($rawBody, true);
             if (json_last_error() === JSON_ERROR_NONE && isset($decoded['type'])) {
                 try {
-                    $bodyHtml = (new \Tiptap\Editor([
+                    $bodyHtml = (new Editor([
                         'extensions' => [
-                            new \Tiptap\Extensions\StarterKit,
-                            new \Tiptap\Nodes\Image,
-                            new \Tiptap\Nodes\Table,
-                            new \Tiptap\Nodes\TableRow,
-                            new \Tiptap\Nodes\TableHeader,
-                            new \Tiptap\Nodes\TableCell,
+                            new StarterKit,
+                            new Image,
+                            new Table,
+                            new TableRow,
+                            new TableHeader,
+                            new TableCell,
                         ],
                     ]))->setContent($decoded)->getHTML();
                 } catch (\Throwable) {
@@ -426,28 +369,37 @@ class BlogController extends Controller
         $breadcrumbItems[] = ['label' => $translation->title, 'url' => null];
 
         $blog = (object) [
-            'title'                    => $translation->title,
-            'slug'                     => $translation->slug,
-            'excerpt'                  => $translation->excerpt,
-            'content'                  => $bodyHtml,
-            'category'                 => $catTr?->name ?? $post->blogCategory?->name,
-            'category_slug'            => $catTr?->slug ?? $post->blogCategory?->slug,
-            'featured_image'           => $rawImage ? 'storage/' . ltrim($rawImage, '/') : null,
-            'published_at'             => $post->published_at,
-            'updated_at'               => $post->updated_at,
+            'title' => $translation->title,
+            'slug' => $translation->slug,
+            'excerpt' => $translation->excerpt,
+            'content' => $bodyHtml,
+            'category' => $catTr?->name ?? $post->blogCategory?->name,
+            'category_slug' => $catTr?->slug ?? $post->blogCategory?->slug,
+            'featured_image' => $rawImage ? 'storage/'.ltrim($rawImage, '/') : null,
+            'published_at' => $post->published_at,
+            'updated_at' => $post->updated_at,
             'formatted_published_date' => $post->published_at?->translatedFormat('d M, Y'),
-            'reading_time'             => $locale === 'vi' ? "{$readMins} phút đọc" : "{$readMins} min read",
-            'author'                   => $post->author,
-            'tags'                     => $post->tags->pluck('name')->all(),
-            'faqs'                     => $faqs,
-            'seo_description'          => $seoMeta?->meta_description ?? $translation->excerpt,
-            'canonical_url'            => url()->current(),
+            'reading_time' => $locale === 'vi' ? "{$readMins} phút đọc" : "{$readMins} min read",
+            'author' => $post->author,
+            'tags' => $post->tags->pluck('name')->all(),
+            'faqs' => $faqs,
+            'seo_description' => $seoMeta?->meta_description ?? $translation->excerpt,
+            'canonical_url' => url()->current(),
         ];
 
-        $fallbackTitle       = $translation->title;
+        $fallbackTitle = $translation->title;
         $fallbackDescription = $translation->excerpt ?? '';
-        $fallbackImage       = $rawImage ? url('storage/' . ltrim($rawImage, '/')) : null;
-        $ogType              = 'article';
+        $fallbackImage = $rawImage ? url('storage/'.ltrim($rawImage, '/')) : null;
+        $ogType = 'article';
+
+        // ── OG article:* tags (seo-head.blade.php) ─────────────────────────────
+        $articleMeta = [
+            'published_time' => $post->published_at?->toIso8601String(),
+            'modified_time' => $post->updated_at?->toIso8601String(),
+            'author' => $post->author?->slug ? route($locale.'.author.show', $post->author->slug) : null,
+            'section' => $blog->category,
+            'tags' => $blog->tags,
+        ];
 
         // ── Sidebar: categories ────────────────────────────────────────────────
         $categories = BlogCategory::active()
@@ -456,6 +408,7 @@ class BlogController extends Controller
             ->get()
             ->map(function ($cat) {
                 $tr = $cat->translations->first();
+
                 return (object) [
                     'name' => $tr?->name ?? $cat->name,
                     'slug' => $tr?->slug ?? $cat->slug,
@@ -463,63 +416,15 @@ class BlogController extends Controller
             });
 
         // ── Sidebar: latest posts (excl. current) ─────────────────────────────
-        $sidebarPostsBase = BlogPostTranslation::where('blog_post_translations.locale', $locale)
-            ->join('blog_posts', 'blog_posts.id', '=', 'blog_post_translations.blog_post_id')
-            ->where('blog_posts.status', BlogPostStatus::Published)
-            ->where('blog_posts.published_at', '<=', now())
-            ->whereNull('blog_posts.deleted_at')
-            ->where('blog_post_translations.blog_post_id', '!=', $post->id)
-            ->select('blog_post_translations.*', 'blog_posts.published_at as post_published_at', 'blog_posts.featured_image as post_featured_image')
-            ->with(['blogPost.blogCategory.translations' => fn ($q) => $q->where('locale', $locale)])
-            ->orderByDesc('blog_posts.published_at')
-            ->limit(13)
-            ->get()
-            ->map(function ($tr) {
-                $p      = $tr->blogPost;
-                $cTr    = $p?->blogCategory?->translations->first();
-                $rawImg = $p?->featured_image;
-                $p->slug                     = $tr->slug;
-                $p->title                    = $tr->title;
-                $p->excerpt                  = $tr->excerpt;
-                $p->category                 = $cTr?->name ?? $p?->blogCategory?->name;
-                $p->category_slug            = $cTr?->slug ?? $p?->blogCategory?->slug;
-                $p->featured_image           = $rawImg ? 'storage/' . ltrim($rawImg, '/') : null;
-                $p->formatted_published_date = $p?->published_at?->translatedFormat('d M, Y');
-                return $p;
-            });
+        $sidebarPostsBase = $this->blogPostRepository->latestExcludingDecorated($locale, $post->id, 13);
 
-        $latestPosts   = $sidebarPostsBase->take(3);
+        $latestPosts = $sidebarPostsBase->take(3);
         $morePostsList = $sidebarPostsBase->slice(3);
 
         // ── Related posts (same category, excl. current) ──────────────────────
-        $relatedPosts = collect();
-        if ($post->blog_category_id) {
-            $relatedPosts = BlogPostTranslation::where('blog_post_translations.locale', $locale)
-                ->join('blog_posts', 'blog_posts.id', '=', 'blog_post_translations.blog_post_id')
-                ->where('blog_posts.status', BlogPostStatus::Published)
-                ->where('blog_posts.published_at', '<=', now())
-                ->whereNull('blog_posts.deleted_at')
-                ->where('blog_posts.blog_category_id', $post->blog_category_id)
-                ->where('blog_post_translations.blog_post_id', '!=', $post->id)
-                ->select('blog_post_translations.*')
-                ->with(['blogPost.blogCategory.translations' => fn ($q) => $q->where('locale', $locale)])
-                ->orderByDesc('blog_posts.published_at')
-                ->limit(4)
-                ->get()
-                ->map(function ($tr) {
-                    $p      = $tr->blogPost;
-                    $cTr    = $p?->blogCategory?->translations->first();
-                    $rawImg = $p?->featured_image;
-                    $p->slug                     = $tr->slug;
-                    $p->title                    = $tr->title;
-                    $p->excerpt                  = $tr->excerpt;
-                    $p->category                 = $cTr?->name ?? $p?->blogCategory?->name;
-                    $p->category_slug            = $cTr?->slug ?? $p?->blogCategory?->slug;
-                    $p->featured_image           = $rawImg ? 'storage/' . ltrim($rawImg, '/') : null;
-                    $p->formatted_published_date = $p?->published_at?->translatedFormat('d M, Y');
-                    return $p;
-                });
-        }
+        $relatedPosts = $post->blog_category_id
+            ? $this->blogPostRepository->relatedDecorated($locale, $post->blog_category_id, $post->id, 4)
+            : collect();
 
         // ── Sidebar: tags ─────────────────────────────────────────────────────
         $allTags = BlogTag::whereHas('posts', fn ($q) => $q->published())->pluck('name');
@@ -528,7 +433,7 @@ class BlogController extends Controller
 
         return view('pages.blog.show', compact(
             'blog', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
-            'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
+            'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType', 'articleMeta',
             'categories', 'latestPosts', 'morePostsList', 'relatedPosts', 'allTags',
             'breadcrumbItems'
         ) + ['noScrollSmoother' => true]);

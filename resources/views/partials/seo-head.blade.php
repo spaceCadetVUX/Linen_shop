@@ -5,7 +5,9 @@
     Biến đọc từ view (mọi controller public đã pass sẵn):
       $seoMeta, $fallbackTitle, $fallbackDescription, $fallbackImage, $ogType,
       $alternateUrls (view()->share), $jsonldSchemas, $businessSchemas (home),
-      $canonicalUrl (optional override — PLP/category dùng để bỏ query filter)
+      $canonicalUrl (optional override — PLP/category dùng để bỏ query filter),
+      $articleMeta (optional, chỉ dùng khi $ogType === 'article' — array:
+      published_time/modified_time/author/section/tags, xem BlogController::show())
 --}}
 @php
   $seoMeta = $seoMeta ?? null;
@@ -51,6 +53,14 @@
 <meta property="og:url" content="{{ $canonical }}">
 <meta property="og:locale" content="{{ $pageLocale === 'en' ? 'en_US' : 'vi_VN' }}">
 @if($siteName)<meta property="og:site_name" content="{{ $siteName }}">@endif
+
+@if(($ogType ?? null) === 'article' && !empty($articleMeta))
+  @if(!empty($articleMeta['published_time']))<meta property="article:published_time" content="{{ $articleMeta['published_time'] }}">@endif
+  @if(!empty($articleMeta['modified_time']))<meta property="article:modified_time" content="{{ $articleMeta['modified_time'] }}">@endif
+  @if(!empty($articleMeta['author']))<meta property="article:author" content="{{ $articleMeta['author'] }}">@endif
+  @if(!empty($articleMeta['section']))<meta property="article:section" content="{{ $articleMeta['section'] }}">@endif
+  @foreach($articleMeta['tags'] ?? [] as $tag)<meta property="article:tag" content="{{ $tag }}">@endforeach
+@endif
 
 <meta name="twitter:card" content="{{ $ogImage ? 'summary_large_image' : 'summary' }}">
 @if($ogTitle)<meta name="twitter:title" content="{{ $ogTitle }}">@endif

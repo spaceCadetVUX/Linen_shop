@@ -78,7 +78,6 @@
             <span class="jnl-post-share-label">{{ $locale === 'vi' ? 'Chia sẻ' : 'Share' }}</span>
             <a href="{{ $facebookShare }}" class="jnl-post-share-link" target="_blank" rel="noopener" aria-label="Chia sẻ Facebook">Facebook</a>
             <a href="{{ $pinterestShare }}" class="jnl-post-share-link" target="_blank" rel="noopener" aria-label="Chia sẻ Pinterest">Pinterest</a>
-            {{-- TODO: copy-link needs a JS handler in app.js --}}
             <a href="#" class="jnl-post-share-link" data-copy-url="{{ $shareUrl }}" aria-label="Sao chép link">{{ $locale === 'vi' ? 'Sao chép link' : 'Copy link' }}</a>
           </div>
 
@@ -92,7 +91,9 @@
           @if($blog->author)
             <div class="jnl-rail-author">
               <span class="jnl-rail-author-name">{{ $blog->author->name }}</span>
-              <span class="jnl-rail-author-role">CacyLinen</span>
+              @if($blog->author->title)
+                <span class="jnl-rail-author-role">{{ $blog->author->title }}</span>
+              @endif
             </div>
 
             <div class="jnl-rail-divider"></div>

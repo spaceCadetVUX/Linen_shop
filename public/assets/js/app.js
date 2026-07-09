@@ -839,6 +839,35 @@ updateNav();
   });
 }());
 
+/* ---------- Copy-link share button (.jnl-post-share-link[data-copy-url]) ---------- */
+document.addEventListener('click', function (e) {
+  const link = e.target.closest('[data-copy-url]');
+  if (!link) return;
+  e.preventDefault();
+
+  const url = link.getAttribute('data-copy-url');
+  const original = link.dataset.originalLabel || link.textContent;
+  link.dataset.originalLabel = original;
+
+  const showCopied = () => {
+    link.textContent = document.documentElement.lang === 'en' ? 'Copied!' : 'Đã sao chép!';
+    setTimeout(() => { link.textContent = original; }, 1500);
+  };
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(showCopied).catch(() => {});
+  } else {
+    const tmp = document.createElement('textarea');
+    tmp.value = url;
+    tmp.style.position = 'fixed';
+    tmp.style.opacity = '0';
+    document.body.appendChild(tmp);
+    tmp.select();
+    try { document.execCommand('copy'); showCopied(); } catch (_) {}
+    document.body.removeChild(tmp);
+  }
+});
+
 /* ---------- Related posts slider ---------- */
 (function () {
   const section = document.querySelector('.jnl-post-related');
