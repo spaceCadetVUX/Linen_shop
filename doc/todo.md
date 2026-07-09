@@ -1,5 +1,39 @@
 # TODO
 
+> Cập nhật: 2026-07-09 (tiếp 2) — session: Order Inquiry ("Liên hệ đặt hàng" — Zalo/gọi/email thay tạm cho thanh toán online), debug có hệ thống Cart + Wishlist (list điều kiện test → tìm bug → fix), audit + fix Category (2 lỗi 404/redirect-chain) + redesign trang danh mục dạng card ảnh. **Vẫn chưa verify runtime** — Docker/Postgres suốt session vẫn không kết nối được từ host (`could not translate host name "postgres"`), toàn bộ dưới đây chỉ mới qua `php -l`, `node --check`, `route:list`, `view:cache` — chưa mở trình duyệt thật.
+
+## 🔴 Migration mới cần thêm vào danh sách chạy khi Docker lên
+
+- `2026_07_09_130000_create_order_inquiries_table.php` (bảng cho tính năng "Liên hệ đặt hàng")
+
+## 🟠 Đã code xong hôm nay (tiếp 2), chưa verify runtime
+
+1. **Order Inquiry ("Liên hệ đặt hàng")** — thanh toán online tạm disable, thay bằng popup trên trang giỏ hàng: Zalo (copy nội dung đơn hàng vào clipboard, không có API prefill chính thức — đã xác nhận qua WebSearch), gọi điện (`tel:` link), email (form thật → `POST /api/v1/order-inquiries` → gửi mail `OrderInquiryMail` + lưu bảng `order_inquiries` để xem trong Filament). `OrderInquiryService::submit()` tự build nội dung đơn hàng từ `CartService::resolveCart()` phía server, không tin dữ liệu cart do client gửi lên.
+2. **Cart — 2 lỗi bảo mật/logic tìm thấy qua list debug có hệ thống:**
+   - **IDOR nghiêm trọng** trong `CartService::authorizeItem()` — thiếu check non-null 2 nhánh, request ẩn danh không gửi `X-Session-ID` có thể match `null === null` với cart của BẤT KỲ user đã đăng nhập nào (kết hợp `cart_items.id` là int tự tăng, dễ đoán). Đã fix.
+   - **Bypass chọn variant** — `CartService::addItem()` trước đây chỉ chặn ở JS (PDP disable nút), gọi API trực tiếp vẫn thêm được sản phẩm có variant mà không chọn variant nào. Đã thêm check `activeVariants()->exists()` bắt buộc `variant_id`.
+   - Kèm theo: JS đọc lỗi validate (`ValidationException` không đi qua `ApiResponse` envelope, có `errors` riêng) — thêm helper `firstApiError()` trong `app.js`, áp cho cả PDP add-to-cart và Wishlist add-to-cart (nút "Thêm vào giỏ" ở trang yêu thích gọi chung API này, trước đây sẽ hiện lỗi mơ hồ "The given data was invalid.").
+3. **Wishlist — 3 lỗi tìm thấy qua list debug tương tự Cart:**
+   - **Race condition** khi double-click nút xoá (`.fav-card-del` không disable như `.fav-atc`) — 2 request gần như đồng thời có thể làm sản phẩm bị xoá rồi tự thêm lại do `toggle()` không có lock. Đã thêm disable guard.
+   - **Thiếu check `is_active`** trong `WishlistService::toggle()` — khác `CartService::addItem()` đã có — cho phép toggle sản phẩm đã bị admin deactivate, tạo dòng "ma" vô hình trong DB. Đã thêm `abort_if(! $product->is_active, 404)`.
+   - **Vi phạm rule FormRequest** — `WishlistController@toggle` dùng `$request->validate()` trực tiếp, sai CLAUDE.md. Đã tạo `ToggleWishlistRequest`.
+4. **Category — 2 lỗi 404/redirect-chain tìm thấy khi audit SEO structure:**
+   - Trang `/vi/danh-muc` (index liệt kê tất cả category) hiện link tới category con mà **cha đã bị deactivate** → bấm vào 404 ngay (index chỉ check `is_active` của chính nó, không check `isPubliclyVisible()` như `show()` đã làm). Đã fix bằng filter `isPubliclyVisible()` + eager-load `category.parent` (tránh N+1).
+   - Redirect alt-locale trong `show()` (khi slug không tồn tại ở locale hiện tại nhưng có ở locale khác) không check category đó còn active hay không → có thể redirect 302 sang 1 trang tự 404 luôn (redirect chain, xấu cho SEO). Đã fix, check `isPubliclyVisible()` trước khi redirect.
+5. **Redesign trang danh mục (`/vi/danh-muc`)** — đổi từ list text sang grid card ảnh nền + tên serif nghiêng (tái dùng visual style `.edit-grid` của trang chủ, nhưng chỉnh kích thước cố định 4:5 phù hợp liệt kê nhiều category thay vì hero 3-6 item). Đồng thời vá 2 lỗi thiếu structure phát hiện khi audit: trang này trước đây **0 JSON-LD** (không có `BreadcrumbList` dù UI có hiện breadcrumb) và **thiếu `og:image`** — đã build tay `BreadcrumbList` qua `JsonldService::buildBreadcrumbSchema()` (trang không phải 1 Category model nên không có sẵn row `jsonld_schemas`) + thêm `og:image` từ `Setting::get('default_og_image')`.
+
+## 🟡 Cần test lại bằng tay khi Docker/Postgres lên (theo bộ checklist SEO Category đã đưa ra trong chat — nhóm structure, chưa test nhóm nội dung)
+
+1. View-source `/vi/danh-muc/{slug}` và `/vi/danh-muc` — xác nhận đủ canonical/robots/hreflang/OG/JSON-LD như đã audit.
+2. Deactivate 1 category cha trong Filament → xác nhận: (a) category con biến mất khỏi `/vi/danh-muc`, (b) mega menu không còn hiện, (c) sitemap/llms.txt không còn liệt kê con.
+3. Test đường redirect alt-locale: slug chỉ có bản dịch 1 locale + category/parent inactive → phải 404 thẳng, không redirect.
+4. Test lại IDOR Cart đã fix: gọi `PUT/DELETE /api/v1/cart/items/{id}` không gửi `X-Session-ID` nhắm vào cart_item của user khác → phải 403.
+5. Test double-click nút xoá Wishlist → không được tự thêm lại sản phẩm.
+6. Test toggle Wishlist với `product_id` của sản phẩm đã deactivate → phải 404.
+7. Test Order Inquiry: gửi form email → nhận được mail + thấy record trong Filament `Order Inquiries`.
+
+---
+
 > Cập nhật: 2026-07-09 (tiếp) — session: Wishlist (guest-session, toggle thật, trang `/tai-khoan/yeu-thich`), Cart page thật (`/gio-hang`, `/cart`) + nối "Thêm vào giỏ hàng"/"Yêu thích" từ nút giả (chỉ đổi chữ, không lưu gì) sang gọi API thật, Cart hỗ trợ variant (màu/size riêng dòng). Phát hiện `resources/views/pages/cart/index.blade.php` và `pages/account/wishlist.blade.php` tồn tại từ trước nhưng 100% mockup hardcode (ảnh hotlink domain lạ `elleandriley.com`, không route, không JS) — đã build lại thật theo đúng thiết kế đó. **Vẫn chưa verify runtime** — lý do như cũ (không kết nối `postgres` từ host).
 
 ## 🔴 Cần chạy khi Docker lên — giờ có 5 migration đang chờ (cộng dồn cả session trước)

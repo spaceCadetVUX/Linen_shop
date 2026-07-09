@@ -3967,49 +3967,78 @@ img    { display: block; }
   display: inline-block;
 }
 
-/* -- Category index (/danh-muc, /categories) -- */
-.cat-index-section {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 56px 24px 96px;
+/* -- Category index (/danh-muc, /categories) --
+   Same image-tile + gradient + italic-serif-name treatment as the homepage
+   editorial grid (.edit-grid), but sized as a browse-all grid (fixed
+   aspect-ratio cards, wraps to as many rows as needed) instead of a
+   3-6 item near-fullscreen hero teaser. */
+.cat-index-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 4px;
+  padding: 8px var(--pad-x) 96px;
 }
 
-.cat-index-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border-top: 0.5px solid var(--silver);
-}
-
-.cat-index-item {
-  border-bottom: 0.5px solid var(--silver);
-}
-
-.cat-index-link {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 22px 4px;
+.cat-index-card {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  aspect-ratio: 4 / 5;
   text-decoration: none;
+  background: #0c0c0c;
 }
 
-.cat-index-name {
+.cat-index-card-img {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.cat-index-card:hover .cat-index-card-img { transform: scale(1.045); }
+
+.cat-index-card-img.edit-grid-img--default { background: linear-gradient(160deg, #2a2a28, #0c0c0c); }
+
+.cat-index-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.68) 0%, rgba(0,0,0,0.1) 45%, transparent 68%);
+  pointer-events: none;
+}
+
+.cat-index-card-label {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cat-index-card-name {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: clamp(18px, 1.6vw, 24px);
   font-weight: 400;
   font-style: italic;
-  color: var(--ink);
+  color: var(--white);
+  line-height: 1.15;
 }
 
-.cat-index-count {
+.cat-index-card-count {
   font-family: var(--font-body);
   font-size: 10px;
   font-weight: 400;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ash);
-  white-space: nowrap;
+  color: rgba(255,255,255,0.72);
+}
+
+@media (max-width: 640px) {
+  .cat-index-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .cat-index-card-label { bottom: 14px; left: 14px; right: 14px; }
 }
 
 .plp-empty {

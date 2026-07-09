@@ -6,32 +6,37 @@
 
 @section('content')
 
-<x-ui.breadcrumb :items="[
-    ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale . '.index')],
-    ['label' => $fallbackTitle, 'url' => null],
-]" />
+<x-ui.breadcrumb :items="$breadcrumbItems" />
 
 <section class="plp-banner">
   <div class="plp-banner-info">
     <h1 class="plp-banner-title">{{ $fallbackTitle }}</h1>
-    <p class="plp-banner-sub">{{ $categories->count() }} {{ $locale === 'vi' ? 'danh mục' : 'categories' }}</p>
+    <p class="plp-banner-sub">{{ $categoryCards->count() }} {{ $locale === 'vi' ? 'danh mục' : 'categories' }}</p>
   </div>
 </section>
 
-<section class="shop-section cat-index-section">
-  @if($categories->isEmpty())
+<section class="shop-section">
+  @if($categoryCards->isEmpty())
     <p class="plp-empty">{{ $locale === 'vi' ? 'Chưa có danh mục nào.' : 'No categories yet.' }}</p>
   @else
-    <ul class="cat-index-list">
-      @foreach($categories as $translation)
-        <li class="cat-index-item">
-          <a href="{{ route($locale . '.category.show', $translation->slug) }}" class="cat-index-link">
-            <span class="cat-index-name">{{ $translation->name }}</span>
-            <span class="cat-index-count">{{ $translation->category->product_count }} {{ $locale === 'vi' ? 'sản phẩm' : 'products' }}</span>
-          </a>
-        </li>
+    {{-- Same image-tile + italic-serif-name treatment as the homepage editorial
+         grid (see .edit-grid in home/index.blade.php), sized for a browse-all
+         grid instead of a 3-6 item hero teaser. --}}
+    <div class="cat-index-grid">
+      @foreach($categoryCards as $card)
+        <a href="{{ $card['url'] }}" class="cat-index-card">
+          @if($card['image_url'])
+            <div class="cat-index-card-img" style="background-image:url('{{ $card['image_url'] }}')"></div>
+          @else
+            <div class="cat-index-card-img {{ $card['fallback_class'] }}"></div>
+          @endif
+          <div class="cat-index-card-label">
+            <span class="cat-index-card-name">{{ $card['name'] }}</span>
+            <span class="cat-index-card-count">{{ $card['count'] }} {{ $locale === 'vi' ? 'sản phẩm' : 'products' }}</span>
+          </div>
+        </a>
       @endforeach
-    </ul>
+    </div>
   @endif
 </section>
 

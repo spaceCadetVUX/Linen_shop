@@ -67,11 +67,54 @@ class BusinessJsonldService
         }
     }
 
+    /**
+     * Organization + WebSite (+ LocalBusiness) only — no FAQPage.
+     * For pages that don't visibly render the BusinessProfile FAQ content
+     * (e.g. About), reusing the full getSchemas() bundle would emit FAQ
+     * markup that doesn't match visible page content — a Google structured
+     * data policy violation. Not cached — only used on low-traffic static pages.
+     */
+    public function getPageSchemas(?string $locale = null): array
+    {
+        return $this->coreSchemas(BusinessProfile::instance(), $locale ?? app()->getLocale());
+    }
+
+    /**
+     * AboutPage schema tying a page to the Organization entity via @id.
+     */
+    public function aboutPage(string $pageUrl, string $name, string $locale = 'vi'): array
+    {
+        $baseUrl = rtrim((string) config('app.url'), '/');
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'AboutPage',
+            '@id' => $pageUrl.'#aboutpage',
+            'url' => $pageUrl,
+            'name' => $name,
+            'inLanguage' => $locale === 'en' ? 'en' : 'vi',
+            'mainEntity' => ['@id' => $baseUrl.'/#organization'],
+        ];
+    }
+
     // ── Schema builders ───────────────────────────────────────────────────────
 
     private function buildSchemas(string $locale = 'vi'): array
     {
         $profile = BusinessProfile::instance();
+        $schemas = $this->coreSchemas($profile, $locale);
+
+        $faqKey = $locale === 'en' ? 'faq_en' : 'faq';
+        $faq = (array) ($profile->extra[$faqKey] ?? []);
+        if (! empty($faq)) {
+            $schemas[] = $this->faqPage($faq);
+        }
+
+        return $schemas;
+    }
+
+    private function coreSchemas(BusinessProfile $profile, string $locale): array
+    {
         $schemas = [
             $this->organization($profile, $locale),
             $this->website($profile, $locale),
@@ -79,12 +122,6 @@ class BusinessJsonldService
 
         if (filled($profile->address_line) || filled($profile->city)) {
             $schemas[] = $this->localBusiness($profile);
-        }
-
-        $faqKey = $locale === 'en' ? 'faq_en' : 'faq';
-        $faq = (array) ($profile->extra[$faqKey] ?? []);
-        if (! empty($faq)) {
-            $schemas[] = $this->faqPage($faq);
         }
 
         return $schemas;

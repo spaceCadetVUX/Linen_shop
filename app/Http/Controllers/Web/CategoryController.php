@@ -54,8 +54,46 @@ class CategoryController extends Controller
             ? (Setting::get('category_index_description') ?: 'Khám phá tất cả danh mục sản phẩm của CacyLinen.')
             : (Setting::get('category_index_description_en') ?: 'Browse all CacyLinen product categories.');
 
+        // Editorial cards — same image-tile + italic-serif-name treatment as the
+        // homepage's editorial grid (HomeController::index()), sized for a
+        // browse-all listing instead of a 3-6 item hero teaser.
+        $categoryCards = $categories->map(function (CategoryTranslation $tr) use ($locale): array {
+            $category = $tr->category;
+
+            return [
+                'name' => $tr->name,
+                'url' => route($locale.'.category.show', $tr->slug),
+                'count' => $category->product_count,
+                'image_url' => $category->image_path ? asset('storage/'.ltrim($category->image_path, '/')) : null,
+                'fallback_class' => $category->image_path ? null : 'edit-grid-img--default',
+            ];
+        })->values();
+
+        // ── Breadcrumb + JSON-LD ─────────────────────────────────────────────────
+        // This listing isn't a Category model instance, so it has no row in
+        // jsonld_schemas (that pipeline only syncs per-category) — build the
+        // BreadcrumbList by hand instead of leaving the page with zero JSON-LD
+        // despite <x-ui.breadcrumb> rendering a breadcrumb trail in the HTML.
+        $breadcrumbItems = [
+            ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
+            ['label' => $fallbackTitle, 'url' => null],
+        ];
+        $jsonldSchemas = [
+            app(JsonldService::class)->buildBreadcrumbSchema([
+                ['name' => $breadcrumbItems[0]['label'], 'url' => $breadcrumbItems[0]['url']],
+                ['name' => $fallbackTitle, 'url' => url()->current()],
+            ]),
+        ];
+
+        $ogRaw = Setting::get('default_og_image');
+        $fallbackImage = $ogRaw
+            ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/'.ltrim($ogRaw, '/')))
+            : null;
+        $ogType = 'website';
+
         return view('pages.category.index', compact(
-            'locale', 'categories', 'fallbackTitle', 'fallbackDescription'
+            'locale', 'categoryCards', 'fallbackTitle', 'fallbackDescription',
+            'breadcrumbItems', 'jsonldSchemas', 'fallbackImage', 'ogType'
         ));
     }
 

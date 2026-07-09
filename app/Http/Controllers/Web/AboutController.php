@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\Seo\BusinessJsonldService;
 use Illuminate\Contracts\View\View;
 
 class AboutController extends Controller
 {
+    public function __construct(private BusinessJsonldService $jsonld) {}
+
     public function show(string $locale): View
     {
         $seoTitle = $locale === 'vi'
@@ -19,14 +22,14 @@ class AboutController extends Controller
             : (Setting::get('about_meta_description_en') ?: 'CacyLinen is made for people who believe true beauty comes from simplicity - pure fabrics, lasting construction, conscious choices.');
 
         $data = [
-            'seoTitle'       => $seoTitle,
+            'seoTitle' => $seoTitle,
             'seoDescription' => $seoDescription,
-            'description'    => Setting::get('about_description') ?? '',
-            'foundedYear'    => Setting::get('company_founded_year'),
+            'description' => Setting::get('about_description') ?? '',
+            'foundedYear' => Setting::get('company_founded_year'),
             'certifications' => array_values(array_filter(
                 explode("\n", Setting::get('company_certifications') ?? '')
             )),
-            'ogImage'        => Setting::get('about_og_image'),
+            'ogImage' => Setting::get('about_og_image'),
         ];
 
         view()->share('alternateUrls', [
@@ -34,18 +37,22 @@ class AboutController extends Controller
             'en' => route('en.about'),
         ]);
 
-        $ogRaw         = $data['ogImage'] ?? Setting::get('default_og_image');
+        $ogRaw = $data['ogImage'] ?? Setting::get('default_og_image');
         $fallbackImage = $ogRaw
-            ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/' . ltrim($ogRaw, '/')))
+            ? (str_starts_with($ogRaw, 'http') ? $ogRaw : asset('storage/'.ltrim($ogRaw, '/')))
             : null;
 
+        $businessSchemas = $this->jsonld->getPageSchemas($locale);
+        $businessSchemas[] = $this->jsonld->aboutPage(route($locale.'.about'), $seoTitle, $locale);
+
         return view('pages.static.about', compact('data', 'locale') + [
-            'seoMeta'             => null,
-            'fallbackTitle'       => $data['seoTitle'],
+            'seoMeta' => null,
+            'fallbackTitle' => $data['seoTitle'],
             'fallbackDescription' => $data['seoDescription'] ?: ($data['description'] ?? ''),
-            'fallbackImage'       => $fallbackImage,
-            'ogType'              => 'website',
-            'jsonldSchemas'       => [],
+            'fallbackImage' => $fallbackImage,
+            'ogType' => 'website',
+            'jsonldSchemas' => [],
+            'businessSchemas' => $businessSchemas,
         ]);
     }
 }
