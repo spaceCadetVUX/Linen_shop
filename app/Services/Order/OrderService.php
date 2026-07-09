@@ -35,14 +35,13 @@ class OrderService
         $address = $user->addresses()->findOrFail($data['address_id']);
 
         return DB::transaction(function () use ($user, $cart, $address, $data) {
-            // ── Stock check ───────────────────────────────────────────────────
-            foreach ($cart->items as $item) {
-                if ($item->product->stock_quantity < $item->quantity) {
-                    throw ValidationException::withMessages([
-                        'cart' => ["\"{$item->product->name}\" only has {$item->product->stock_quantity} unit(s) in stock."],
-                    ]);
-                }
-            }
+            // Stock is validated inside createOrderItems() below, with a fresh
+            // lockForUpdate() read per product — not here. A pre-check against
+            // $cart->items (loaded before this transaction/lock started) would
+            // read a value that can go stale the instant a concurrent order for
+            // the same product commits, letting both orders oversell the last
+            // unit. See OrderRepository::createOrderItems() for why the lock
+            // has to sit right next to the check it's protecting.
 
             // ── Shipping address snapshot ─────────────────────────────────────
             $shippingSnapshot = [

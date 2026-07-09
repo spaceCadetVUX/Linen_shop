@@ -46,6 +46,18 @@ function setNavCartCount(count) {
   }
 }
 
+// Laravel's ValidationException renders as { message: 'The given data was
+// invalid.', errors: { field: ['specific message'] } } — that generic
+// top-level message is useless to show a user, so prefer the first
+// field-level error whenever one is present.
+function firstApiError(json) {
+  if (json && json.errors) {
+    const first = Object.values(json.errors)[0];
+    if (first && first[0]) return first[0];
+  }
+  return json ? json.message : undefined;
+}
+
 /* ---------- Navbar cart badge — item count, every page ---------- */
 (function () {
   if (!document.getElementById('navCartBtn')) return;
@@ -716,7 +728,7 @@ updateNav();
         .then(({ ok, json }) => {
           addBtn.textContent = ok
             ? (isEnPage ? 'Added to bag ✓' : 'Đã thêm vào giỏ ✓')
-            : (json.message || (isEnPage ? 'Could not add' : 'Không thêm được'));
+            : (firstApiError(json) || (isEnPage ? 'Could not add' : 'Không thêm được'));
           if (ok) {
             addBtn.classList.add('pd-added');
             if (json.data) setNavCartCount(json.data.item_count);
@@ -1029,6 +1041,9 @@ updateNav();
       ? '<span class="t-price-old">' + formatVnd(item.price) + '</span> ' + formatVnd(item.sale_price)
       : formatVnd(item.price);
 
+    const inStock = (item.stock_quantity || 0) > 0;
+    const atcLabel = inStock ? (isEn ? 'Add to bag' : 'Thêm vào giỏ') : (isEn ? 'Out of stock' : 'Hết hàng');
+
     card.innerHTML =
       '<a href="' + url + '" style="display:block">'
       + '<div class="shop-card-img-wrap">'
@@ -1040,17 +1055,59 @@ updateNav();
       + '<div class="shop-card-info">'
       + '<a href="' + url + '" class="shop-card-name">' + item.name + '</a>'
       + '<span class="shop-card-price">' + priceHtml + '</span>'
+      + '<button type="button" class="fav-atc"' + (inStock ? '' : ' disabled') + '>' + atcLabel + '</button>'
       + '</div>';
 
-    card.querySelector('.fav-card-del').addEventListener('click', () => {
+    const delBtn = card.querySelector('.fav-card-del');
+    delBtn.addEventListener('click', () => {
+      // Guards against a double-click race: toggle() has no DB lock, so two
+      // near-simultaneous requests can both read "row exists" before either
+      // delete commits — the second then re-creates the row it thinks is
+      // missing. Disabling on first click is enough since this only removes.
+      if (delBtn.disabled) return;
+      delBtn.disabled = true;
+
       fetch('/api/v1/wishlist/toggle', {
         method: 'POST',
         headers: apiHeaders(),
         body: JSON.stringify({ product_id: item.product_id }),
       })
-        .then(() => card.remove())
-        .then(updateEmptyState)
-        .catch(() => {});
+        .then((res) => {
+          if (!res.ok) { delBtn.disabled = false; return; }
+          card.remove();
+          updateEmptyState();
+        })
+        .catch(() => { delBtn.disabled = false; });
+    });
+
+    // No variant picker on this card — always adds the base product with no
+    // variant selected. Fine for products without variants; for ones that
+    // have them, the customer should really pick a variant on the PDP —
+    // this is a "good enough from the wishlist grid" action, not a
+    // replacement for the PDP's colour/size selector.
+    const atcBtn = card.querySelector('.fav-atc');
+    atcBtn.addEventListener('click', () => {
+      if (atcBtn.disabled) return;
+      atcBtn.disabled = true;
+      const defaultAtcLabel = atcBtn.textContent;
+
+      fetch('/api/v1/cart/items', {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({ product_id: item.product_id, variant_id: null, quantity: 1 }),
+      })
+        .then((res) => res.json().then((json) => ({ ok: res.ok, json })))
+        .then(({ ok, json }) => {
+          atcBtn.textContent = ok
+            ? (isEn ? 'Added ✓' : 'Đã thêm ✓')
+            : (firstApiError(json) || (isEn ? 'Could not add' : 'Không thêm được'));
+          if (ok && json.data) setNavCartCount(json.data.item_count);
+          setTimeout(() => { atcBtn.textContent = defaultAtcLabel; atcBtn.disabled = false; }, 2000);
+        })
+        .catch(() => {
+          atcBtn.textContent = isEn ? 'Network error' : 'Lỗi kết nối';
+          setTimeout(() => { atcBtn.textContent = defaultAtcLabel; atcBtn.disabled = false; }, 2000);
+        });
     });
 
     return card;

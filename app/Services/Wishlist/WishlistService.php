@@ -51,7 +51,14 @@ class WishlistService
      */
     public function toggle(Request $request, string $productId): array
     {
-        $this->productRepository->findByIdOrFail($productId);
+        $product = $this->productRepository->findByIdOrFail($productId);
+
+        // findByIdOrFail() only excludes soft-deleted — a deactivated product
+        // (is_active=false) must 404 too, same as CartService::addItem().
+        // Without this, a direct API call could wishlist a product the PDP
+        // itself 404s on, leaving a row GET /wishlist silently filters out
+        // forever and that confuses the next toggle's add/remove decision.
+        abort_if(! $product->is_active, 404, 'Product not found.');
 
         [$userId, $sessionId] = $this->resolveOwner($request);
         $existing = $this->wishlistRepository->find($userId, $sessionId, $productId);

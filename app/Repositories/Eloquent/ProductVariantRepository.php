@@ -19,12 +19,19 @@ class ProductVariantRepository extends BaseRepository
      * deactivated variant of an otherwise-active product must not be
      * addable via a direct API call just because the product itself is fine.
      */
-    public function findForProductOrFail(string $variantId, string $productId): ProductVariant
+    public function findForProductOrFail(string $variantId, string $productId, bool $lock = false): ProductVariant
     {
-        $variant = ProductVariant::where('id', $variantId)
+        $query = ProductVariant::where('id', $variantId)
             ->where('product_id', $productId)
-            ->where('is_active', true)
-            ->first();
+            ->where('is_active', true);
+
+        if ($lock) {
+            // Only holds through the caller's DB::transaction() — see
+            // BaseRepository::findByIdForUpdate().
+            $query->lockForUpdate();
+        }
+
+        $variant = $query->first();
 
         if (! $variant) {
             throw (new ModelNotFoundException())->setModel(ProductVariant::class, [$variantId]);

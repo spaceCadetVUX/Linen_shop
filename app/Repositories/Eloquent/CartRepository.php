@@ -30,12 +30,25 @@ class CartRepository extends BaseRepository
         return Cart::where('session_id', $sessionId)->first();
     }
 
+    /**
+     * Excludes lines whose product has since been soft-deleted or deactivated
+     * by admin. Without this, a soft-deleted product makes `items.product`
+     * resolve to null while still "loaded" (whenLoaded() sees it as loaded) —
+     * CartItemResource then calls ->translation() on that null and 500s the
+     * whole GET /api/v1/cart response for that cart. Same fix as
+     * WishlistRepository::forUser()/forSession().
+     */
     public function withItems(Cart $cart): Cart
     {
         return $cart->load([
-            'items.product.thumbnail',
-            'items.product.translations',
-            'items.variant.optionValues.group',
+            'items' => function ($query) {
+                $query->whereHas('product', fn ($p) => $p->where('is_active', true))
+                    ->with([
+                        'product.thumbnail',
+                        'product.translations',
+                        'variant.optionValues.group',
+                    ]);
+            },
         ]);
     }
 
@@ -80,7 +93,13 @@ class CartRepository extends BaseRepository
 
     public function mergeItems(Cart $source, Cart $target): void
     {
-        foreach ($source->items as $guestItem) {
+        // Same is_active guard as withItems() — don't carry a since-deactivated
+        // product's line over into the user's real cart on login-merge.
+        $activeGuestItems = $source->items()
+            ->whereHas('product', fn ($p) => $p->where('is_active', true))
+            ->get();
+
+        foreach ($activeGuestItems as $guestItem) {
             $existing = $target->items()
                 ->where('product_id', $guestItem->product_id)
                 ->where('product_variant_id', $guestItem->product_variant_id)

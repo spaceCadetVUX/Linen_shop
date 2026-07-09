@@ -37,6 +37,9 @@ class WishlistItemResource extends JsonResource
             'thumbnail' => $product->relationLoaded('thumbnail')
                 ? $product->thumbnail?->url
                 : null,
+            // Lets the wishlist page disable "Add to cart" instead of letting
+            // the click fail server-side against Cart's stock check.
+            'stock_quantity' => $product->stock_quantity,
             'added_at' => $this->created_at->toIso8601String(),
         ];
     }

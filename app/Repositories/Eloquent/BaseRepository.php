@@ -33,6 +33,17 @@ abstract class BaseRepository implements RepositoryInterface
         return $this->model->findOrFail($id);
     }
 
+    /**
+     * Locked read for check-then-write sequences (stock validation before a
+     * decrement, etc). Only holds the lock when called inside the caller's
+     * DB::transaction() — outside one, Postgres releases it as soon as this
+     * statement finishes, which defeats the purpose.
+     */
+    public function findByIdForUpdate(string|int $id): ?Model
+    {
+        return $this->model->lockForUpdate()->find($id);
+    }
+
     public function findBySlug(string $slug): ?Model
     {
         return $this->model->where('slug', $slug)->first();
