@@ -488,8 +488,10 @@ class ProductAuditService
             if (! empty($keyFacts)) {
                 $lines[] = '**Key Facts (' . count($keyFacts) . '):**';
                 $lines[] = '';
-                foreach ($keyFacts as $k => $v) {
-                    $lines[] = '- **' . $k . ':** ' . $v;
+                foreach ($keyFacts as $fact) {
+                    $label = $fact['label'] ?? '';
+                    $value = $fact['value'] ?? '';
+                    $lines[] = '- **' . $label . ':** ' . $value;
                 }
                 $lines[] = '';
             } else {

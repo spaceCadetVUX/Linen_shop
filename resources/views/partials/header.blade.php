@@ -16,7 +16,7 @@
       </button>
       <nav class="nav-quick" aria-label="Quick navigation">
         <a href="{{ $megaMenuCollectionUrl }}" class="nav-quick-link">{{ $megaMenuCollectionLabel }}</a>
-        <a href="{{ url('/blog') }}" class="nav-quick-link">Journal</a>
+        <a href="{{ $megaMenuBlogUrl }}" class="nav-quick-link">Journal</a>
         <a href="{{ $megaMenuAboutUrl }}" class="nav-quick-link">Về CacyLinen</a>
       </nav>
     </div>

@@ -235,6 +235,30 @@
           </div>{{-- /.pd-accordions --}}
         @endif
 
+        {{-- FAQ — luôn nằm cuối cùng trong cột content. Khác các accordion phía
+             trên (mỗi accordion = 1 mục riêng), FAQ chỉ có 1 trigger duy nhất —
+             mở ra là hiện toàn bộ Q&A cùng lúc, không bấm vào từng câu hỏi. --}}
+        @if(count($faqEntities))
+          <div class="pd-accordions pd-accordions--faq">
+            <div class="pd-accordion">
+              <button class="pd-acc-trigger" aria-expanded="false" type="button">
+                <span>{{ $locale === 'vi' ? 'Câu hỏi thường gặp' : 'Frequently asked questions' }}</span>
+                <span class="pd-acc-icon" aria-hidden="true">+</span>
+              </button>
+              <div class="pd-acc-body">
+                <div class="pd-faq-list">
+                  @foreach($faqEntities as $faq)
+                    <div class="pd-faq-item">
+                      <p class="pd-faq-q">{{ $faq['question'] }}</p>
+                      <p class="pd-faq-a">{{ $faq['answer'] }}</p>
+                    </div>
+                  @endforeach
+                </div>
+              </div>
+            </div>
+          </div>{{-- /.pd-accordions--faq --}}
+        @endif
+
       </div>{{-- /.pd-info-inner --}}
     </div>{{-- /.pd-info --}}
 

@@ -127,6 +127,9 @@ class AppServiceProvider extends ServiceProvider
             // "Về CacyLinen" quick-nav + mega-menu link → About Us page.
             $view->with('megaMenuAboutUrl', route("{$locale}.about"));
 
+            // "Journal" quick-nav link → blog listing (vi: /bai-viet, en: /blog).
+            $view->with('megaMenuBlogUrl', route("{$locale}.blog.index"));
+
             // Column 2 groups/links + column 3 hover-preview products, from real Category data.
             $megaMenuGroups = app(\App\Services\Category\CategoryService::class)->getMegaMenuData($locale);
             $view->with('megaMenuGroups', $megaMenuGroups);

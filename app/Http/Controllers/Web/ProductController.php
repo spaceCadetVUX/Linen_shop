@@ -343,6 +343,16 @@ class ProductController extends Controller
         // Journal section cuối PDP — 4 bài mới nhất, cùng shape với homepage.
         $latestBlogs = app(BlogPostRepository::class)->latestDecorated($locale, 4);
 
+        // FAQ — geoProfile.faq nếu có, fallback về legacy faq_items_{locale}
+        // (Content tab). Cùng pattern với CategoryController::show().
+        $faqField = 'faq_items_'.$locale;
+        $faqItems = $product->geoProfile($locale)?->faq
+            ?? (is_array($product->$faqField ?? null) ? $product->$faqField : []);
+        $faqEntities = array_values(array_filter(array_map(
+            fn ($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
+            $faqItems
+        )));
+
         // Reviews — SSR đủ để hiện đúng nội dung khớp AggregateRating JSON-LD
         // (Google yêu cầu review trong schema phải khớp nội dung hiển thị trên trang).
         // Form gửi review mới (JS/fetch) gọi thẳng API /products/{slug}/reviews.
@@ -355,7 +365,7 @@ class ProductController extends Controller
             'product', 'translation', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
             'relatedProducts', 'variantsData', 'optionTypesData', 'latestBlogs', 'sizeGuide',
-            'reviews', 'reviewSummary', 'reviewSort'
+            'reviews', 'reviewSummary', 'reviewSort', 'faqEntities'
         ));
     }
 }

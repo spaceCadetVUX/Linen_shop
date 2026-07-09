@@ -1435,13 +1435,23 @@ class ProductResource extends Resource
                                                     Section::make('Key Facts (vi)')
                                                         ->description('Thông tin cấu trúc cho AI — chứng nhận, tiêu chuẩn, điểm bán hàng.')
                                                         ->schema([
-                                                            Forms\Components\KeyValue::make('key_facts')
+                                                            Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
-                                                                ->keyLabel('Thông tin')
-                                                                ->valueLabel('Giá trị')
-                                                                ->keyPlaceholder('vd: Chứng nhận')
-                                                                ->valuePlaceholder('vd: CE / RoHS')
+                                                                ->schema([
+                                                                    Forms\Components\TextInput::make('label')
+                                                                        ->label('Thông tin')
+                                                                        ->placeholder('vd: Chứng nhận')
+                                                                        ->required(),
+                                                                    Forms\Components\TextInput::make('value')
+                                                                        ->label('Giá trị')
+                                                                        ->placeholder('vd: CE / RoHS')
+                                                                        ->required(),
+                                                                ])
+                                                                ->columns(2)
                                                                 ->addActionLabel('+ Thêm thông tin')
+                                                                ->defaultItems(0)
+                                                                ->reorderable()
+                                                                ->collapsible()
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->collapsed(),
@@ -1487,13 +1497,23 @@ class ProductResource extends Resource
                                                     Section::make('Key Facts (en)')
                                                         ->description('Structured facts for AI engines — certifications, compliance, key selling points.')
                                                         ->schema([
-                                                            Forms\Components\KeyValue::make('key_facts')
+                                                            Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
-                                                                ->keyLabel('Fact')
-                                                                ->valueLabel('Value')
-                                                                ->keyPlaceholder('e.g. Certification')
-                                                                ->valuePlaceholder('e.g. CE / RoHS')
+                                                                ->schema([
+                                                                    Forms\Components\TextInput::make('label')
+                                                                        ->label('Fact')
+                                                                        ->placeholder('e.g. Certification')
+                                                                        ->required(),
+                                                                    Forms\Components\TextInput::make('value')
+                                                                        ->label('Value')
+                                                                        ->placeholder('e.g. CE / RoHS')
+                                                                        ->required(),
+                                                                ])
+                                                                ->columns(2)
                                                                 ->addActionLabel('+ Add fact')
+                                                                ->defaultItems(0)
+                                                                ->reorderable()
+                                                                ->collapsible()
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->collapsed(),

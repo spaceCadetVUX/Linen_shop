@@ -3467,6 +3467,42 @@ img    { display: block; }
   color: var(--graphite);
 }
 
+/* FAQ accordion (PDP) — single trigger reveals every Q&A at once, so the
+   generic 360px .pd-open cap (sized for a single short spec block) would
+   clip it once there's more than 1-2 questions. Same typography override
+   as .category-faq since "Câu hỏi thường gặp" is a full label, not a
+   short uppercase spec name like "CHẤT LIỆU & THÀNH PHẦN". */
+.pd-accordions--faq .pd-acc-trigger {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.pd-accordions--faq .pd-accordion.pd-open .pd-acc-body {
+  max-height: 2000px;
+}
+.pd-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.pd-faq-q {
+  margin: 0 0 4px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.pd-faq-a {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--graphite);
+}
+
 /* Trust bar */
 .pd-trust {
   display: flex;

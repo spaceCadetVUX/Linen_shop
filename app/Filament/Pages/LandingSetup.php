@@ -47,6 +47,7 @@ class LandingSetup extends Page
 
             'featured_enabled'   => (bool) ($landing['featured_enabled'] ?? true),
             'featured_title'     => $landing['featured_title']     ?? 'Sản phẩm nổi bật',
+            'featured_title_en'  => $landing['featured_title_en']  ?? 'Featured products',
 
             'promo_enabled'      => (bool) ($landing['promo_enabled'] ?? false),
             'promo_image'        => $landing['promo_image']        ?? null,
@@ -164,11 +165,20 @@ class LandingSetup extends Page
                             ->columnSpanFull(),
 
                         TextInput::make('featured_title')
-                            ->label('Tiêu đề section')
+                            ->label('Tiêu đề section Tiếng Việt')
                             ->placeholder('Sản phẩm nổi bật')
                             ->maxLength(80)
-                            ->columnSpanFull(),
-                    ]),
+                            ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
+
+                        TextInput::make('featured_title_en')
+                            ->label('Tiêu đề section English')
+                            ->placeholder('Featured products')
+                            ->maxLength(80)
+                            ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
+                    ])
+                    ->columns(2),
 
                 Section::make('Editorial Grid')
                     ->icon('heroicon-o-squares-2x2')
@@ -271,6 +281,7 @@ class LandingSetup extends Page
             'hero_image'         => $data['hero_image']                 ?? null,
             'featured_enabled'   => (bool) ($data['featured_enabled']  ?? true),
             'featured_title'     => filled($data['featured_title'])     ? trim($data['featured_title'])     : null,
+            'featured_title_en'  => filled($data['featured_title_en'])  ? trim($data['featured_title_en'])  : null,
             'promo_enabled'      => (bool) ($data['promo_enabled']      ?? false),
             'promo_image'        => $data['promo_image']                ?? null,
             'promo_url'          => filled($data['promo_url'])          ? trim($data['promo_url'])          : null,

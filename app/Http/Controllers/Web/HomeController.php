@@ -110,7 +110,8 @@ class HomeController extends Controller
         // Shop grid — sản phẩm mới nhất, bật/tắt + tiêu đề từ LandingSetup
         // (extra['landing']['featured_enabled'/'featured_title']).
         $featuredEnabled = (bool) ($landing['featured_enabled'] ?? true);
-        $featuredTitle   = ($landing['featured_title'] ?? null) ?: ($isEn ? 'Featured products' : 'Sản phẩm nổi bật');
+        $featuredTitle   = ($isEn ? ($landing['featured_title_en'] ?? null) : null)
+            ?? $landing['featured_title'] ?? ($isEn ? 'Featured products' : 'Sản phẩm nổi bật');
         $featuredProducts = collect();
         if ($featuredEnabled) {
             $featuredProducts = ProductTranslation::where('product_translations.locale', $locale)

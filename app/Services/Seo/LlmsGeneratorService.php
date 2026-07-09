@@ -627,11 +627,32 @@ class LlmsGeneratorService
     {
         $line = '- [' . $entry->title . '](' . $entry->url . ')';
 
-        if (filled($entry->summary)) {
-            $line .= ': ' . $entry->summary;
+        $note = $this->firstParagraph($entry->summary);
+        if (filled($note)) {
+            $line .= ': ' . $note;
         }
 
         return $line;
+    }
+
+    /**
+     * First paragraph of a (possibly multi-paragraph) summary, collapsed to
+     * one line. `LlmsEntry::summary` is assembled from ai_summary + Use Cases
+     * + Target Audience + Additional Context joined by blank lines (see
+     * syncEntry() below) — fine as prose in buildEntryBlock(), but a llms.txt
+     * index/link-list section (llmstxt.org spec) requires exactly one bullet
+     * per line. Inlining the full multi-paragraph string broke that: the
+     * later paragraphs fell out of the bullet as bare, unindented text.
+     */
+    private function firstParagraph(?string $text): string
+    {
+        if (blank($text)) {
+            return '';
+        }
+
+        $first = explode("\n\n", trim($text), 2)[0];
+
+        return trim(preg_replace('/\s+/', ' ', $first));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -700,20 +721,27 @@ class LlmsGeneratorService
             $lines[] = '## ' . ($document->title ?? $document->slug);
             $lines[] = '';
 
-            if ($document->scope === LlmsScope::Index) {
-                foreach ($entries as $entry) {
-                    $lines[] = $this->buildIndexLine($entry);
-                }
-            } else {
-                foreach ($entries as $entry) {
-                    $lines[] = $this->buildIndexLine($entry);
-                }
+            // Every section here is a link list (llmstxt.org spec: one bullet
+            // per line, "- [title](url): short note") — index and full-scope
+            // documents render identically at this level. The full prose per
+            // entry (Use Cases, Target Audience, key facts, FAQ...) lives in
+            // the linked document (llms-{slug}.txt via buildEntryBlock()),
+            // not inlined here.
+            foreach ($entries as $entry) {
+                $lines[] = $this->buildIndexLine($entry);
             }
 
             $lines[] = '';
         }
 
-        // ── 5. Optional — business profile details ────────────────────────────
+        // ── 5. Business profile — linked, not inlined ──────────────────────────
+        // Previously dumped the full business document body (incl. its own
+        // "## Liên hệ" heading) under "## Optional". Two problems: (a) a raw
+        // prose block under an H2 isn't a link list, breaking the same
+        // one-bullet-per-line rule as #4; (b) "Optional" signals skippable
+        // content per spec, but business profile is first-class info this
+        // site wants surfaced, not de-prioritized. Link out to the full
+        // document instead — keeps the root file short and spec-compliant.
         $businessDoc = LlmsDocument::where('locale', $locale)
             ->where('is_active', true)
             ->where('slug', 'like', 'business%')
@@ -724,17 +752,11 @@ class LlmsGeneratorService
             if (! Storage::disk('public')->exists($path)) {
                 $this->generateBusinessDocument($businessDoc);
             }
-            $businessContent = trim((string) Storage::disk('public')->get($path));
-            // Strip the H1 line (already have our own H1) then append under Optional
-            $businessLines = explode("\n", $businessContent);
-            if (str_starts_with($businessLines[0] ?? '', '# ')) {
-                array_shift($businessLines);
-            }
-            $businessBody = trim(implode("\n", $businessLines));
-            if (filled($businessBody)) {
-                $lines[] = '## Optional';
+
+            if (Storage::disk('public')->exists($path)) {
+                $lines[] = $vi ? '## Doanh nghiệp' : '## Business';
                 $lines[] = '';
-                $lines[] = $businessBody;
+                $lines[] = '- [' . ($vi ? 'Hồ sơ doanh nghiệp đầy đủ (giới thiệu, FAQ, liên hệ)' : 'Full business profile (about, FAQ, contact)') . '](' . $base . '/llms-' . $businessDoc->slug . '.txt)';
                 $lines[] = '';
             }
         }

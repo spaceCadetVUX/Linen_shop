@@ -19,4 +19,19 @@ class EditBusinessProfile extends EditRecord
     {
         return [];
     }
+
+    // Filament rebuilds `extra` from only the dot-notation fields defined in
+    // this resource's form — without this merge, saving here would wipe out
+    // sibling keys ('landing', 'mega_menu', 'shop', 'blog_setting',
+    // 'analytics_settings') written by the other Filament Pages that share
+    // the same `extra` jsonb column.
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $data['extra'] = array_merge(
+            (array) (BusinessProfile::instance()->extra ?? []),
+            $data['extra'] ?? []
+        );
+
+        return $data;
+    }
 }
