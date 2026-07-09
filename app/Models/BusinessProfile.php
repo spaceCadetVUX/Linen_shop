@@ -43,9 +43,15 @@ class BusinessProfile extends Model
 
     public static function instance(): static
     {
-        return static::firstOrCreate(
-            ['id' => 1],
-            ['name' => config('app.name', 'My Business'), 'currency' => 'VND']
-        );
+        return static::find(1) ?? tap(new static, function (self $model) {
+            // `id` is not mass-assignable, so firstOrCreate(['id' => 1], ...) would
+            // silently drop it and auto-increment a new row on every call that
+            // misses — forceFill() bypasses the guard to pin this singleton to id=1.
+            $model->forceFill([
+                'id'       => 1,
+                'name'     => config('app.name', 'My Business'),
+                'currency' => 'VND',
+            ])->save();
+        });
     }
 }

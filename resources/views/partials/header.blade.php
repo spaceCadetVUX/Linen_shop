@@ -17,7 +17,7 @@
       <nav class="nav-quick" aria-label="Quick navigation">
         <a href="{{ $megaMenuCollectionUrl }}" class="nav-quick-link">{{ $megaMenuCollectionLabel }}</a>
         <a href="{{ url('/blog') }}" class="nav-quick-link">Journal</a>
-        <a href="{{ url('/about') }}" class="nav-quick-link">Về CacyLinen</a>
+        <a href="{{ $megaMenuAboutUrl }}" class="nav-quick-link">Về CacyLinen</a>
       </nav>
     </div>
 
@@ -221,7 +221,7 @@
           <span class="mega-group-plus" aria-hidden="true">+</span>
         </div>
         <div class="mega-group-links">
-          <a href="{{ url('/about') }}"          class="mega-link">Về chúng tôi</a>
+          <a href="{{ $megaMenuAboutUrl }}"      class="mega-link">Về chúng tôi</a>
           <a href="{{ url('/about/linen') }}"    class="mega-link">Câu chuyện linen</a>
           <a href="{{ url('/about/sustainability') }}" class="mega-link">Sustainability</a>
         </div>

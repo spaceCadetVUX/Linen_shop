@@ -96,7 +96,7 @@ class LandingSetup extends Page
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
-                        Fieldset::make('Link chính')
+                        Fieldset::make('Link trái')
                             ->schema([
                                 TextInput::make('hero_cta_label')
                                     ->label('Text Tiếng Việt')
@@ -119,7 +119,7 @@ class LandingSetup extends Page
                             ->columns(2)
                             ->columnSpanFull(),
 
-                        Fieldset::make('Link phụ')
+                        Fieldset::make('Link phải')
                             ->schema([
                                 TextInput::make('hero_cta2_label')
                                     ->label('Text Tiếng Việt')

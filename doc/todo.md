@@ -1,6 +1,29 @@
 # TODO
 
-> Cập nhật: 2026-07-09 (tiếp 2) — session: Order Inquiry ("Liên hệ đặt hàng" — Zalo/gọi/email thay tạm cho thanh toán online), debug có hệ thống Cart + Wishlist (list điều kiện test → tìm bug → fix), audit + fix Category (2 lỗi 404/redirect-chain) + redesign trang danh mục dạng card ảnh. **Vẫn chưa verify runtime** — Docker/Postgres suốt session vẫn không kết nối được từ host (`could not translate host name "postgres"`), toàn bộ dưới đây chỉ mới qua `php -l`, `node --check`, `route:list`, `view:cache` — chưa mở trình duyệt thật.
+> Cập nhật: 2026-07-09 (tiếp 3) — **Docker/Postgres đã kết nối được, verify runtime thật lần đầu.** Chạy hết 6 migration đang chờ + restart Horizon, test bằng tay toàn bộ checklist "Cần test lại bằng tay" của session trước (Category SEO, deactivate-parent, alt-locale redirect, Cart IDOR, Cart variant-bypass, Wishlist double-click + is_active, Order Inquiry end-to-end) qua curl + tinker trực tiếp trên container. Kết quả: **tất cả fix của session trước đều đúng**. Phát hiện thêm + fix ngay 3 bug mới (ngoài phạm vi các session trước):
+
+## 🔴 3 bug mới phát hiện trong lúc verify — đã fix
+
+1. **`BusinessProfile::instance()` tạo row rác vô hạn, dữ liệu Business Profile chưa bao giờ đọc/lưu được thật** (`app/Models/BusinessProfile.php:44`) — `firstOrCreate(['id' => 1], [...])` nhưng `id` không có trong `$fillable`, nên `create()` âm thầm bỏ qua `id=1`, mỗi lần gọi không tìm thấy row `id=1` lại tạo 1 row rỗng mới (bigint tự tăng). Xảy ra ở **mọi request** (header/footer/JSON-LD gọi `Setting::get()`, cả `EditBusinessProfile::mount()` trong Filament). Hậu quả đo được: bảng `business_profiles` có **35,072 row** lúc phát hiện (tăng lên ~51k trong lúc Horizon catch-up queue), quét toàn bộ **0 row có dữ liệu thật** — nghĩa là og:image, contact info, social links, Organization JSON-LD... tất cả luôn rỗng từ trước tới giờ dù có thể đã từng điền form trong Filament. Đã fix bằng `forceFill(['id' => 1, ...])`, dọn hết row rác (không mất gì vì xác nhận không row nào có data), flush cache `business_jsonld_schemas_{vi,en}`. **Anh cần vào lại Filament → Business Profile điền lại toàn bộ thông tin — lần này sẽ lưu và đọc lại đúng.**
+2. **`/sitemap.xml` + toàn bộ sitemap con crash 500** — `SitemapController` gọi `view('sitemap.index'|'sitemap.static'|'sitemap.child')` nhưng `resources/views/sitemap/` **không tồn tại**, chưa từng được tạo (0 lịch sử git). Nghĩa là sitemap chưa từng hoạt động được — nếu Google Search Console đang submit sitemap thì luôn nhận 500. Đã tạo 3 view (`index.blade.php`, `static.blade.php`, `child.blade.php`), verify: index liệt kê đủ 8 child, static + category child sitemap render XML hợp lệ kèm `xhtml:link hreflang`.
+3. **`AddCartItemRequest::variant_id` validate sai kiểu — chặn 100% việc thêm sản phẩm có variant vào giỏ qua API** (`app/Http/Requests/Cart/AddCartItemRequest.php:18`) — rule `['nullable', 'uuid', 'exists:product_variants,id']` nhưng `product_variants.id` là `bigint` không phải `uuid`. Mọi request hợp lệ (variant_id là số) đều bị 422 "must be a valid UUID". Phát hiện khi verify chính fix "chặn bypass variant" của session trước — fix đó (chặn thiếu variant_id) đúng, nhưng path "có variant_id" lại bị chặn nhầm bởi bug validate riêng. Đã sửa `uuid` → `integer`.
+
+## ✅ Checklist verify session trước — kết quả (đều PASS)
+
+1. Category `/vi/danh-muc` + `/vi/danh-muc/{slug}`: canonical/robots/hreflang/JSON-LD (CollectionPage + BreadcrumbList) đúng. (og:image thiếu — do bug #1 phía trên, không phải lỗi code SEO.)
+2. Deactivate category cha (qua Eloquent `save()`, đúng cách Filament làm) → card biến mất khỏi index **và** mega menu, sitemap entry set `is_active=false` (qua queue `seo`, có delay vì queue backlog — không phải bug).
+3. Alt-locale redirect: category active → 302 đúng locale; category/parent inactive → 404 thẳng, không redirect chain.
+4. Cart IDOR: PUT/DELETE không có `X-Session-ID` (hoặc sai `X-Session-ID`) nhắm cart_item của user khác → 403 cả 3 case, DB không đổi.
+5. Cart variant-bypass: thêm sản phẩm có variant mà không kèm `variant_id` → 422 (đúng). Kèm `variant_id` hợp lệ → bị chặn bởi bug #3 trước khi fix; sau fix → 201 đúng.
+6. Wishlist double-click: guard chỉ ở client (JS disable button), backend `toggle()` không lock — đúng như comment code đã ghi. Test 2 request song song qua API không tái hiện được race (đúng bản chất hiếm khi trigger), không phải bug mới, chấp nhận theo thiết kế hiện tại.
+7. Wishlist toggle sản phẩm đã deactivate → 404 "Product not found." đúng.
+8. Order Inquiry end-to-end: submit qua `channel=email` → tạo đúng record DB (message build từ cart thật server-side, không tin client) + mail render đúng qua log driver (`To:`, `Subject: Yêu cầu đặt hàng`, nội dung cart/tổng tiền/ghi chú/nút gọi điện đều đúng).
+
+## 🟡 Ghi nhận thêm, chưa fix (mức độ thấp, phát hiện phụ trong lúc verify)
+
+- Response 403/404 từ `abort()`/`abort_unless()` (Cart IDOR, Wishlist deactivated) trả về raw debug stack trace, không qua `ApiResponse` envelope như CLAUDE.md yêu cầu. Cần rà lại exception handler cho API nếu muốn đồng bộ format lỗi.
+- `failed_jobs` có 7 job cũ lỗi `ModelNotFoundException: No query results for model [App\Models\Brand]` (job SEO sync bị queue cho 1 Brand đã bị xoá trước khi job chạy) — pre-existing, chưa điều tra thêm.
+- Trang show() category (`/vi/danh-muc/{slug}`) cũng thiếu `og:image` giống trang index (cùng nguyên nhân bug #1).
 
 ## 🔴 Migration mới cần thêm vào danh sách chạy khi Docker lên
 

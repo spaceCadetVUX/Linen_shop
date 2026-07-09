@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('cart_items', function (Blueprint $table) {
             $table->dropUnique(['cart_id', 'product_id']);
 
-            $table->uuid('product_variant_id')->nullable()->after('product_id');
+            $table->unsignedBigInteger('product_variant_id')->nullable()->after('product_id');
 
             $table->foreign('product_variant_id')
                 ->references('id')

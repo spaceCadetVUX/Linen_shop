@@ -124,6 +124,9 @@ class AppServiceProvider extends ServiceProvider
             // "Bộ sưu tập" quick-nav link → shop listing (fallback while categories are empty).
             $view->with('megaMenuCollectionUrl', route("{$locale}.product.shop"));
 
+            // "Về CacyLinen" quick-nav + mega-menu link → About Us page.
+            $view->with('megaMenuAboutUrl', route("{$locale}.about"));
+
             // Column 2 groups/links + column 3 hover-preview products, from real Category data.
             $megaMenuGroups = app(\App\Services\Category\CategoryService::class)->getMegaMenuData($locale);
             $view->with('megaMenuGroups', $megaMenuGroups);
