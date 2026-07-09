@@ -133,8 +133,12 @@ class BusinessProfileResource extends Resource
                             Forms\Components\TextInput::make('state')
                                 ->label('State / Province'),
 
-                            Forms\Components\TextInput::make('country')
-                                ->label('Country'),
+                            Forms\Components\Select::make('country')
+                                ->label('Country')
+                                ->helperText('Lưu mã ISO 3166-1 alpha-2 (VD: VN) — dùng cho JSON-LD addressCountry.')
+                                ->options(config('countries'))
+                                ->searchable()
+                                ->default('VN'),
 
                             Forms\Components\TextInput::make('postal_code')
                                 ->label('Postal Code'),
@@ -188,6 +192,72 @@ class BusinessProfileResource extends Resource
                                         ->placeholder('https://zalo.me/...'),
                                 ])
                                 ->columns(2),
+
+                            Section::make('Shipping Carriers')
+                                ->description('Đơn vị vận chuyển hiển thị ở footer. Kéo thả để sắp xếp thứ tự hiển thị.')
+                                ->schema([
+                                    Forms\Components\Repeater::make('extra.shipping_carriers')
+                                        ->label('')
+                                        ->schema([
+                                            Forms\Components\FileUpload::make('logo')
+                                                ->label('Logo')
+                                                ->image()
+                                                ->disk('public')
+                                                ->directory('shipping-carriers')
+                                                ->imagePreviewHeight('60')
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('name')
+                                                ->label('Tên đơn vị')
+                                                ->placeholder('Giao Hàng Nhanh')
+                                                ->required()
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('url')
+                                                ->label('Link')
+                                                ->url()
+                                                ->placeholder('https://ghn.vn')
+                                                ->columnSpan(1),
+                                        ])
+                                        ->columns(3)
+                                        ->reorderable()
+                                        ->reorderableWithDragAndDrop()
+                                        ->addActionLabel('+ Thêm đơn vị vận chuyển')
+                                        ->columnSpanFull(),
+                                ]),
+
+                            Section::make('Payment Methods')
+                                ->description('Cổng / đơn vị thanh toán hiển thị ở footer. Kéo thả để sắp xếp thứ tự hiển thị.')
+                                ->schema([
+                                    Forms\Components\Repeater::make('extra.payment_methods')
+                                        ->label('')
+                                        ->schema([
+                                            Forms\Components\FileUpload::make('logo')
+                                                ->label('Logo')
+                                                ->image()
+                                                ->disk('public')
+                                                ->directory('payment-methods')
+                                                ->imagePreviewHeight('60')
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('name')
+                                                ->label('Tên cổng thanh toán')
+                                                ->placeholder('MoMo')
+                                                ->required()
+                                                ->columnSpan(1),
+
+                                            Forms\Components\TextInput::make('url')
+                                                ->label('Link')
+                                                ->url()
+                                                ->placeholder('https://momo.vn')
+                                                ->columnSpan(1),
+                                        ])
+                                        ->columns(3)
+                                        ->reorderable()
+                                        ->reorderableWithDragAndDrop()
+                                        ->addActionLabel('+ Thêm cổng thanh toán')
+                                        ->columnSpanFull(),
+                                ]),
 
                             Forms\Components\Repeater::make('business_hours')
                                 ->label('Business Hours')

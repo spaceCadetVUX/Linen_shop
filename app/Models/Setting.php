@@ -40,6 +40,16 @@ class Setting
             'contact_country'      => $p->country,
             'contact_postal_code'  => $p->postal_code,
 
+            // Legal / registration
+            'company_legal_name'   => $p->legal_name ?? $p->name,
+            'company_tax_code'     => $p->vat_number,
+
+            // Footer — shipping carriers (image, name, url; order = array order)
+            'shipping_carriers'     => $p->extra['shipping_carriers'] ?? [],
+
+            // Footer — payment methods (image, name, url; order = array order)
+            'payment_methods'       => $p->extra['payment_methods'] ?? [],
+
             // Social links (stored as JSON array on BusinessProfile)
             'social_facebook'      => $p->social_links['facebook']  ?? null,
             'social_instagram'     => $p->social_links['instagram'] ?? null,
@@ -69,7 +79,13 @@ class Setting
         };
     }
 
-    private static function profile(): BusinessProfile
+    /**
+     * Memoized BusinessProfile singleton for the current request — call this
+     * instead of BusinessProfile::instance() anywhere the row is read more than
+     * once per request (header/footer composers, ProductService, etc.) to avoid
+     * duplicate `SELECT business_profiles WHERE id = 1` queries.
+     */
+    public static function profile(): BusinessProfile
     {
         if (! static::$profile) {
             static::$profile = BusinessProfile::instance();

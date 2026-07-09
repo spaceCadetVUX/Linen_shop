@@ -1064,6 +1064,18 @@ img    { display: block; }
 }
 .mega-link:hover::after { transform: scaleX(1); }
 
+/* Contact address in mega col 4 — plain text, no link hover treatment */
+.mega-contact-address {
+  display: block;
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  color: var(--ash);
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
 /* ── Close button ── */
 .mega-close {
   position: absolute;
@@ -2654,6 +2666,32 @@ img    { display: block; }
 }
 .footer-social-link:hover { color: var(--ink); transform: translateY(-2px); }
 
+/* Shipping carriers — logos only, uniform height regardless of source aspect ratio */
+.footer-shipping {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 0 var(--pad-x) 32px;
+}
+
+.footer-shipping-link {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  opacity: 0.8;
+  transition: opacity var(--ease);
+}
+.footer-shipping-link:hover { opacity: 1; }
+
+.footer-shipping-logo {
+  height: 100%;
+  width: auto;
+  max-width: 80px;
+  object-fit: contain;
+}
+
 /* Bottom bar */
 .footer-bottom {
   border-top: 0.5px solid var(--pebble);
@@ -2671,6 +2709,22 @@ img    { display: block; }
   gap: 5px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.footer-payment-link {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  opacity: 0.8;
+  transition: opacity var(--ease);
+}
+.footer-payment-link:hover { opacity: 1; }
+
+.footer-payment-logo {
+  height: 100%;
+  width: auto;
+  max-width: 80px;
+  object-fit: contain;
 }
 
 .footer-pay-icon {
@@ -2752,6 +2806,7 @@ img    { display: block; }
   .footer-col--right { text-align: right; }
   .footer-col--right .footer-nav { align-items: flex-end; }
   .footer-social { padding: 0 24px 36px; justify-content: flex-start; gap: 20px; }
+  .footer-shipping { padding: 0 24px 24px; justify-content: flex-start; gap: 16px; }
   .footer-bottom { flex-direction: column; align-items: flex-start; padding: 20px 24px; }
   .footer-payments { justify-content: flex-start; }
   .footer-legal { padding: 12px 24px 24px; text-align: left; }

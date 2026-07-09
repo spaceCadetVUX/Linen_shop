@@ -3,6 +3,7 @@
 namespace App\Services\Product;
 
 use App\Models\Product;
+use App\Models\Setting;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Support\LocaleUrl;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -33,30 +34,40 @@ class ProductService
     }
 
     /**
-     * Newest active products, shaped for the header mega menu "Sản phẩm mới"
-     * auto-slide (column 1). Caches the shaped array (not the Eloquent
+     * Products for the header mega menu "Sản phẩm mới" slider (column 1).
+     * Admin-curated via Mega Menu Setting (extra.mega_menu.new_products_ids,
+     * order preserved); falls back to the 4 newest active products when the
+     * admin hasn't picked anything. Caches the shaped array (not the Eloquent
      * collection) — caching Model instances round-trips through
      * serialize/unserialize and can come back as __PHP_Incomplete_Class.
      */
-    public function getLatestForMegaMenu(string $locale, int $limit = 4): array
+    public function getLatestForMegaMenu(string $locale): array
     {
-        return Cache::remember(self::LATEST_CACHE_KEY . ":{$locale}:{$limit}", self::LATEST_CACHE_TTL,
-            fn () => $this->productRepository->latestActive($limit)
-                ->map(fn (Product $product) => [
-                    'name' => $product->translation($locale)?->name ?? $product->name,
-                    'image' => $product->thumbnail?->url,
-                    'url' => LocaleUrl::for('product', $product->translation($locale)?->slug ?? $product->slug, $locale),
-                ])
-                ->filter(fn (array $p) => filled($p['image']))
-                ->values()
-                ->all()
+        return Cache::remember(self::LATEST_CACHE_KEY . ":{$locale}", self::LATEST_CACHE_TTL,
+            function () use ($locale) {
+                $curatedIds = (array) (Setting::profile()->extra['mega_menu']['new_products_ids'] ?? []);
+
+                $products = filled($curatedIds)
+                    ? $this->productRepository->findActiveByIdsOrdered($curatedIds)
+                    : $this->productRepository->latestActive(4);
+
+                return $products
+                    ->map(fn (Product $product) => [
+                        'name' => $product->translation($locale)?->name ?? $product->name,
+                        'image' => $product->thumbnail?->url,
+                        'url' => LocaleUrl::for('product', $product->translation($locale)?->slug ?? $product->slug, $locale),
+                    ])
+                    ->filter(fn (array $p) => filled($p['image']))
+                    ->values()
+                    ->all();
+            }
         );
     }
 
-    public function bustLatestMegaCache(int $limit = 4): void
+    public function bustLatestMegaCache(): void
     {
         foreach (config('app.supported_locales', ['vi', 'en']) as $locale) {
-            Cache::forget(self::LATEST_CACHE_KEY . ":{$locale}:{$limit}");
+            Cache::forget(self::LATEST_CACHE_KEY . ":{$locale}");
         }
     }
 }

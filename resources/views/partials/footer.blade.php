@@ -85,6 +85,30 @@
 
   </div>
 
+  {{-- Shipping carriers — logos only, order = admin drag order in Business Profile --}}
+  @if(($shippingCarriers = \App\Models\Setting::get('shipping_carriers')) && count($shippingCarriers))
+    <div class="footer-shipping">
+      @foreach($shippingCarriers as $carrier)
+        @continue(empty($carrier['logo']))
+        @php
+          $logoUrl = str_starts_with((string) $carrier['logo'], 'http')
+              ? $carrier['logo']
+              : asset('storage/' . ltrim((string) $carrier['logo'], '/'));
+          $carrierName = $carrier['name'] ?? 'Đơn vị vận chuyển';
+        @endphp
+        @if(! empty($carrier['url']))
+          <a href="{{ $carrier['url'] }}" class="footer-shipping-link" aria-label="{{ $carrierName }}" target="_blank" rel="noopener">
+            <img src="{{ $logoUrl }}" alt="{{ $carrierName }}" class="footer-shipping-logo" loading="lazy">
+          </a>
+        @else
+          <span class="footer-shipping-link" aria-label="{{ $carrierName }}">
+            <img src="{{ $logoUrl }}" alt="{{ $carrierName }}" class="footer-shipping-logo" loading="lazy">
+          </span>
+        @endif
+      @endforeach
+    </div>
+  @endif
+
   {{-- Bottom bar: locale/currency switch + payment icons --}}
   <div class="footer-bottom">
 
@@ -111,19 +135,47 @@
     </div>
 
     <div class="footer-payments">
-      <span class="footer-pay-icon footer-pay--visa">VISA</span>
-      <span class="footer-pay-icon footer-pay--mc">MC</span>
-      <span class="footer-pay-icon footer-pay--applepay">⌘Pay</span>
-      <span class="footer-pay-icon footer-pay--amex">AMEX</span>
-      <span class="footer-pay-icon footer-pay--paypal">PP</span>
-      <span class="footer-pay-icon footer-pay--momo">MoMo</span>
-      <span class="footer-pay-icon footer-pay--zalopay">Zalo</span>
+      @foreach(\App\Models\Setting::get('payment_methods') as $method)
+        @continue(empty($method['logo']))
+        @php
+          $methodLogoUrl = str_starts_with((string) $method['logo'], 'http')
+              ? $method['logo']
+              : asset('storage/' . ltrim((string) $method['logo'], '/'));
+          $methodName = $method['name'] ?? 'Phương thức thanh toán';
+        @endphp
+        @if(! empty($method['url']))
+          <a href="{{ $method['url'] }}" class="footer-payment-link" aria-label="{{ $methodName }}" target="_blank" rel="noopener">
+            <img src="{{ $methodLogoUrl }}" alt="{{ $methodName }}" class="footer-payment-logo" loading="lazy">
+          </a>
+        @else
+          <span class="footer-payment-link" aria-label="{{ $methodName }}">
+            <img src="{{ $methodLogoUrl }}" alt="{{ $methodName }}" class="footer-payment-logo" loading="lazy">
+          </span>
+        @endif
+      @endforeach
     </div>
 
   </div>
 
   {{-- Legal --}}
   <div class="footer-legal">
+    @if($legalName = \App\Models\Setting::get('company_legal_name'))
+      <p class="footer-legal-company">
+        {{ $legalName }}
+        @if($taxCode = \App\Models\Setting::get('company_tax_code'))
+          &nbsp;&middot;&nbsp;MST: {{ $taxCode }}
+        @endif
+        @if($addr = \App\Models\Setting::get('contact_address'))
+          &nbsp;&middot;&nbsp;{{ $addr }}
+        @endif
+        @if($phone = \App\Models\Setting::get('contact_phone'))
+          &nbsp;&middot;&nbsp;{{ $phone }}
+        @endif
+        @if($email = \App\Models\Setting::get('contact_email'))
+          &nbsp;&middot;&nbsp;{{ $email }}
+        @endif
+      </p>
+    @endif
     <p>
       &copy; {{ date('Y') }}, CacyLinen &nbsp;&middot;&nbsp;
       <a href="{{ url('/privacy-policy') }}">Chính sách bảo mật</a>

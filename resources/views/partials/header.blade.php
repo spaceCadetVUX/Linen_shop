@@ -75,7 +75,7 @@
 
       <div class="mega-group mega-group--img">
         <div class="mega-group-hd">
-          <span class="mega-group-name">Sản phẩm mới</span>
+          <span class="mega-group-name">{{ $megaMenuNewProductsLabel }}</span>
           <span class="mega-group-plus" aria-hidden="true">+</span>
         </div>
         {{-- Auto-slide every 5s, loops — JS in app.js toggles .is-active --}}
@@ -197,6 +197,31 @@
           <a href="{{ url('/contact') }}"   class="mega-link">Liên hệ</a>
         </div>
       </div>
+
+      @php
+        $megaContactAddress = \App\Models\Setting::get('contact_address');
+        $megaContactPhone = \App\Models\Setting::get('contact_phone');
+        $megaContactEmail = \App\Models\Setting::get('contact_email');
+      @endphp
+      @if($megaContactAddress || $megaContactPhone || $megaContactEmail)
+        <div class="mega-group">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">Liên hệ</span>
+            <span class="mega-group-plus" aria-hidden="true">+</span>
+          </div>
+          <div class="mega-group-links">
+            @if($megaContactAddress)
+              <span class="mega-contact-address">{{ $megaContactAddress }}</span>
+            @endif
+            @if($megaContactPhone)
+              <a href="tel:{{ preg_replace('/[^0-9+]/', '', $megaContactPhone) }}" class="mega-link">{{ $megaContactPhone }}</a>
+            @endif
+            @if($megaContactEmail)
+              <a href="mailto:{{ $megaContactEmail }}" class="mega-link">{{ $megaContactEmail }}</a>
+            @endif
+          </div>
+        </div>
+      @endif
 
       <div class="mega-brand-footer">
         <div class="mega-intl-switch">

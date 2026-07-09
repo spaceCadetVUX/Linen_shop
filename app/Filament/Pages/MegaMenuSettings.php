@@ -3,8 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Models\BusinessProfile;
+use App\Models\Product;
+use App\Services\Product\ProductService;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
@@ -34,6 +37,9 @@ class MegaMenuSettings extends Page
             'enabled' => (bool) ($megaMenu['enabled'] ?? true),
             'collection_label' => $megaMenu['collection_label'] ?? 'Bộ sưu tập',
             'collection_label_en' => $megaMenu['collection_label_en'] ?? 'Collections',
+            'new_products_label' => $megaMenu['new_products_label'] ?? 'Sản phẩm mới',
+            'new_products_label_en' => $megaMenu['new_products_label_en'] ?? 'New Arrivals',
+            'new_products_ids' => $megaMenu['new_products_ids'] ?? [],
         ]);
     }
 
@@ -65,6 +71,45 @@ class MegaMenuSettings extends Page
                             ->columnSpan(1),
                     ])
                     ->columns(2),
+
+                Section::make('Cột 1 — Sản phẩm mới')
+                    ->icon('heroicon-o-sparkles')
+                    ->description('Tiêu đề + danh sách sản phẩm hiển thị ở cột đầu mega menu.')
+                    ->schema([
+                        TextInput::make('new_products_label')
+                            ->label('Tiêu đề Tiếng Việt')
+                            ->placeholder('Sản phẩm mới')
+                            ->maxLength(60)
+                            ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
+
+                        TextInput::make('new_products_label_en')
+                            ->label('Tiêu đề English')
+                            ->placeholder('New Arrivals')
+                            ->maxLength(60)
+                            ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
+                            ->columnSpan(1),
+
+                        Select::make('new_products_ids')
+                            ->label('Sản phẩm hiển thị')
+                            ->helperText('Tìm và chọn sản phẩm — kéo để đổi thứ tự trong ô. Để trống → tự động lấy 4 sản phẩm mới nhất.')
+                            ->multiple()
+                            ->searchable()
+                            ->reorderable()
+                            ->preload(false)
+                            ->getSearchResultsUsing(fn (string $search): array => Product::query()
+                                ->active()
+                                ->where('name', 'like', "%{$search}%")
+                                ->limit(20)
+                                ->pluck('name', 'id')
+                                ->all())
+                            ->getOptionLabelsUsing(fn (array $values): array => Product::query()
+                                ->whereIn('id', $values)
+                                ->pluck('name', 'id')
+                                ->all())
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
             ])
             ->statePath('data');
     }
@@ -90,10 +135,15 @@ class MegaMenuSettings extends Page
             'enabled' => (bool) ($data['enabled'] ?? true),
             'collection_label' => filled($data['collection_label']) ? trim($data['collection_label']) : null,
             'collection_label_en' => filled($data['collection_label_en']) ? trim($data['collection_label_en']) : null,
+            'new_products_label' => filled($data['new_products_label']) ? trim($data['new_products_label']) : null,
+            'new_products_label_en' => filled($data['new_products_label_en']) ? trim($data['new_products_label_en']) : null,
+            'new_products_ids' => array_values((array) ($data['new_products_ids'] ?? [])),
         ];
 
         $profile->extra = $extra;
         $profile->saveQuietly();
+
+        app(ProductService::class)->bustLatestMegaCache();
 
         Notification::make()
             ->title('Đã lưu cài đặt Mega Menu')

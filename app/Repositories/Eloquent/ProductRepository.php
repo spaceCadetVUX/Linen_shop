@@ -222,4 +222,23 @@ class ProductRepository extends BaseRepository
             ->limit($limit)
             ->get();
     }
+
+    /**
+     * Active products matching $ids, in the exact given order (admin-curated
+     * mega menu selection) — not DB insertion order.
+     */
+    public function findActiveByIdsOrdered(array $ids): EloquentCollection
+    {
+        $products = $this->query()
+            ->active()
+            ->with(['thumbnail', 'translations'])
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+
+        return EloquentCollection::make($ids)
+            ->map(fn ($id) => $products->get($id))
+            ->filter()
+            ->values();
+    }
 }

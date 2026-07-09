@@ -109,13 +109,17 @@ class AppServiceProvider extends ServiceProvider
         // Mega Menu labels are admin-configurable (Setting → Mega Menu, extra.mega_menu)
         // and must reach the shared header partial without a query in Blade (CLAUDE.md rule).
         View::composer('partials.header', function ($view) {
-            $megaMenu = (array) (BusinessProfile::instance()->extra['mega_menu'] ?? []);
+            $megaMenu = (array) (Setting::profile()->extra['mega_menu'] ?? []);
             $locale = app()->getLocale();
             $isEn = $locale === 'en';
 
             $view->with('megaMenuCollectionLabel', $isEn
                 ? ($megaMenu['collection_label_en'] ?? 'Collections')
                 : ($megaMenu['collection_label'] ?? 'Bộ sưu tập'));
+
+            $view->with('megaMenuNewProductsLabel', $isEn
+                ? ($megaMenu['new_products_label_en'] ?? 'New Arrivals')
+                : ($megaMenu['new_products_label'] ?? 'Sản phẩm mới'));
 
             // "Bộ sưu tập" quick-nav link → shop listing (fallback while categories are empty).
             $view->with('megaMenuCollectionUrl', route("{$locale}.product.shop"));
@@ -133,7 +137,7 @@ class AppServiceProvider extends ServiceProvider
             }
             $view->with('megaMenuProductsByCat', $productsByCat);
 
-            // Column 1 "Sản phẩm mới" auto-slide — 4 newest active products.
+            // Column 1 slider — admin-curated products (Mega Menu Setting), falls back to 4 newest active.
             $view->with('megaMenuNewProducts', app(\App\Services\Product\ProductService::class)->getLatestForMegaMenu($locale));
         });
     }
