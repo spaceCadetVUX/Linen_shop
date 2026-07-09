@@ -12,6 +12,7 @@ use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\SitemapController;
 use App\Http\Controllers\Web\SizeGuideController;
+use App\Http\Controllers\Web\WishlistController;
 use App\Models\BlogPostTranslation;
 use App\Support\LocaleUrl;
 use Illuminate\Http\Request;
@@ -132,6 +133,10 @@ Route::prefix('vi')
         // Legacy hardcoded link /size-guide (fallback redirects here without locale)
         Route::get('size-guide', fn () => redirect(route('vi.size-guide'), 301));
 
+        // ── Yêu thích (guest-session wishlist, xem WishlistController) ────────
+        Route::get('tai-khoan/yeu-thich', [WishlistController::class, 'index'])
+            ->name('vi.account.wishlist');
+
         // ── Trang tĩnh — catch-all, phải đặt cuối cùng ───────────────────────
         Route::get('{slug}', [PageController::class, 'show'])
             ->name('vi.page.show');
@@ -208,6 +213,10 @@ Route::prefix('en')
         // ── Size guide ────────────────────────────────────────────────────────
         Route::get('size-guide', [SizeGuideController::class, 'index'])
             ->name('en.size-guide');
+
+        // ── Wishlist (guest-session, see WishlistController) ──────────────────
+        Route::get('account/wishlist', [WishlistController::class, 'index'])
+            ->name('en.account.wishlist');
 
         // ── Static pages — catch-all, must be last ────────────────────────────
         Route::get('{slug}', [PageController::class, 'show'])

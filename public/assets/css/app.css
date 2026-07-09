@@ -5302,6 +5302,15 @@ a.shop-card-name:hover { color: var(--ash); }
 }
 .fav-atc:hover { opacity: 0.78; }
 
+/* -- Empty state -- */
+.fav-empty {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ash);
+  padding: 0 var(--pad-x);
+  max-width: 480px;
+}
+
 /* -- Continue link -- */
 .fav-continue {
   padding: 40px var(--pad-x) 0;

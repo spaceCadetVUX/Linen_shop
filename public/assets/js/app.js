@@ -2,6 +2,38 @@
    CacyLinen — main.js
 ============================================ */
 
+/* ---------- Shared helpers: CSRF token + guest session ID ----------
+   Guest ownership (cart/wishlist) is resolved server-side the same way
+   CartService::resolveCart() does it — X-Session-ID header, a UUID this
+   browser generates once and keeps in localStorage. XSRF-TOKEN is the
+   cookie Laravel's stateful-API middleware sets on every page load;
+   reading it here is the standard Sanctum SPA pattern (no separate
+   /sanctum/csrf-cookie round trip needed since the cookie already exists). ---------- */
+function xsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+function getSessionId() {
+  const key = 'cacylinen_session_id';
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = (window.crypto && window.crypto.randomUUID)
+      ? window.crypto.randomUUID()
+      : 'sid-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
+function apiHeaders(extra) {
+  return Object.assign({
+    'X-Session-ID': getSessionId(),
+    'X-XSRF-TOKEN': xsrfToken(),
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  }, extra || {});
+}
 
 /* ---------- Hero Logo: shrink on scroll → nav-logo fade in ---------- */
 (function () {
@@ -646,12 +678,38 @@ updateNav();
     });
   }
 
-  /* ── Wishlist toggle ── */
+  /* ── Wishlist toggle — real POST /api/v1/wishlist/toggle, not a CSS-only fake ── */
   const wishBtn = document.getElementById('pdWishBtn');
   if (wishBtn) {
+    const productId = wishBtn.dataset.productId;
+
+    const setWished = (isWished) => {
+      wishBtn.classList.toggle('pd-wished', isWished);
+      wishBtn.setAttribute('aria-pressed', isWished ? 'true' : 'false');
+    };
+
+    // Initial state on page load — is this product already wishlisted?
+    fetch('/api/v1/wishlist', { headers: apiHeaders() })
+      .then((res) => res.json())
+      .then((json) => {
+        const items = (json.data || []);
+        setWished(items.some((item) => item.product_id === productId));
+      })
+      .catch(() => {});
+
     wishBtn.addEventListener('click', () => {
-      const wished = wishBtn.classList.toggle('pd-wished');
-      wishBtn.setAttribute('aria-pressed', wished ? 'true' : 'false');
+      if (wishBtn.disabled) return;
+      wishBtn.disabled = true;
+
+      fetch('/api/v1/wishlist/toggle', {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({ product_id: productId }),
+      })
+        .then((res) => res.json())
+        .then((json) => setWished(!!(json.data && json.data.wishlisted)))
+        .catch(() => {})
+        .finally(() => { wishBtn.disabled = false; });
     });
   }
 
@@ -747,11 +805,6 @@ updateNav();
   const msg = document.getElementById('pdReviewFormMsg');
   const slug = form.dataset.productSlug;
   const isEn = form.dataset.locale === 'en';
-
-  function xsrfToken() {
-    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : '';
-  }
 
   function showMsg(text, isError) {
     msg.textContent = text;
@@ -890,4 +943,70 @@ updateNav();
     const q = input.value.trim();
     if (q.length > 0) goToResults(q);
   });
+}());
+
+/* ---------- Wishlist page — hydrate #wishlistGrid from GET /api/v1/wishlist ---------- */
+(function () {
+  const page = document.getElementById('wishlistPage');
+  const grid = document.getElementById('wishlistGrid');
+  const emptyState = document.getElementById('wishlistEmpty');
+  const countLabel = document.getElementById('favCountLabel');
+  if (!page || !grid) return;
+
+  const isEn = page.dataset.locale === 'en';
+  const shopUrlPrefix = isEn ? '/en/products/' : '/vi/san-pham/';
+
+  function formatVnd(v) { return Number(v).toLocaleString('vi-VN') + ' ₫'; }
+
+  function renderCard(item) {
+    const card = document.createElement('article');
+    card.className = 'shop-card fav-card';
+    card.dataset.productId = item.product_id;
+
+    const url = shopUrlPrefix + item.slug;
+    const priceHtml = item.sale_price
+      ? '<span class="t-price-old">' + formatVnd(item.price) + '</span> ' + formatVnd(item.sale_price)
+      : formatVnd(item.price);
+
+    card.innerHTML =
+      '<a href="' + url + '" style="display:block">'
+      + '<div class="shop-card-img-wrap">'
+      + (item.thumbnail ? '<img src="' + item.thumbnail + '" alt="' + item.name + '" class="shop-card-img">' : '')
+      + '</div></a>'
+      + '<button class="fav-card-del" aria-label="' + (isEn ? 'Remove' : 'Bỏ yêu thích') + '">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>'
+      + '</button>'
+      + '<div class="shop-card-info">'
+      + '<a href="' + url + '" class="shop-card-name">' + item.name + '</a>'
+      + '<span class="shop-card-price">' + priceHtml + '</span>'
+      + '</div>';
+
+    card.querySelector('.fav-card-del').addEventListener('click', () => {
+      fetch('/api/v1/wishlist/toggle', {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({ product_id: item.product_id }),
+      })
+        .then(() => card.remove())
+        .then(updateEmptyState)
+        .catch(() => {});
+    });
+
+    return card;
+  }
+
+  function updateEmptyState() {
+    const hasItems = grid.children.length > 0;
+    emptyState.hidden = hasItems;
+    if (countLabel) countLabel.textContent = hasItems ? '(' + grid.children.length + ')' : '';
+  }
+
+  fetch('/api/v1/wishlist?locale=' + encodeURIComponent(page.dataset.locale), { headers: apiHeaders() })
+    .then((res) => res.json())
+    .then((json) => {
+      const items = json.data || [];
+      items.forEach((item) => grid.appendChild(renderCard(item)));
+      updateEmptyState();
+    })
+    .catch(() => { emptyState.hidden = false; });
 }());

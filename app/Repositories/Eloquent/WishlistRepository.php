@@ -17,7 +17,8 @@ class WishlistRepository extends BaseRepository
     public function forUser(string $userId): Collection
     {
         return WishlistItem::where('user_id', $userId)
-            ->with('product.thumbnail')
+            ->whereHas('product', fn ($q) => $q->where('is_active', true))
+            ->with(['product.thumbnail', 'product.translations'])
             ->latest()
             ->get();
     }
@@ -25,7 +26,8 @@ class WishlistRepository extends BaseRepository
     public function forSession(string $sessionId): Collection
     {
         return WishlistItem::where('session_id', $sessionId)
-            ->with('product.thumbnail')
+            ->whereHas('product', fn ($q) => $q->where('is_active', true))
+            ->with(['product.thumbnail', 'product.translations'])
             ->latest()
             ->get();
     }

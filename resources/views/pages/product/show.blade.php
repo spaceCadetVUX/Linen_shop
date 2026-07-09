@@ -93,7 +93,7 @@
 
         <div class="pd-title-row">
           <h1 class="pd-title">{{ $translation->name }}</h1>
-          <button class="pd-wish-btn" id="pdWishBtn" type="button" aria-label="Thêm vào yêu thích" aria-pressed="false">
+          <button class="pd-wish-btn" id="pdWishBtn" type="button" data-product-id="{{ $product->id }}" aria-label="Thêm vào yêu thích" aria-pressed="false">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>

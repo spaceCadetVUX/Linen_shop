@@ -21,6 +21,7 @@
   <title>{!! $__tabTitle !!}</title>
   <meta name="description" content="@yield('meta-description', 'CacyLinen - Thời trang linen tối giản, bền vững.')">
   @include('partials.seo-head')
+  @stack('meta')
   <link rel="icon" href="{{ $faviconUrl ?? asset('favicon.ico') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
