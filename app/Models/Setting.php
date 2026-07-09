@@ -71,6 +71,8 @@ class Setting
 
             // Product page trust badges — configurable from Filament BusinessProfile
             'return_days'          => $p->extra['return_days']    ?? 7,
+            'return_method'        => $p->extra['return_method']  ?? 'mail',
+            'return_fees'          => $p->extra['return_fees']    ?? 'customer',
             'support_hours'        => $p->extra['support_hours']  ?? '24/7',
             'warranty_info_vi'     => $p->extra['warranty_info_vi'] ?? null,
             'warranty_info_en'     => $p->extra['warranty_info_en'] ?? null,

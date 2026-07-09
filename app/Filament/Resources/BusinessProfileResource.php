@@ -155,6 +155,44 @@ class BusinessProfileResource extends Resource
                         ])
                         ->columns(2),
 
+                    // ── Return policy ─────────────────────────────────────────
+                    Tab::make('Return Policy')
+                        ->icon('heroicon-o-arrow-uturn-left')
+                        ->schema([
+                            Section::make('Chính sách đổi trả')
+                                ->description('Áp dụng chung cho toàn shop — feed vào JSON-LD hasMerchantReturnPolicy trên mọi trang sản phẩm.')
+                                ->schema([
+                                    Forms\Components\TextInput::make('extra.return_days')
+                                        ->label('Số ngày đổi trả')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->default(7)
+                                        ->helperText('0 = không nhận đổi trả.')
+                                        ->columnSpan(1),
+
+                                    Forms\Components\Select::make('extra.return_method')
+                                        ->label('Hình thức trả hàng')
+                                        ->options([
+                                            'mail' => 'Gửi qua bưu điện',
+                                            'in_store' => 'Trả trực tiếp tại shop',
+                                        ])
+                                        ->default('mail')
+                                        ->native(false)
+                                        ->columnSpan(1),
+
+                                    Forms\Components\Select::make('extra.return_fees')
+                                        ->label('Phí ship trả hàng')
+                                        ->options([
+                                            'free' => 'Miễn phí',
+                                            'customer' => 'Khách chịu phí',
+                                        ])
+                                        ->default('customer')
+                                        ->native(false)
+                                        ->columnSpan(1),
+                                ])
+                                ->columns(3),
+                        ]),
+
                     // ── Online ────────────────────────────────────────────────
                     Tab::make('Online Presence')
                         ->schema([

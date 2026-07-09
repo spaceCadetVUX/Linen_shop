@@ -8,6 +8,7 @@ use App\Models\BlogPost;
 use App\Models\Product;
 use App\Models\Seo\JsonldSchema;
 use App\Models\Seo\JsonldTemplate;
+use App\Models\Setting;
 use App\Support\LocaleUrl;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -508,6 +509,7 @@ class JsonldService
         $productUrl = (string) ($payload['url'] ?? '');
         $seller = app(BusinessJsonldService::class)->publisherBlock();
         $priceHidden = $model->getAttribute('show_price') === false;
+        $returnPolicy = $this->merchantReturnPolicy();
 
         $stockQty = (int) ($model->getAttribute('stock_quantity') ?? 0);
         $availability = $stockQty > 0
@@ -523,6 +525,7 @@ class JsonldService
                 'availability' => $availability,
                 'url' => $productUrl,
                 'seller' => $seller,
+                'hasMerchantReturnPolicy' => $returnPolicy,
             ];
         }
 
@@ -584,6 +587,7 @@ class JsonldService
                             'availability' => $aggregateAvailability,
                             'url' => $productUrl,
                             'seller' => $seller,
+                            'hasMerchantReturnPolicy' => $returnPolicy,
                         ];
                     }
 
@@ -604,6 +608,7 @@ class JsonldService
                         'availability' => $aggregateAvailability,
                         'offers' => $offerList,
                         'seller' => $seller,
+                        'hasMerchantReturnPolicy' => $returnPolicy,
                     ];
                 }
             }
@@ -615,8 +620,48 @@ class JsonldService
             $singleOffer['price'] = (float) $singleOffer['price'];
         }
         $singleOffer['seller'] = $seller;
+        $singleOffer['hasMerchantReturnPolicy'] = $returnPolicy;
 
         return $singleOffer;
+    }
+
+    /**
+     * Build the shop-wide MerchantReturnPolicy block, attached to every
+     * Offer/AggregateOffer on a product page. Same policy for every
+     * product — configured once in Business Profile → Return Policy,
+     * not per-product (matches how most small VN shops actually operate).
+     *
+     * https://developers.google.com/search/docs/appearance/structured-data/product#merchant-return-policy
+     */
+    private function merchantReturnPolicy(): array
+    {
+        $days = (int) (Setting::get('return_days') ?? 7);
+
+        if ($days <= 0) {
+            return [
+                '@type' => 'MerchantReturnPolicy',
+                'returnPolicyCategory' => 'https://schema.org/MerchantReturnNotPermitted',
+                'applicableCountry' => 'VN',
+            ];
+        }
+
+        $methodMap = [
+            'mail' => 'https://schema.org/ReturnByMail',
+            'in_store' => 'https://schema.org/ReturnInStore',
+        ];
+        $feesMap = [
+            'free' => 'https://schema.org/FreeReturn',
+            'customer' => 'https://schema.org/ReturnFeesCustomerResponsibility',
+        ];
+
+        return [
+            '@type' => 'MerchantReturnPolicy',
+            'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            'merchantReturnDays' => $days,
+            'returnMethod' => $methodMap[(string) Setting::get('return_method')] ?? $methodMap['mail'],
+            'returnFees' => $feesMap[(string) Setting::get('return_fees')] ?? $feesMap['customer'],
+            'applicableCountry' => 'VN',
+        ];
     }
 
     /**
