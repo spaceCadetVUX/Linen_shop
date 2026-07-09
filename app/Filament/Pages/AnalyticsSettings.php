@@ -39,7 +39,7 @@ class AnalyticsSettings extends Page
             'gtm_id'           => $extra['gtm_id']           ?? null,
             'gsc_meta'         => $extra['gsc_meta']         ?? null,
             'ga4_active'       => (bool) ($extra['ga4_active'] ?? true),
-            'default_og_image' => $extra['default_og_image'] ?? null,
+            'default_og_image' => $extra['og_image'] ?? null,
         ]);
     }
 
@@ -142,7 +142,7 @@ class AnalyticsSettings extends Page
         $extra['gtm_id']           = filled($data['gtm_id'])   ? trim($data['gtm_id'])   : null;
         $extra['gsc_meta']         = filled($data['gsc_meta']) ? trim($data['gsc_meta']) : null;
         $extra['ga4_active']       = (bool) ($data['ga4_active'] ?? true);
-        $extra['default_og_image'] = $data['default_og_image'] ?? null;
+        $extra['og_image']         = $data['default_og_image'] ?? null;
 
         $profile->extra = $extra;
         $profile->saveQuietly();

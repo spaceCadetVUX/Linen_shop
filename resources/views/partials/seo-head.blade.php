@@ -25,6 +25,7 @@
 
   $canonical = $canonicalUrl ?? url()->current();
   $siteName = \App\Models\Setting::get('site_name');
+  $ogImageDimensions = $ogImage ? \App\Support\ImageDimensions::resolve($ogImage) : null;
 
   // JSON_HEX_TAG/JSON_HEX_AMP bắt buộc — content admin nhập chứa "</script>"
   // sẽ breakout khỏi thẻ script nếu không escape "<" ">" "&". UNESCAPED_SLASHES
@@ -48,7 +49,14 @@
 
 @if($ogTitle)<meta property="og:title" content="{{ $ogTitle }}">@endif
 @if($ogDescription)<meta property="og:description" content="{{ $ogDescription }}">@endif
-@if($ogImage)<meta property="og:image" content="{{ $ogImage }}">@endif
+@if($ogImage)
+  <meta property="og:image" content="{{ $ogImage }}">
+  @if($ogImageDimensions)
+    <meta property="og:image:width" content="{{ $ogImageDimensions['width'] }}">
+    <meta property="og:image:height" content="{{ $ogImageDimensions['height'] }}">
+  @endif
+  @if($ogTitle)<meta property="og:image:alt" content="{{ $ogTitle }}">@endif
+@endif
 <meta property="og:type" content="{{ $ogType ?? 'website' }}">
 <meta property="og:url" content="{{ $canonical }}">
 <meta property="og:locale" content="{{ $pageLocale === 'en' ? 'en_US' : 'vi_VN' }}">

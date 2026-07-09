@@ -145,6 +145,19 @@ class BlogPostRepository extends BaseRepository
     }
 
     /**
+     * Author page — paginated, decorated posts written by one author.
+     */
+    public function paginateByAuthorIdDecorated(string $locale, int $authorId, int $perPage = 12): LengthAwarePaginator
+    {
+        return $this->decoratedBaseQuery($locale)
+            ->where('blog_posts.author_id', $authorId)
+            ->orderByDesc('blog_posts.published_at')
+            ->paginate($perPage)
+            ->withQueryString()
+            ->through(fn ($tr) => $this->decorateTranslation($tr));
+    }
+
+    /**
      * Latest published posts excluding one post (blog post sidebar: "latest" +
      * "more posts" are two slices of the same ordered list).
      */
@@ -170,6 +183,22 @@ class BlogPostRepository extends BaseRepository
             ->limit($limit)
             ->get()
             ->map(fn ($tr) => $this->decorateTranslation($tr));
+    }
+
+    /**
+     * Translation row (+ parent BlogPost) for a slug in a given locale.
+     * Used to resolve the public blog post page and legacy flat-URL redirects.
+     */
+    public function findTranslationBySlug(string $slug, ?string $locale = null): ?BlogPostTranslation
+    {
+        $query = BlogPostTranslation::where('slug', $slug)
+            ->with(['blogPost.blogCategory.translations']);
+
+        if ($locale !== null) {
+            $query->where('locale', $locale);
+        }
+
+        return $query->first();
     }
 
     // ── List ──────────────────────────────────────────────────────────────────

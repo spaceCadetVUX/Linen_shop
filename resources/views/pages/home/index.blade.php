@@ -54,7 +54,9 @@
   </div>
 </section>
 
-<!-- ==============================  EDITORIAL GRID  ============================== -->
+<!-- ==============================  EDITORIAL GRID  ==============================
+     Mobile (≤640px): carousel vuốt ngang 100vh/danh mục, dots do JS build
+     (app.js) từ số lượng .edit-grid-item — xem #editGridDots dưới đây. -->
   <section class="edit-grid" id="editGrid">
     @foreach($editorialItems as $eg)
     <a href="{{ $eg['url'] }}" class="edit-grid-item">
@@ -69,149 +71,82 @@
       </div>
     </a>
     @endforeach
+
+    @if(count($editorialItems) > 1)
+      <button type="button" class="edit-grid-nav edit-grid-nav--prev" id="editGridPrev" aria-label="Danh mục trước">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button type="button" class="edit-grid-nav edit-grid-nav--next" id="editGridNext" aria-label="Danh mục tiếp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    @endif
   </section>
+  <div class="edit-grid-dots" id="editGridDots" aria-hidden="true"></div>
 
-  <!-- ==============================  FEATURED PRODUCT  ============================== -->
-  <section class="feat-product" id="featProduct">
-
-    <!-- Left: editorial + overlay text -->
-    <div class="feat-product-left">
-      <img
-        src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160"
-        alt="CacyLinen - Bộ sưu tập Thu 2026"
-        class="feat-product-editorial"
-      >
-      <div class="feat-product-overlay">
-        <p class="feat-product-overlay-eyebrow">Bộ sưu tập · Thu 2026</p>
-        <h2 class="feat-product-overlay-title">BỘ SƯU TẬP<br>MÙA THU</h2>
-        <a href="#" class="feat-product-overlay-btn">Khám phá</a>
-      </div>
-    </div>
-
-    <!-- Right: product slider -->
-    <div class="feat-product-right">
-      <div class="feat-slider-wrap">
-        <button class="feat-nav feat-nav--prev" aria-label="Sản phẩm trước">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-
-        <div class="feat-slider">
-          <div class="feat-slide is-active" data-name="Đầm linen cổ chữ V" data-price="1.290.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Sand-Cream3.jpg?v=1781216151&width=1200" alt="Đầm linen cổ chữ V" class="feat-slide-img">
-          </div>
-          <div class="feat-slide" data-name="Áo blouse thắt nơ" data-price="720.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Black-Sand_80abcf68-ce45-46c1-8665-8419cb22e876.jpg?v=1781216042&width=1200" alt="Áo blouse thắt nơ" class="feat-slide-img">
-          </div>
-          <div class="feat-slide" data-name="Áo Cashmere cổ tròn" data-price="890.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Black.jpg?v=1779070489&width=1200" alt="Áo Cashmere cổ tròn" class="feat-slide-img">
-          </div>
-          <div class="feat-slide" data-name="Áo crop linen" data-price="620.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Red.jpg?v=1778217693&width=1200" alt="Áo crop linen" class="feat-slide-img">
-          </div>
-        </div>
-
-        <button class="feat-nav feat-nav--next" aria-label="Sản phẩm tiếp">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-
-      <!-- Caption: updates via JS -->
-      <div class="feat-product-caption">
-        <p class="feat-product-name" id="featName">Đầm linen cổ chữ V</p>
-        <p class="feat-product-price" id="featPrice">1.290.000 ₫</p>
-        <div class="feat-dots">
-          <span class="feat-dot is-active"></span>
-          <span class="feat-dot"></span>
-          <span class="feat-dot"></span>
-          <span class="feat-dot"></span>
+  {{-- ==============================  PROMOTIONS  ==============================
+       Campaign khuyến mãi đang chạy — quản lý qua PromotionResource (Filament).
+       Tái dùng nguyên pattern .feat-product (ảnh editorial trái | slider sản
+       phẩm phải, crossfade + dots + prev/next) đã có sẵn cho section Featured
+       Product — mỗi campaign = 1 block. Vị trí banner (trái/phải) do admin
+       chọn qua field banner_position, không tự động đảo chiều nữa. --}}
+  @if(!empty($promotions))
+    @foreach($promotions as $promo)
+    <section class="feat-product promo-feat @if($promo['banner_position'] === \App\Enums\PromotionBannerPosition::Right) promo-feat--reverse @endif" id="promoFeat{{ $loop->index }}">
+      <div class="feat-product-left">
+        @if($promo['banner_image_url'])
+          <img src="{{ $promo['banner_image_url'] }}" alt="{{ $promo['title'] }}" class="feat-product-editorial">
+        @endif
+        <div class="feat-product-overlay">
+          @if($promo['ends_at'])
+            <p class="feat-product-overlay-eyebrow promo-feat-countdown" data-countdown-end="{{ $promo['ends_at']->toIso8601String() }}"></p>
+          @endif
+          @if($promo['title'])
+            <h2 class="feat-product-overlay-title">{{ $promo['title'] }}</h2>
+          @endif
+          @if($promo['cta_label'] && $promo['cta_url'])
+            <a href="{{ url($promo['cta_url']) }}" class="feat-product-overlay-btn">{{ $promo['cta_label'] }}</a>
+          @endif
         </div>
       </div>
-    </div>
 
-  </section>
+      <div class="feat-product-right">
+        <div class="feat-slider-wrap">
+          @if($promo['products']->count() > 1)
+          <button class="feat-nav feat-nav--prev" aria-label="Sản phẩm trước" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          @endif
 
-  <!-- ==============================  FEATURED PRODUCT 2 (reversed)  ============================== -->
-  <section class="feat-product" id="featProduct2">
+          <div class="feat-slider">
+            @foreach($promo['products'] as $p)
+              <x-product.feat-slide :product="$p" :active="$loop->first" />
+            @endforeach
+          </div>
 
-    <!-- Left: product slider -->
-    <div class="feat-product-right">
-      <div class="feat-slider-wrap">
-        <button class="feat-nav feat-nav--prev" aria-label="Sản phẩm trước">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-
-        <div class="feat-slider">
-          <div class="feat-slide is-active" data-name="Váy midi linen" data-price="780.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=1200" alt="Váy midi linen" class="feat-slide-img">
-          </div>
-          <div class="feat-slide" data-name="Áo linen oversized" data-price="680.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=1200" alt="Áo linen oversized" class="feat-slide-img">
-          </div>
-          <div class="feat-slide" data-name="Khăn bandana linen" data-price="320.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Sand-Cream3.jpg?v=1781216151&width=1200" alt="Khăn bandana linen" class="feat-slide-img">
-          </div>
-          <div class="feat-slide" data-name="Áo linen xanh nhạt" data-price="640.000 ₫">
-            <img src="https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=1200" alt="Áo linen xanh nhạt" class="feat-slide-img">
-          </div>
+          @if($promo['products']->count() > 1)
+          <button class="feat-nav feat-nav--next" aria-label="Sản phẩm tiếp" type="button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          @endif
         </div>
 
-        <button class="feat-nav feat-nav--next" aria-label="Sản phẩm tiếp">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-
-      <div class="feat-product-caption">
-        <p class="feat-product-name" id="featName2">Váy midi linen</p>
-        <p class="feat-product-price" id="featPrice2">780.000 ₫</p>
-        <div class="feat-dots">
-          <span class="feat-dot is-active"></span>
-          <span class="feat-dot"></span>
-          <span class="feat-dot"></span>
-          <span class="feat-dot"></span>
+        <div class="feat-product-caption">
+          <a href="{{ \App\Support\LocaleUrl::for('product', $promo['products']->first()->slug, $promo['products']->first()->locale) }}" class="feat-product-caption-link">
+            <p class="feat-product-name">{{ $promo['products']->first()?->name }}</p>
+            <p class="feat-product-price"></p>
+          </a>
+          @if($promo['products']->count() > 1)
+          <div class="feat-dots">
+            @foreach($promo['products'] as $p)
+              <span class="feat-dot @if($loop->first) is-active @endif"></span>
+            @endforeach
+          </div>
+          @endif
         </div>
       </div>
-    </div>
-
-    <!-- Right: editorial image -->
-    <div class="feat-product-left">
-      <img
-        src="https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange.jpg?v=1778217470&width=2160"
-        alt="CacyLinen - Quần &amp; Váy"
-        class="feat-product-editorial"
-      >
-      <div class="feat-product-overlay">
-        <p class="feat-product-overlay-eyebrow">Quần &amp; Váy · Thu 2026</p>
-        <h2 class="feat-product-overlay-title">PHONG CÁCH<br>TỐI GIẢN</h2>
-        <a href="#" class="feat-product-overlay-btn">Khám phá</a>
-      </div>
-    </div>
-
-  </section>
-
-
-      <!-- ==============================  DUAL EDITORIAL  ============================== -->
-  <section class="dual-edit" id="dualEdit">
-    <div class="dual-edit-item">
-      <img
-        src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160"
-        alt="Bộ sưu tập yêu thích — ấm áp và thoải mái"
-        class="dual-edit-img"
-      >
-      <div class="dual-edit-overlay"></div>
-      <div class="dual-edit-content">
-        <p class="dual-edit-eyebrow">Bộ sưu tập yêu thích</p>
-        <h2 class="dual-edit-title">Cosy &<br>Comfort</h2>
-        <a href="#" class="dual-edit-btn">Khám phá ngay</a>
-      </div>
-    </div>
-    <div class="dual-edit-item">
-      <img
-        src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160"
-        alt="Phong cách tối giản - CacyLinen Thu 2026"
-        class="dual-edit-img"
-      >
-    </div>
-  </section>
+    </section>
+    @endforeach
+  @endif
 
   <!-- ==============================  BRAND STATEMENT  ============================== -->
   <!-- <section class="brand-stmt">

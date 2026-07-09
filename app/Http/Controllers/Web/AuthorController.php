@@ -3,31 +3,28 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Enums\BlogPostStatus;
-use App\Models\Author;
-use App\Models\BlogPostTranslation;
+use App\Repositories\Eloquent\AuthorRepository;
+use App\Repositories\Eloquent\BlogPostRepository;
 use Illuminate\Contracts\View\View;
 
 class AuthorController extends Controller
 {
+    public function __construct(
+        private BlogPostRepository $blogPostRepository,
+        private AuthorRepository $authorRepository,
+    ) {}
+
     public function show(string $locale, string $slug): View
     {
-        $author = Author::where('slug', $slug)
-            ->where('is_active', true)
-            ->firstOrFail();
+        $author = $this->authorRepository->findActiveBySlugOrFail($slug);
 
-        $posts = BlogPostTranslation::where('locale', $locale)
-            ->join('blog_posts', 'blog_posts.id', '=', 'blog_post_translations.blog_post_id')
-            ->where('blog_posts.author_id', $author->id)
-            ->where('blog_posts.status', BlogPostStatus::Published)
-            ->where('blog_posts.published_at', '<=', now())
-            ->whereNull('blog_posts.deleted_at')
-            ->select('blog_post_translations.*', 'blog_posts.published_at', 'blog_posts.featured_image')
-            ->with([
-                'blogPost.blogCategory.translations' => fn ($q) => $q->where('locale', $locale),
-            ])
-            ->orderByDesc('blog_posts.published_at')
-            ->paginate(12);
+        $posts = $this->blogPostRepository->paginateByAuthorIdDecorated($locale, $author->id, 12);
+
+        $breadcrumbItems = [
+            ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
+            ['label' => 'Blog', 'url' => route($locale.'.blog.index')],
+            ['label' => $author->name, 'url' => null],
+        ];
 
         view()->share('alternateUrls', [
             'vi' => route('vi.author.show', $author->slug),
@@ -67,13 +64,13 @@ class AuthorController extends Controller
             : $fallbackTitle;
 
         return view('pages.blog.author', compact(
-            'locale', 'author', 'posts', 'personSchema',
+            'locale', 'author', 'posts', 'breadcrumbItems',
             'fallbackTitle', 'fallbackDescription'
         ) + [
-            'seoMeta'      => null,
+            'seoMeta'       => null,
             'fallbackImage' => $author->avatar_url,
-            'ogType'       => 'profile',
-            'jsonldSchemas' => [],
+            'ogType'        => 'profile',
+            'jsonldSchemas' => [$personSchema],
         ]);
     }
 }

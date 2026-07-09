@@ -70,12 +70,12 @@ if (! function_exists('format_price')) {
         $currency = strtoupper($currency ?? 'VND');
 
         return match($currency) {
-            'USD'  => '$' . number_format($amount, 0, '.', ','),
-            'EUR'  => '€' . number_format($amount, 0, '.', ','),
+            'USD'  => '$' . number_format($amount, 2, '.', ','),
+            'EUR'  => '€' . number_format($amount, 2, '.', ','),
             'JPY', 'KRW', 'CNY' => '¥' . number_format($amount, 0, '.', ','),
-            'SGD'  => 'S$' . number_format($amount, 0, '.', ','),
-            'THB'  => '฿' . number_format($amount, 0, '.', ','),
-            default => number_format($amount, 0, ',', '.') . 'đ', // VND
+            'SGD'  => 'S$' . number_format($amount, 2, '.', ','),
+            'THB'  => '฿' . number_format($amount, 2, '.', ','),
+            default => number_format($amount, 0, ',', '.') . ' ₫', // VND
         };
     }
 }

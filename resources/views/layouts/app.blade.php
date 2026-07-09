@@ -22,6 +22,21 @@
   <meta name="description" content="@yield('meta-description', 'CacyLinen - Thời trang linen tối giản, bền vững.')">
   @include('partials.seo-head')
   @stack('meta')
+  @php
+    $__gscMeta   = \App\Models\Setting::get('gsc_meta');
+    $__gtmId     = \App\Models\Setting::get('gtm_id');
+    $__ga4Id     = \App\Models\Setting::get('ga4_id');
+    $__ga4Active = (bool) \App\Models\Setting::get('ga4_active', true);
+  @endphp
+  @if(filled($__gscMeta))
+  <meta name="google-site-verification" content="{{ $__gscMeta }}">
+  @endif
+  @if(filled($__gtmId))
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','{{ $__gtmId }}');</script>
+  @elseif($__ga4Active && filled($__ga4Id))
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ $__ga4Id }}"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '{{ $__ga4Id }}');</script>
+  @endif
   <link rel="icon" href="{{ $faviconUrl ?? asset('favicon.ico') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,6 +45,10 @@
   @stack('styles')
 </head>
 <body class="@yield('body-class')">
+
+  @if(filled($__gtmId))
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $__gtmId }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  @endif
 
   @include('partials.header')
 

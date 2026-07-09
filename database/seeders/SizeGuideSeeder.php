@@ -59,6 +59,53 @@ HTML;
             ['name' => "Women's Tops", 'body' => $tableEn]
         );
 
-        $this->command->info('Sample size guide seeded: ao-nu (vi + en)');
+        $tshirtTableVi = <<<'HTML'
+<p>Số đo tính bằng cm. Áo phông linen dáng rộng thoải mái — nếu bạn ở giữa hai size, chọn size nhỏ hơn để dáng gọn hơn.</p>
+<table>
+    <thead>
+        <tr><th>Size</th><th>Vòng ngực</th><th>Dài áo</th><th>Ngang vai</th><th>Dài tay</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>S</td><td>96–100</td><td>66</td><td>42</td><td>20</td></tr>
+        <tr><td>M</td><td>101–105</td><td>68</td><td>44</td><td>21</td></tr>
+        <tr><td>L</td><td>106–110</td><td>70</td><td>46</td><td>22</td></tr>
+        <tr><td>XL</td><td>111–115</td><td>72</td><td>48</td><td>23</td></tr>
+    </tbody>
+</table>
+<p>Người mẫu cao 178 cm, mặc size M.</p>
+HTML;
+
+        $tshirtTableEn = <<<'HTML'
+<p>All measurements in cm. Relaxed-fit linen tee — between two sizes? Size down for a slimmer fit.</p>
+<table>
+    <thead>
+        <tr><th>Size</th><th>Chest</th><th>Length</th><th>Shoulder</th><th>Sleeve</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>S</td><td>96–100</td><td>66</td><td>42</td><td>20</td></tr>
+        <tr><td>M</td><td>101–105</td><td>68</td><td>44</td><td>21</td></tr>
+        <tr><td>L</td><td>106–110</td><td>70</td><td>46</td><td>22</td></tr>
+        <tr><td>XL</td><td>111–115</td><td>72</td><td>48</td><td>23</td></tr>
+    </tbody>
+</table>
+<p>Model is 178 cm tall and wears size M.</p>
+HTML;
+
+        $tshirtGuide = SizeGuide::updateOrCreate(
+            ['key' => 'ao-phong'],
+            ['is_active' => true, 'sort_order' => 1]
+        );
+
+        $tshirtGuide->translations()->updateOrCreate(
+            ['locale' => 'vi'],
+            ['name' => 'Áo phông', 'body' => $tshirtTableVi]
+        );
+
+        $tshirtGuide->translations()->updateOrCreate(
+            ['locale' => 'en'],
+            ['name' => 'T-Shirts', 'body' => $tshirtTableEn]
+        );
+
+        $this->command->info('Sample size guide seeded: ao-nu, ao-phong (vi + en)');
     }
 }

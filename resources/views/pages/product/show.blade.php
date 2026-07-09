@@ -14,9 +14,10 @@
     // Price — same logic as <x-product.card>: translation may override, sale shown when lower
     $price        = $translation->price ?? $product->price;
     $salePriceRaw = $translation->sale_price ?? $product->sale_price;
-    $priceLabel   = number_format($price, 0, ',', '.') . ' ₫';
+    $currency     = $locale === 'en' ? 'USD' : 'VND';
+    $priceLabel   = format_price($price, $currency);
     $salePrice    = ($salePriceRaw && $salePriceRaw < $price)
-                      ? number_format($salePriceRaw, 0, ',', '.') . ' ₫'
+                      ? format_price($salePriceRaw, $currency)
                       : null;
 @endphp
 

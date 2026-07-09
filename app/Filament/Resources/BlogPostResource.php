@@ -256,6 +256,128 @@ class BlogPostResource extends Resource
                                 ->columnSpanFull(),
                         ]),
 
+                    // ── Tab 3b: GEO / AI ──────────────────────────────────────
+                    Tab::make('GEO / AI')
+                        ->icon('heroicon-o-cpu-chip')
+                        ->schema([
+                            Forms\Components\Placeholder::make('geo_hint')
+                                ->label('')
+                                ->content(new HtmlString(
+                                    '<p class="text-sm text-gray-500">'
+                                    . 'AI Summary is rendered <strong>answer-first</strong> on the public post page '
+                                    . '(right under the title) and read by AI Overviews / ChatGPT / Perplexity crawlers. '
+                                    . 'Key Facts render as a quick-facts list under it. Both also feed the LLMs document.'
+                                    . '</p>'
+                                ))
+                                ->columnSpanFull(),
+
+                            Tabs::make('GeoLocaleTabs')
+                                ->tabs([
+                                    Tab::make('🇻🇳 Tiếng Việt')
+                                        ->schema([
+                                            Group::make()
+                                                ->relationship('geoProfileVi')
+                                                ->schema([
+                                                    Forms\Components\Hidden::make('locale')->default('vi'),
+
+                                                    Forms\Components\Textarea::make('ai_summary')
+                                                        ->label('AI Summary (vi)')
+                                                        ->hint('Tóm tắt 2–4 câu — hiển thị answer-first trên trang bài viết')
+                                                        ->rows(4)
+                                                        ->placeholder('Mô tả ngắn gọn bài viết trả lời câu hỏi/chủ đề gì...')
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\Textarea::make('use_cases')
+                                                        ->label('Use Cases (vi)')
+                                                        ->hint('AI dùng để trả lời "bài này phù hợp cho ai / dùng khi nào"')
+                                                        ->rows(3)
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\TextInput::make('target_audience')
+                                                        ->label('Target Audience (vi)')
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\Textarea::make('llm_context_hint')
+                                                        ->label('LLM Context Hint (vi)')
+                                                        ->rows(2)
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\Repeater::make('key_facts')
+                                                        ->label('Key Facts (vi)')
+                                                        ->hint('Hiển thị dạng danh sách ngay dưới AI Summary')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('label')
+                                                                ->label('Nhãn')
+                                                                ->required()
+                                                                ->placeholder('VD: Thời gian đọc'),
+                                                            Forms\Components\TextInput::make('value')
+                                                                ->label('Giá trị')
+                                                                ->required()
+                                                                ->placeholder('VD: 5 phút'),
+                                                        ])
+                                                        ->columns(2)
+                                                        ->addActionLabel('Thêm fact')
+                                                        ->reorderable()
+                                                        ->collapsible()
+                                                        ->defaultItems(0)
+                                                        ->columnSpanFull(),
+                                                ]),
+                                        ]),
+
+                                    Tab::make('🇬🇧 English')
+                                        ->schema([
+                                            Group::make()
+                                                ->relationship('geoProfileEn')
+                                                ->schema([
+                                                    Forms\Components\Hidden::make('locale')->default('en'),
+
+                                                    Forms\Components\Textarea::make('ai_summary')
+                                                        ->label('AI Summary (en)')
+                                                        ->hint('2–4 sentence summary — rendered answer-first on the post page')
+                                                        ->rows(4)
+                                                        ->placeholder('Briefly describe what question/topic this post answers...')
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\Textarea::make('use_cases')
+                                                        ->label('Use Cases (en)')
+                                                        ->hint('AI uses this to answer "who is this for / when to read it"')
+                                                        ->rows(3)
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\TextInput::make('target_audience')
+                                                        ->label('Target Audience (en)')
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\Textarea::make('llm_context_hint')
+                                                        ->label('LLM Context Hint (en)')
+                                                        ->rows(2)
+                                                        ->columnSpanFull(),
+
+                                                    Forms\Components\Repeater::make('key_facts')
+                                                        ->label('Key Facts (en)')
+                                                        ->hint('Rendered as a list right under the AI Summary')
+                                                        ->schema([
+                                                            Forms\Components\TextInput::make('label')
+                                                                ->label('Label')
+                                                                ->required()
+                                                                ->placeholder('E.g. Reading time'),
+                                                            Forms\Components\TextInput::make('value')
+                                                                ->label('Value')
+                                                                ->required()
+                                                                ->placeholder('E.g. 5 min'),
+                                                        ])
+                                                        ->columns(2)
+                                                        ->addActionLabel('Add fact')
+                                                        ->reorderable()
+                                                        ->collapsible()
+                                                        ->defaultItems(0)
+                                                        ->columnSpanFull(),
+                                                ]),
+                                        ]),
+                                ])
+                                ->columnSpanFull(),
+                        ]),
+
                     // ── Tab 4: SEO ───────────────────────────────────────────
                     Tab::make('SEO')
                         ->icon('heroicon-o-magnifying-glass')

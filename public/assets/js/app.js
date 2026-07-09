@@ -58,6 +58,38 @@ function firstApiError(json) {
   return json ? json.message : undefined;
 }
 
+// Global toast — confirmation card, centered on screen, auto-dismisses.
+// Creates its own DOM node on first use (no markup needed in any Blade view).
+// `body` (2nd line) is optional — pass just a title for a one-line toast.
+function showToast(title, body) {
+  let toast = document.getElementById('globalToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'globalToast';
+    toast.className = 'pd-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.innerHTML =
+      '<div class="pd-toast-icon">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">'
+      + '<path d="M20 6 9 17l-5-5"/>'
+      + '</svg>'
+      + '</div>'
+      + '<p class="pd-toast-title"></p>'
+      + '<p class="pd-toast-body"></p>';
+    document.body.appendChild(toast);
+  }
+
+  toast.querySelector('.pd-toast-title').textContent = title;
+  const bodyEl = toast.querySelector('.pd-toast-body');
+  bodyEl.textContent = body || '';
+  bodyEl.hidden = !body;
+
+  clearTimeout(toast._hideTimer);
+  toast.classList.add('is-visible');
+  toast._hideTimer = setTimeout(() => toast.classList.remove('is-visible'), 4200);
+}
+
 /* ---------- Navbar cart badge — item count, every page ---------- */
 (function () {
   if (!document.getElementById('navCartBtn')) return;
@@ -260,6 +292,62 @@ updateNav();
   }, 5000);
 }());
 
+/* ---------- Editorial grid (danh mục): carousel mobile-only — dots + auto-slide 4s ---------- */
+(function () {
+  var grid = document.getElementById('editGrid');
+  var dotsWrap = document.getElementById('editGridDots');
+  if (!grid || !dotsWrap || !window.matchMedia('(max-width: 640px)').matches) return;
+
+  var items = Array.prototype.slice.call(grid.querySelectorAll('.edit-grid-item'));
+  if (items.length <= 1) return;
+
+  var current = 0;
+  var dots = items.map(function (_, i) {
+    var dot = document.createElement('span');
+    dot.className = 'edit-grid-dot' + (i === 0 ? ' is-active' : '');
+    dot.addEventListener('click', function () { goTo(i); });
+    dotsWrap.appendChild(dot);
+    return dot;
+  });
+
+  function setActive(i) {
+    if (i === current) return;
+    dots[current].classList.remove('is-active');
+    current = i;
+    dots[current].classList.add('is-active');
+  }
+  function goTo(i) {
+    grid.scrollTo({ left: items[i].offsetLeft, behavior: 'smooth' });
+  }
+  function advance() {
+    goTo((current + 1) % items.length);
+  }
+  function back() {
+    goTo((current - 1 + items.length) % items.length);
+  }
+
+  // Cập nhật dot theo vị trí thật khi user tự vuốt tay
+  var dotObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) setActive(items.indexOf(entry.target));
+    });
+  }, { root: grid, threshold: 0.6 });
+  items.forEach(function (el) { dotObs.observe(el); });
+
+  var autoplay = setInterval(advance, 4000);
+  function restartAutoplay() {
+    clearInterval(autoplay);
+    autoplay = setInterval(advance, 4000);
+  }
+  grid.addEventListener('touchstart', restartAutoplay, { passive: true });
+
+  // Nút prev/next hoạt động song song với vuốt tay + dots + auto-slide
+  var prevBtn = document.getElementById('editGridPrev');
+  var nextBtn = document.getElementById('editGridNext');
+  if (prevBtn) prevBtn.addEventListener('click', function () { back(); restartAutoplay(); });
+  if (nextBtn) nextBtn.addEventListener('click', function () { advance(); restartAutoplay(); });
+}());
+
 /* ---------- Scroll-reveal: cat blocks + section dividers ---------- */
 (function () {
   const blockObs = new IntersectionObserver(
@@ -285,7 +373,7 @@ updateNav();
   document.querySelectorAll('.cat-block').forEach(el => blockObs.observe(el));
   document.querySelectorAll('.section-divider').forEach(el => dividerObs.observe(el));
   document.querySelectorAll('.brand-stmt-body, .brand-stmt-cta').forEach(el => blockObs.observe(el));
-  document.querySelectorAll('.edit-grid, .feat-product, .shop-section, .dual-edit, .tiktok-section, .journal-section').forEach(el => blockObs.observe(el));
+  document.querySelectorAll('.edit-grid, .feat-product, .shop-section, .tiktok-section, .journal-section').forEach(el => blockObs.observe(el));
 }());
 
 /* ---------- TikTok carousel ---------- */
@@ -492,6 +580,76 @@ updateNav();
   syncCardWidth();
   startAuto();
   window.addEventListener('resize', syncCardWidth, { passive: true });
+}());
+
+/* ---------- Promotion countdown ---------- */
+(function () {
+  const nodes = Array.from(document.querySelectorAll('[data-countdown-end]'));
+  if (!nodes.length) return;
+
+  function tick() {
+    const now = Date.now();
+    nodes.forEach(node => {
+      const end = new Date(node.dataset.countdownEnd).getTime();
+      const diff = end - now;
+
+      if (diff <= 0) {
+        node.textContent = '';
+        return;
+      }
+
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      node.textContent = `${d}d ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    });
+  }
+
+  tick();
+  setInterval(tick, 1000);
+}());
+
+/* ---------- Promotion featured slider — one product at a time, crossfade,
+   reuses .feat-product/.feat-slider markup (same as the editorial sections). ---------- */
+(function () {
+  const sections = document.querySelectorAll('.promo-feat');
+  if (!sections.length) return;
+
+  sections.forEach(section => {
+    const slides = Array.from(section.querySelectorAll('.feat-slide'));
+    if (!slides.length) return;
+
+    const dots        = Array.from(section.querySelectorAll('.feat-dot'));
+    const nameEl       = section.querySelector('.feat-product-name');
+    const priceEl      = section.querySelector('.feat-product-price');
+    const captionLink  = section.querySelector('.feat-product-caption-link');
+    const prevBtn      = section.querySelector('.feat-nav--prev');
+    const nextBtn      = section.querySelector('.feat-nav--next');
+
+    let cur = Math.max(0, slides.findIndex(s => s.classList.contains('is-active')));
+
+    function render() {
+      slides.forEach((s, i) => s.classList.toggle('is-active', i === cur));
+      dots.forEach((d, i) => d.classList.toggle('is-active', i === cur));
+
+      const active = slides[cur];
+      if (nameEl) nameEl.textContent = active.dataset.name || '';
+      if (priceEl) priceEl.textContent = active.dataset.price || '';
+      if (captionLink && active.dataset.url) captionLink.href = active.dataset.url;
+    }
+
+    function goTo(i) {
+      cur = ((i % slides.length) + slides.length) % slides.length;
+      render();
+    }
+
+    if (prevBtn) prevBtn.addEventListener('click', () => goTo(cur - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => goTo(cur + 1));
+    dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
+
+    render();
+  });
 }());
 
 /* ---------- Shop tabs ---------- */
@@ -937,6 +1095,12 @@ document.addEventListener('click', function (e) {
         showMsg(isEn
           ? 'Thanks! Your review is pending approval.'
           : 'Cảm ơn bạn! Đánh giá sẽ hiển thị sau khi được duyệt.', false);
+        showToast(
+          isEn ? 'Thank you for taking the time to share!' : 'Cảm ơn bạn đã dành thời gian chia sẻ!',
+          isEn
+            ? 'It truly means a lot to CacyLinen.'
+            : 'Đánh giá của bạn thực sự có ý nghĩa với CacyLinen.'
+        );
       })
       .catch(() => showMsg(isEn ? 'Network error — please try again.' : 'Lỗi kết nối — vui lòng thử lại.', true))
       .finally(() => { submitBtn.disabled = false; });

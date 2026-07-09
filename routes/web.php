@@ -14,7 +14,7 @@ use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\SitemapController;
 use App\Http\Controllers\Web\SizeGuideController;
 use App\Http\Controllers\Web\WishlistController;
-use App\Models\BlogPostTranslation;
+use App\Repositories\Eloquent\BlogPostRepository;
 use App\Support\LocaleUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -111,10 +111,7 @@ Route::prefix('vi')
 
         // Legacy flat URL → 301 to nested (SEO backward compat)
         Route::get('bai-viet/{slug}', function (string $locale, string $slug) {
-            $translation = BlogPostTranslation::where('locale', 'vi')
-                ->where('slug', $slug)
-                ->with(['blogPost.blogCategory.translations'])
-                ->first();
+            $translation = app(BlogPostRepository::class)->findTranslationBySlug($slug, 'vi');
             if (! $translation) {
                 abort(404);
             }
@@ -199,10 +196,7 @@ Route::prefix('en')
         // Blog category + legacy flat post redirect: /en/blog/{slug}
         Route::get('blog/{slug}', function (string $locale, string $slug) {
             // Legacy flat post URL → redirect to nested (301, SEO backward compat)
-            $translation = BlogPostTranslation::where('locale', 'en')
-                ->where('slug', $slug)
-                ->with(['blogPost.blogCategory.translations'])
-                ->first();
+            $translation = app(BlogPostRepository::class)->findTranslationBySlug($slug, 'en');
             if ($translation) {
                 return redirect(LocaleUrl::forBlogPost($translation->blogPost, 'en'), 301);
             }

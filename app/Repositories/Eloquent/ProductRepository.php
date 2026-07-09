@@ -269,4 +269,31 @@ class ProductRepository extends BaseRepository
             ->filter()
             ->values();
     }
+
+    /**
+     * Locale-aware ProductTranslation rows for $ids, in the exact given order
+     * (admin-curated promotion product picks) — mirrors the $featuredProducts
+     * query shape in HomeController so <x-product.card> gets what it expects.
+     */
+    public function findActiveTranslationsByIdsOrdered(array $ids, string $locale): Collection
+    {
+        if (empty($ids)) {
+            return collect();
+        }
+
+        $translations = ProductTranslation::where('product_translations.locale', $locale)
+            ->join('products', 'products.id', '=', 'product_translations.product_id')
+            ->where('products.is_active', true)
+            ->whereNull('products.deleted_at')
+            ->whereIn('products.id', $ids)
+            ->select('product_translations.*')
+            ->with(['product.images'])
+            ->get()
+            ->keyBy('product_id');
+
+        return collect($ids)
+            ->map(fn ($id) => $translations->get($id))
+            ->filter()
+            ->values();
+    }
 }

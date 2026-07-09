@@ -49,14 +49,14 @@ class JsonldTemplateSeeder extends Seeder
                 'updated_at' => $now,
             ],
 
-            // ── b) Article (BlogPost) ─────────────────────────────────────────
+            // ── b) BlogPosting (BlogPost) ──────────────────────────────────────
             [
-                'schema_type'      => 'Article',
-                'label'            => 'Article Schema',
+                'schema_type'      => 'BlogPosting',
+                'label'            => 'BlogPosting Schema',
                 'is_auto_generated' => true,
                 'template'         => json_encode([
                     '@context'         => 'https://schema.org',
-                    '@type'            => 'Article',
+                    '@type'            => 'BlogPosting',
                     'headline'         => '{{blog_post.title}}',
                     'description'      => '{{blog_post.excerpt}}',
                     // featured_image_url is a computed full URL — never the raw storage path.

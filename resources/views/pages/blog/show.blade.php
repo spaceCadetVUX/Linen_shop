@@ -26,7 +26,16 @@
       <!-- HERO IMAGE -->
       @if($blog->featured_image)
         <div class="jnl-post-hero">
-          <img src="{{ asset($blog->featured_image) }}" alt="{{ $blog->title }}" class="jnl-post-hero-img">
+          <img
+            src="{{ asset($blog->featured_image) }}"
+            alt="{{ $blog->title }}"
+            class="jnl-post-hero-img"
+            @if($blog->featured_image_dimensions)
+              width="{{ $blog->featured_image_dimensions['width'] }}"
+              height="{{ $blog->featured_image_dimensions['height'] }}"
+            @endif
+            fetchpriority="high"
+          >
         </div>
       @endif
 
@@ -45,6 +54,25 @@
         @if($blog->excerpt)
           <p class="jnl-post-subtitle">{{ $blog->excerpt }}</p>
         @endif
+
+        {{-- Answer-first summary — visible copy of GeoEntityProfile.ai_summary so
+             AI answer engines (Google AI Overview, ChatGPT/Perplexity browsing)
+             can extract it directly from rendered HTML, not just llms.txt. --}}
+        @if($blog->ai_summary)
+          <p class="jnl-post-ai-summary">{{ $blog->ai_summary }}</p>
+        @endif
+
+        @if(count($blog->key_facts))
+          <ul class="jnl-post-facts">
+            @foreach($blog->key_facts as $fact)
+              <li>
+                <span class="jnl-post-facts-label">{{ $fact['label'] }}</span>
+                <span class="jnl-post-facts-value">{{ $fact['value'] }}</span>
+              </li>
+            @endforeach
+          </ul>
+        @endif
+
         @if($blog->author)
           <div class="jnl-post-author">
             @if($blog->author->avatar_url)
@@ -63,56 +91,30 @@
             </div>
           </div>
         @endif
+
+        @if(count($blog->tags))
+          <div class="jnl-post-tags jnl-post-tags--hd">
+            @foreach($blog->tags as $tag)
+              <a href="{{ route($locale . '.blog.index', ['q' => $tag]) }}" class="jnl-post-tag-item">{{ $tag }}</a>
+            @endforeach
+          </div>
+        @endif
       </header>
 
-      <!-- TWO-COLUMN: BODY + STICKY RAIL -->
-      <div class="jnl-post-layout">
+      <!-- Article body — HTML from Tiptap (converted in controller) -->
+      <div class="jnl-post-body">
 
-        <!-- LEFT: Article body — HTML from Tiptap (converted in controller) -->
-        <div class="jnl-post-body">
+        {!! $blog->content !!}
 
-          {!! $blog->content !!}
+        <!-- Share -->
+        <div class="jnl-post-share">
+          <span class="jnl-post-share-label">{{ $locale === 'vi' ? 'Chia sẻ' : 'Share' }}</span>
+          <a href="{{ $facebookShare }}" class="jnl-post-share-link" target="_blank" rel="noopener" aria-label="Chia sẻ Facebook">Facebook</a>
+          <a href="{{ $pinterestShare }}" class="jnl-post-share-link" target="_blank" rel="noopener" aria-label="Chia sẻ Pinterest">Pinterest</a>
+          <a href="#" class="jnl-post-share-link" data-copy-url="{{ $shareUrl }}" aria-label="Sao chép link">{{ $locale === 'vi' ? 'Sao chép link' : 'Copy link' }}</a>
+        </div>
 
-          <!-- Share -->
-          <div class="jnl-post-share">
-            <span class="jnl-post-share-label">{{ $locale === 'vi' ? 'Chia sẻ' : 'Share' }}</span>
-            <a href="{{ $facebookShare }}" class="jnl-post-share-link" target="_blank" rel="noopener" aria-label="Chia sẻ Facebook">Facebook</a>
-            <a href="{{ $pinterestShare }}" class="jnl-post-share-link" target="_blank" rel="noopener" aria-label="Chia sẻ Pinterest">Pinterest</a>
-            <a href="#" class="jnl-post-share-link" data-copy-url="{{ $shareUrl }}" aria-label="Sao chép link">{{ $locale === 'vi' ? 'Sao chép link' : 'Copy link' }}</a>
-          </div>
-
-        </div><!-- /.jnl-post-body -->
-
-        <!-- RIGHT: Sticky sidebar -->
-        {{-- TOC from mockup dropped: real Tiptap content has no anchor ids to link to.
-             $categories / $latestPosts / $morePostsList / $blog->faqs available but no rail design yet. --}}
-        <aside class="jnl-post-rail">
-
-          @if($blog->author)
-            <div class="jnl-rail-author">
-              <span class="jnl-rail-author-name">{{ $blog->author->name }}</span>
-              @if($blog->author->title)
-                <span class="jnl-rail-author-role">{{ $blog->author->title }}</span>
-              @endif
-            </div>
-
-            <div class="jnl-rail-divider"></div>
-          @endif
-
-          @if(count($blog->tags))
-            <div class="jnl-rail-tags">
-              <h3 class="jnl-rail-title">Tags</h3>
-              <div class="jnl-rail-tag-list">
-                @foreach($blog->tags as $tag)
-                  <a href="{{ route($locale . '.blog.index', ['q' => $tag]) }}" class="jnl-post-tag-item">{{ $tag }}</a>
-                @endforeach
-              </div>
-            </div>
-          @endif
-
-        </aside>
-
-      </div><!-- /.jnl-post-layout -->
+      </div><!-- /.jnl-post-body -->
 
       {{-- ============================================================
            FAQ — admin-managed (GeoEntityProfile.faq, falls back to legacy

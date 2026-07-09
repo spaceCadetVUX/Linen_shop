@@ -17,9 +17,10 @@
 
     $price      = $product->price ?? $productModel->price;
     $salePriceRaw = $product->sale_price ?? $productModel->sale_price;
-    $priceLabel = number_format($price, 0, ',', '.') . ' ₫';
+    $currency   = $product->locale === 'en' ? 'USD' : 'VND';
+    $priceLabel = format_price($price, $currency);
     $salePrice  = ($salePriceRaw && $salePriceRaw < $price)
-                    ? number_format($salePriceRaw, 0, ',', '.') . ' ₫'
+                    ? format_price($salePriceRaw, $currency)
                     : null;
 
     $badge      = $product->badge ?? ($salePrice ? 'sale' : null);  // 'new' | 'limited' | 'sale' | null

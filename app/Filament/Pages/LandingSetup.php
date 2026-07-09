@@ -21,8 +21,9 @@ class LandingSetup extends Page
     // Ẩn khỏi sidebar — truy cập qua card trong PagesSetting hub.
     protected static bool $shouldRegisterNavigation = false;
 
-    protected static BackedEnum|string|null $navigationIcon  = 'heroicon-o-home';
-    protected static ?string               $navigationLabel = 'Landing Page';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-home';
+
+    protected static ?string $navigationLabel = 'Landing Page';
 
     protected string $view = 'filament.pages.landing-setup';
 
@@ -33,32 +34,27 @@ class LandingSetup extends Page
         $landing = (array) (BusinessProfile::instance()->extra['landing'] ?? []);
 
         $this->form->fill([
-            'hero_eyebrow'       => $landing['hero_eyebrow']       ?? 'Mới ra mắt',
-            'hero_eyebrow_en'    => $landing['hero_eyebrow_en']    ?? 'New Arrivals',
-            'hero_headline'      => $landing['hero_headline']      ?? null,
-            'hero_headline_en'   => $landing['hero_headline_en']   ?? null,
-            'hero_cta_label'     => $landing['hero_cta_label']     ?? 'Khám phá lookbook',
-            'hero_cta_label_en'  => $landing['hero_cta_label_en']  ?? 'Explore lookbook',
-            'hero_cta_url'       => $landing['hero_cta_url']       ?? '/collections/lookbook',
-            'hero_cta2_label'    => $landing['hero_cta2_label']    ?? 'Khám phá thêm',
+            'hero_eyebrow' => $landing['hero_eyebrow'] ?? 'Mới ra mắt',
+            'hero_eyebrow_en' => $landing['hero_eyebrow_en'] ?? 'New Arrivals',
+            'hero_headline' => $landing['hero_headline'] ?? null,
+            'hero_headline_en' => $landing['hero_headline_en'] ?? null,
+            'hero_cta_label' => $landing['hero_cta_label'] ?? 'Khám phá lookbook',
+            'hero_cta_label_en' => $landing['hero_cta_label_en'] ?? 'Explore lookbook',
+            'hero_cta_url' => $landing['hero_cta_url'] ?? '/collections/lookbook',
+            'hero_cta2_label' => $landing['hero_cta2_label'] ?? 'Khám phá thêm',
             'hero_cta2_label_en' => $landing['hero_cta2_label_en'] ?? 'Discover more',
-            'hero_cta2_url'      => $landing['hero_cta2_url']      ?? '/collections/new',
-            'hero_image'         => $landing['hero_image']         ?? null,
+            'hero_cta2_url' => $landing['hero_cta2_url'] ?? '/collections/new',
+            'hero_image' => $landing['hero_image'] ?? null,
 
-            'featured_enabled'   => (bool) ($landing['featured_enabled'] ?? true),
-            'featured_title'     => $landing['featured_title']     ?? 'Sản phẩm nổi bật',
-            'featured_title_en'  => $landing['featured_title_en']  ?? 'Featured products',
-
-            'promo_enabled'      => (bool) ($landing['promo_enabled'] ?? false),
-            'promo_image'        => $landing['promo_image']        ?? null,
-            'promo_url'          => $landing['promo_url']          ?? null,
-            'promo_alt'          => $landing['promo_alt']          ?? null,
+            'featured_enabled' => (bool) ($landing['featured_enabled'] ?? true),
+            'featured_title' => $landing['featured_title'] ?? 'Sản phẩm nổi bật',
+            'featured_title_en' => $landing['featured_title_en'] ?? 'Featured products',
 
             'newsletter_enabled' => (bool) ($landing['newsletter_enabled'] ?? true),
             'newsletter_heading' => $landing['newsletter_heading'] ?? 'Nhận ưu đãi mỗi tuần',
-            'newsletter_body'    => $landing['newsletter_body']    ?? null,
+            'newsletter_body' => $landing['newsletter_body'] ?? null,
 
-            'editorial_scope'    => $landing['editorial_scope'] ?? HomeEditorialScope::Parents->value,
+            'editorial_scope' => $landing['editorial_scope'] ?? HomeEditorialScope::Parents->value,
         ]);
     }
 
@@ -193,38 +189,6 @@ class LandingSetup extends Page
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Banner khuyến mãi')
-                    ->icon('heroicon-o-megaphone')
-                    ->description('Banner quảng cáo / khuyến mãi theo mùa.')
-                    ->schema([
-                        Toggle::make('promo_enabled')
-                            ->label('Hiển thị banner')
-                            ->columnSpanFull(),
-
-                        FileUpload::make('promo_image')
-                            ->label('Ảnh banner')
-                            ->image()
-                            ->disk('public')
-                            ->directory('landing/promo')
-                            ->imagePreviewHeight('160')
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
-                            ->maxSize(3072)
-                            ->helperText('Định dạng JPG, PNG, WebP, GIF. Tối đa 3MB.')
-                            ->columnSpanFull(),
-
-                        TextInput::make('promo_url')
-                            ->label('Link khi click')
-                            ->placeholder('/sale')
-                            ->maxLength(200)
-                            ->columnSpan(1),
-
-                        TextInput::make('promo_alt')
-                            ->label('Alt text (SEO)')
-                            ->maxLength(120)
-                            ->columnSpan(1),
-                    ])
-                    ->columns(2),
-
                 Section::make('Newsletter')
                     ->icon('heroicon-o-envelope')
                     ->description('Form đăng ký nhận email newsletter.')
@@ -265,32 +229,28 @@ class LandingSetup extends Page
         $data = $this->form->getState();
 
         $profile = BusinessProfile::instance();
-        $extra   = (array) ($profile->extra ?? []);
+        $extra = (array) ($profile->extra ?? []);
 
         $extra['landing'] = [
-            'hero_eyebrow'       => filled($data['hero_eyebrow'])       ? trim($data['hero_eyebrow'])       : null,
-            'hero_eyebrow_en'    => filled($data['hero_eyebrow_en'])    ? trim($data['hero_eyebrow_en'])    : null,
-            'hero_headline'      => filled($data['hero_headline'])      ? trim($data['hero_headline'])      : null,
-            'hero_headline_en'   => filled($data['hero_headline_en'])   ? trim($data['hero_headline_en'])   : null,
-            'hero_cta_label'     => filled($data['hero_cta_label'])     ? trim($data['hero_cta_label'])     : null,
-            'hero_cta_label_en'  => filled($data['hero_cta_label_en'])  ? trim($data['hero_cta_label_en'])  : null,
-            'hero_cta_url'       => filled($data['hero_cta_url'])       ? trim($data['hero_cta_url'])       : null,
-            'hero_cta2_label'    => filled($data['hero_cta2_label'])    ? trim($data['hero_cta2_label'])    : null,
+            'hero_eyebrow' => filled($data['hero_eyebrow']) ? trim($data['hero_eyebrow']) : null,
+            'hero_eyebrow_en' => filled($data['hero_eyebrow_en']) ? trim($data['hero_eyebrow_en']) : null,
+            'hero_headline' => filled($data['hero_headline']) ? trim($data['hero_headline']) : null,
+            'hero_headline_en' => filled($data['hero_headline_en']) ? trim($data['hero_headline_en']) : null,
+            'hero_cta_label' => filled($data['hero_cta_label']) ? trim($data['hero_cta_label']) : null,
+            'hero_cta_label_en' => filled($data['hero_cta_label_en']) ? trim($data['hero_cta_label_en']) : null,
+            'hero_cta_url' => filled($data['hero_cta_url']) ? trim($data['hero_cta_url']) : null,
+            'hero_cta2_label' => filled($data['hero_cta2_label']) ? trim($data['hero_cta2_label']) : null,
             'hero_cta2_label_en' => filled($data['hero_cta2_label_en']) ? trim($data['hero_cta2_label_en']) : null,
-            'hero_cta2_url'      => filled($data['hero_cta2_url'])      ? trim($data['hero_cta2_url'])      : null,
-            'hero_image'         => $data['hero_image']                 ?? null,
-            'featured_enabled'   => (bool) ($data['featured_enabled']  ?? true),
-            'featured_title'     => filled($data['featured_title'])     ? trim($data['featured_title'])     : null,
-            'featured_title_en'  => filled($data['featured_title_en'])  ? trim($data['featured_title_en'])  : null,
-            'promo_enabled'      => (bool) ($data['promo_enabled']      ?? false),
-            'promo_image'        => $data['promo_image']                ?? null,
-            'promo_url'          => filled($data['promo_url'])          ? trim($data['promo_url'])          : null,
-            'promo_alt'          => filled($data['promo_alt'])          ? trim($data['promo_alt'])          : null,
+            'hero_cta2_url' => filled($data['hero_cta2_url']) ? trim($data['hero_cta2_url']) : null,
+            'hero_image' => $data['hero_image'] ?? null,
+            'featured_enabled' => (bool) ($data['featured_enabled'] ?? true),
+            'featured_title' => filled($data['featured_title']) ? trim($data['featured_title']) : null,
+            'featured_title_en' => filled($data['featured_title_en']) ? trim($data['featured_title_en']) : null,
             'newsletter_enabled' => (bool) ($data['newsletter_enabled'] ?? true),
             'newsletter_heading' => filled($data['newsletter_heading']) ? trim($data['newsletter_heading']) : null,
-            'newsletter_body'    => filled($data['newsletter_body'])    ? trim($data['newsletter_body'])    : null,
+            'newsletter_body' => filled($data['newsletter_body']) ? trim($data['newsletter_body']) : null,
 
-            'editorial_scope'    => HomeEditorialScope::tryFrom((string) ($data['editorial_scope'] ?? ''))?->value
+            'editorial_scope' => HomeEditorialScope::tryFrom((string) ($data['editorial_scope'] ?? ''))?->value
                 ?? HomeEditorialScope::Parents->value,
         ];
 

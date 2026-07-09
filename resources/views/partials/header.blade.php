@@ -117,7 +117,9 @@
       <div class="mega-group mega-group--img">
         <div class="mega-group-hd">
           <span class="mega-group-name">{{ $megaMenuNewProductsLabel }}</span>
-          <span class="mega-group-plus" aria-hidden="true">+</span>
+          <span class="mega-group-plus" aria-hidden="true">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
         </div>
         {{-- Auto-slide every 5s, loops — JS in app.js toggles .is-active --}}
         <div class="mega-feature-img-wrap" id="megaNewSlider">
@@ -140,13 +142,12 @@
       <div class="mega-group">
         <div class="mega-group-hd">
           <span class="mega-group-name">Nổi bật</span>
-          <span class="mega-group-plus" aria-hidden="true">+</span>
+          <span class="mega-group-plus" aria-hidden="true">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
         </div>
         <div class="mega-group-links">
-          <a href="{{ url('/collections/lookbook') }}" class="mega-link">Lookbook</a>
-          <a href="{{ url('/products/dam-linen-co-chu-v') }}" class="mega-link">Đầm linen cổ chữ V</a>
-          <a href="{{ url('/collections/bo-set') }}" class="mega-link">Bộ set mùa thu</a>
-          <a href="{{ url('/products/ao-blouse-gioi-han') }}" class="mega-link">Áo blouse phiên bản giới hạn</a>
+          <a href="{{ $megaMenuBlogUrl }}" class="mega-link">Journal</a>
         </div>
       </div>
     </div>
@@ -159,7 +160,9 @@
         <div class="mega-group">
           <div class="mega-group-hd">
             <a href="{{ $group['url'] }}" class="mega-group-name mega-group-name--link" data-mega-cat="{{ $group['mega_cat'] }}" data-mega-label="{{ $group['name'] }}">{{ $group['name'] }}</a>
-            <span class="mega-group-plus" aria-hidden="true">+</span>
+            <span class="mega-group-plus" aria-hidden="true">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
           </div>
           @if (count($group['children']))
             <div class="mega-group-links">
@@ -218,19 +221,21 @@
       <div class="mega-group">
         <div class="mega-group-hd">
           <span class="mega-group-name">Héritage &amp; Savoir-faire</span>
-          <span class="mega-group-plus" aria-hidden="true">+</span>
+          <span class="mega-group-plus" aria-hidden="true">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
         </div>
         <div class="mega-group-links">
           <a href="{{ $megaMenuAboutUrl }}"      class="mega-link">Về chúng tôi</a>
-          <a href="{{ url('/about/linen') }}"    class="mega-link">Câu chuyện linen</a>
-          <a href="{{ url('/about/sustainability') }}" class="mega-link">Sustainability</a>
         </div>
       </div>
 
       <div class="mega-group">
         <div class="mega-group-hd">
           <span class="mega-group-name">Dịch vụ</span>
-          <span class="mega-group-plus" aria-hidden="true">+</span>
+          <span class="mega-group-plus" aria-hidden="true">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
         </div>
         <div class="mega-group-links">
           <a href="{{ route(app()->getLocale() . '.size-guide') }}" class="mega-link">Hướng dẫn size</a>
@@ -248,7 +253,9 @@
         <div class="mega-group">
           <div class="mega-group-hd">
             <span class="mega-group-name">Liên hệ</span>
-            <span class="mega-group-plus" aria-hidden="true">+</span>
+            <span class="mega-group-plus" aria-hidden="true">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
           </div>
           <div class="mega-group-links">
             @if($megaContactAddress)

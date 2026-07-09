@@ -1303,19 +1303,32 @@ img    { display: block; }
   /* editorial image hidden on mobile */
   .mega-feature-img-wrap { display: none; }
 
-  /* "Sản phẩm mới" group has no links on mobile — hide "+" and remove pointer */
+  /* "Sản phẩm mới" không có nội dung xổ xuống trên mobile — hiển thị như
+     nhãn phẳng (không phải accordion-row) để khỏi trông giống bấm được. */
   .mega-group--img .mega-group-plus { display: none; }
-  .mega-group--img .mega-group-hd { cursor: default; }
+  .mega-group--img .mega-group-hd { cursor: default; padding-bottom: 8px; }
+  .mega-group--img .mega-group-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ash);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .mega-group--img .mega-group-hd:hover .mega-group-name { opacity: 1; }
 
+  /* Mỗi khối (Mới / Bộ sưu tập / La Maison) có thanh tiêu đề tô nền nhẹ
+     để tách bạch như 3 card, thay vì 1 list phẳng nối liền. */
   .mega-col-title {
     font-size: 26px;
     margin-bottom: 0;
     padding: 20px 24px 16px;
+    background: var(--warm-white);
   }
 
   .mega-group {
     border-top: 0.5px solid var(--stone);
     margin-bottom: 0;
+    transition: background 0.2s ease;
   }
 
   .mega-group-hd {
@@ -1333,15 +1346,15 @@ img    { display: block; }
   }
 
   .mega-group-plus {
-    display: block;
-    font-family: var(--font-body);
-    font-size: 20px;
-    font-weight: 200;
-    color: var(--ash);
-    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
     transition: transform 0.28s ease;
   }
-  .mega-group.open .mega-group-plus { transform: rotate(45deg); }
+  /* Nhóm đang mở: chevron xoay lên + tô nền nhẹ để rõ trạng thái active */
+  .mega-group.open { background: var(--warm-white); }
+  .mega-group.open .mega-group-plus { transform: rotate(180deg); }
 
   .mega-group-links {
     max-height: 0;
@@ -1518,10 +1531,14 @@ img    { display: block; }
     flex: 0 0 calc(50% - 6px);
   }
 
-  .nav-inner    { padding: 0 20px; }
+  /* Cột trái + logo co theo nội dung (auto), chỉ cột icon phải giữ 1fr —
+     nhờ vậy logo luôn nằm sát nút menu, không phụ thuộc margin âm chỉnh tay. */
+  .nav-inner    { padding: 0 20px; gap: 12px; grid-template-columns: auto auto 1fr; }
+  .nav-right    { gap: 16px; } /* thu gọn khoảng cách giữa các icon cho vừa màn hình nhỏ */
   .nav-btn > span:not(.hbg) { display: none; } /* ẩn text label, giữ hamburger icon */
   .nav-logo     { font-size: 17px; letter-spacing: 0.22em; }
-  .hero-logo-text { font-size: clamp(44px, 13vw, 72px); }
+  .hero-logo-wrap { overflow: hidden; } /* an toàn: không để tràn ngang dù tính sai cỡ chữ */
+  .hero-logo-text { font-size: clamp(32px, 9vw, 56px); letter-spacing: 0.14em; } /* giảm letter-spacing để "CACYLINEN" vừa chiều rộng màn hình */
 
   .hero          { height: 100dvh; height: 100vh; } /* touch: không có sticky nên 100vh đủ */
   .hero-caption  { bottom: 60px; padding: 0 20px; }
@@ -1840,16 +1857,73 @@ img    { display: block; }
   border-bottom-color: rgba(255,255,255,0.85);
 }
 
+/* Dots + nút prev/next chỉ dùng cho carousel mobile — ẩn hoàn toàn ở tablet/desktop */
+.edit-grid-dots { display: none; }
+.edit-grid-nav { display: none; }
+
 @media (max-width: 1024px) {
   .edit-grid { grid-auto-rows: min(68vh, 700px); }
   .edit-grid-label { bottom: 24px; left: 20px; }
 }
 
 @media (max-width: 640px) {
-  .edit-grid { grid-template-columns: 1fr; grid-auto-rows: auto; }
-  .edit-grid-item { height: 58vw; min-height: 220px; }
+  /* Carousel vuốt ngang, mỗi danh mục cao 100vh — snap tự nhiên bằng CSS,
+     không cần JS xử lý touch/drag. JS (app.js) chỉ lo dots + auto-slide. */
+  .edit-grid {
+    position: relative;
+    display: flex;
+    grid-template-columns: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .edit-grid::-webkit-scrollbar { display: none; }
+  .edit-grid-item {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    height: 80vh;
+    min-height: 80vh;
+  }
   .edit-grid-label { bottom: 22px; left: 18px; }
   .edit-grid-name { font-size: clamp(20px, 6vw, 28px); }
+
+  .edit-grid-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 0;
+    background: var(--warm-white);
+  }
+  .edit-grid-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.18);
+    transition: background 0.25s ease, transform 0.25s ease;
+  }
+  .edit-grid-dot.is-active { background: var(--ink); transform: scale(1.35); }
+
+  .edit-grid-nav {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.90);
+    color: var(--ink);
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.13);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .edit-grid-nav:hover { background: var(--white); }
+  .edit-grid-nav--prev { left: 12px; }
+  .edit-grid-nav--next { right: 12px; }
 }
 
 /* ============================================
@@ -2544,6 +2618,25 @@ img    { display: block; }
 }
 
 /* ============================================
+   PROMOTIONS — reuses .feat-product editorial-split pattern
+   (ảnh trái | slider phải), chỉ thêm phần đảo chiều + countdown.
+============================================ */
+.promo-feat--reverse .feat-product-left { order: 2; }
+.promo-feat--reverse .feat-product-right { order: 1; }
+
+.feat-product-left:not(:has(img)) { background: var(--stone); }
+
+.promo-feat-countdown {
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.feat-product-caption-link {
+  display: block;
+  text-decoration: none;
+}
+
+/* ============================================
    JOURNAL / BLOG SECTION
 ============================================ */
 .journal-section {
@@ -2682,6 +2775,16 @@ img    { display: block; }
   flex: 1;
 }
 
+/* Landing JOURNAL only — giới hạn excerpt tối đa 2 dòng để card đều chiều cao */
+.journal-section .journal-card-excerpt {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  flex: 0 1 auto;
+}
+
 .journal-card-cta {
   font-family: var(--font-body);
   font-size: 11px;
@@ -2727,8 +2830,10 @@ img    { display: block; }
     background: none;
     padding: 0 var(--pad-x);
   }
-  .journal-card { background: transparent; border-bottom: 0.5px solid var(--pebble); padding-bottom: 40px; margin-bottom: 40px; }
-  .journal-card:last-child { border-bottom: none; margin-bottom: 0; }
+  /* Scope riêng cho .journal-grid (list dọc) — không áp dụng cho card
+     trong .jnl-related-track (slider ngang ở blog detail). */
+  .journal-grid .journal-card { background: transparent; border-bottom: 0.5px solid var(--pebble); padding-bottom: 40px; margin-bottom: 40px; }
+  .journal-grid .journal-card:last-child { border-bottom: none; margin-bottom: 0; }
   .journal-card-img-wrap { aspect-ratio: 4 / 5; }
   .journal-card-body { padding: 16px 0 0; }
 }
@@ -6995,10 +7100,15 @@ a.shop-card-name:hover { color: var(--ash); }
   overflow-x: hidden;
 }
 
+/* Breadcrumb sits right above the hero on this page — nudge it down a bit */
+.pd-breadcrumb:has(+ .jnl-post-page) {
+  padding-bottom: 16px;
+}
+
 /* Hero image */
 .jnl-post-hero {
   width: 100%;
-  height: 72vh;
+  height: 80vh;
   overflow: hidden;
 }
 
@@ -7128,6 +7238,51 @@ a.shop-card-name:hover { color: var(--ash); }
   letter-spacing: 0.01em;
   color: var(--graphite);
   margin-bottom: 32px;
+}
+
+/* Answer-first AI summary — quotes GeoEntityProfile.ai_summary verbatim */
+.jnl-post-ai-summary {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  border-left: 2px solid var(--ink);
+  padding-left: 16px;
+  margin-bottom: 32px;
+}
+
+/* Key facts — GeoEntityProfile.key_facts label/value pairs */
+.jnl-post-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  margin: 0 0 32px;
+  padding: 0;
+}
+
+.jnl-post-facts li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.jnl-post-facts-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+
+.jnl-post-facts-value {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
 }
 
 .jnl-post-author {
@@ -7307,6 +7462,14 @@ a.jnl-post-author-name {
   border-color: var(--ink);
 }
 
+/* Tags render inside .jnl-post-hd (trên đường kẻ border-bottom của header),
+   nên bỏ margin/max-width/padding riêng — ăn theo chiều rộng của header. */
+.jnl-post-tags--hd {
+  max-width: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+
 /* Share */
 .jnl-post-share {
   max-width: 680px;
@@ -7395,6 +7558,7 @@ a.jnl-post-author-name {
 
 .jnl-related-track {
   display: flex;
+  gap: 20px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
@@ -7416,139 +7580,112 @@ a.jnl-post-author-name {
 
 /* Reuse .jnl-card from journal.html CSS */
 
-/* Option B: Two-column sticky sidebar */
-
-.jnl-post-layout {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 0 var(--pad-x);
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  column-gap: 80px;
-  align-items: start;
-}
-
-.jnl-post-layout .jnl-post-body {
-  max-width: none;
-  margin: 0;
-  padding: 64px 0 80px;
-}
-
-.jnl-post-layout .jnl-post-share {
-  max-width: none;
-  padding: 40px 0 0;
-  margin: 0;
-}
-
-.jnl-post-rail {
-  position: sticky;
-  top: 88px;
-  padding-top: 64px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.jnl-rail-title {
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--graphite);
-  margin-bottom: 16px;
-}
-
-.jnl-rail-toc-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.jnl-rail-toc-link {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  color: var(--ash);
-  text-decoration: none;
-  display: block;
-  padding-left: 12px;
-  border-left: 1px solid transparent;
-  transition: color 0.2s ease, border-color 0.2s ease;
-}
-
-.jnl-rail-toc-link:hover,
-.jnl-rail-toc-link.active {
-  color: var(--ink);
-  border-left-color: var(--ink);
-}
-
-.jnl-rail-divider {
-  width: 24px;
-  height: 0.5px;
-  background: var(--pebble);
-}
-
-.jnl-rail-author {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.jnl-rail-author-name {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-}
-
-.jnl-rail-author-role {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  color: var(--graphite);
-}
-
-.jnl-rail-tag-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.jnl-rail-tag-list .jnl-post-tag-item {
-  display: block;
-  width: fit-content;
-}
-
 /* ---- Responsive ---- */
 @media (max-width: 1024px) {
   .jnl-related-track .journal-card { flex: 0 0 50%; }
-  .jnl-post-layout {
-    grid-template-columns: 1fr;
-    column-gap: 0;
-  }
-  .jnl-post-layout .jnl-post-body { padding-bottom: 40px; }
-  .jnl-post-rail {
-    position: static;
-    padding: 40px 0 64px;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 40px;
-    border-top: 0.5px solid var(--pebble);
-  }
-  .jnl-rail-divider { display: none; }
 }
 
 @media (max-width: 768px) {
   .jnl-related-track .journal-card { flex: 0 0 80%; }
-  .jnl-post-layout .jnl-post-body { padding: 48px 0 32px; gap: 22px; }
   .jnl-post-body { padding: 48px var(--pad-x); gap: 22px; }
   .jnl-post-pull { padding: 24px 0 24px 20px; }
   .jnl-post-figure-duo { grid-template-columns: 1fr; gap: 4px; }
+}
+
+/* ============================================
+   AUTHOR PAGE — /tac-gia/{slug}, /authors/{slug}
+============================================ */
+.author-hero {
+  display: flex;
+  gap: 40px;
+  padding: 0 var(--pad-x) 8px;
+}
+
+.author-hero-avatar-wrap { flex-shrink: 0; }
+
+.author-hero-avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.author-hero-avatar--placeholder {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--stone);
+  color: var(--ash);
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.author-hero-body { max-width: 640px; }
+
+.author-hero-name {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.2vw, 44px);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.author-hero-title {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--graphite);
+  margin-bottom: 18px;
+}
+
+.author-hero-bio {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.8;
+  color: var(--graphite);
+  margin-bottom: 20px;
+}
+
+.author-hero-expertise {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.author-hero-social {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.author-social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0.5px solid var(--pebble);
+  color: var(--ink);
+  transition: opacity var(--ease), border-color var(--ease);
+}
+.author-social-link:hover { opacity: 0.55; border-color: var(--ash); }
+
+@media (max-width: 640px) {
+  .author-hero { flex-direction: column; align-items: flex-start; gap: 20px; padding: 0 var(--pad-x) 4px; }
+  .author-hero-avatar,
+  .author-hero-avatar--placeholder { width: 84px; height: 84px; font-size: 30px; }
 }
 
 /* ============================================
@@ -7841,4 +7978,68 @@ a.jnl-post-author-name {
 
 @media (max-width: 480px) {
   .inquiry-panel { padding: 28px 20px; }
+}
+
+/* Global toast — confirmation card (showToast() in app.js). Centered on
+   screen, not a bottom snackbar — same elevated-card language as
+   .pd-sg-modal, minus the dark backdrop so it never blocks interaction
+   underneath (auto-dismisses on its own). */
+.pd-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 999;
+  width: min(90vw, 380px);
+  padding: 34px 30px;
+  background: var(--white);
+  border: 0.5px solid var(--pebble);
+  box-shadow: 0 24px 60px rgba(17, 17, 17, 0.18);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.94);
+  transition: opacity 0.35s var(--ease-out-expo), transform 0.35s var(--ease-out-expo);
+}
+.pd-toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.pd-toast-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: var(--ivory);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pd-toast-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--ink);
+}
+
+.pd-toast-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.pd-toast-body {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--graphite);
+}
+
+@media (max-width: 480px) {
+  .pd-toast { width: min(88vw, 340px); padding: 28px 22px; }
+  .pd-toast-title { font-size: 17px; }
+  .pd-toast-body { font-size: 12.5px; }
 }

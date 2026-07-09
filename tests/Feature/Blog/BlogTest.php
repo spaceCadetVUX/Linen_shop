@@ -54,12 +54,13 @@ class BlogTest extends TestCase
     {
         $category = BlogCategory::factory()->create(['slug' => 'tech-news']);
         $inCat    = BlogPost::factory()->published()->create(['blog_category_id' => $category->id]);
+        $inCat->translations()->create(['locale' => 'vi', 'title' => 'In category post', 'slug' => 'in-category-post', 'excerpt' => 'Excerpt']);
         BlogPost::factory()->published()->create(); // different category
 
-        $this->getJson('/api/v1/blog?category=tech-news')
+        $this->getJson('/api/v1/blog?category=tech-news&locale=vi')
             ->assertStatus(200)
             ->assertJsonPath('meta.total', 1)
-            ->assertJsonPath('data.0.slug', $inCat->slug);
+            ->assertJsonPath('data.0.slug', 'in-category-post');
     }
 
     // ── 4. Filter by tag ──────────────────────────────────────────────────────
@@ -68,36 +69,43 @@ class BlogTest extends TestCase
     {
         $tag    = BlogTag::factory()->create(['slug' => 'casambi']);
         $tagged = BlogPost::factory()->published()->create();
+        $tagged->translations()->create(['locale' => 'vi', 'title' => 'Tagged post', 'slug' => 'tagged-post', 'excerpt' => 'Excerpt']);
         $tagged->tags()->attach($tag->id);
         BlogPost::factory()->published()->create(); // untagged
 
-        $this->getJson('/api/v1/blog?tag=casambi')
+        $this->getJson('/api/v1/blog?tag=casambi&locale=vi')
             ->assertStatus(200)
             ->assertJsonPath('meta.total', 1)
-            ->assertJsonPath('data.0.slug', $tagged->slug);
+            ->assertJsonPath('data.0.slug', 'tagged-post');
     }
 
     // ── 5. Blog post detail ───────────────────────────────────────────────────
 
     public function test_can_get_blog_post_detail(): void
     {
-        BlogPost::factory()->published()->create(['slug' => 'mesh-lighting']);
+        $post = BlogPost::factory()->published()->create();
+        $post->translations()->create([
+            'locale' => 'vi', 'title' => 'Mesh Lighting Guide', 'slug' => 'mesh-lighting',
+            'excerpt' => 'Excerpt', 'body' => 'Full body content.',
+        ]);
 
-        $this->getJson('/api/v1/blog/mesh-lighting')
+        $this->getJson('/api/v1/blog/mesh-lighting?locale=vi')
             ->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
                     'id', 'title', 'slug', 'excerpt', 'content',
                     'seo', 'jsonld_schemas', 'published_at',
                 ],
-            ]);
+            ])
+            ->assertJsonPath('data.slug', 'mesh-lighting');
     }
 
     // ── 6. Draft post returns 404 ─────────────────────────────────────────────
 
     public function test_draft_post_detail_returns_404(): void
     {
-        BlogPost::factory()->draft()->create(['slug' => 'hidden-draft']);
+        $post = BlogPost::factory()->draft()->create();
+        $post->translations()->create(['locale' => 'vi', 'title' => 'Hidden draft', 'slug' => 'hidden-draft', 'excerpt' => 'x']);
 
         $this->getJson('/api/v1/blog/hidden-draft')
             ->assertStatus(404);
@@ -107,7 +115,8 @@ class BlogTest extends TestCase
 
     public function test_can_list_approved_comments(): void
     {
-        $post = BlogPost::factory()->published()->create(['slug' => 'post-with-comments']);
+        $post = BlogPost::factory()->published()->create();
+        $post->translations()->create(['locale' => 'vi', 'title' => 'Post with comments', 'slug' => 'post-with-comments', 'excerpt' => 'x']);
 
         BlogComment::factory()->count(2)->approved()->create(['blog_post_id' => $post->id]);
         BlogComment::factory()->pending()->create(['blog_post_id' => $post->id]);
@@ -122,7 +131,8 @@ class BlogTest extends TestCase
     public function test_authenticated_user_can_submit_comment(): void
     {
         $user  = User::factory()->create();
-        $post  = BlogPost::factory()->published()->create(['slug' => 'commentable-post']);
+        $post  = BlogPost::factory()->published()->create();
+        $post->translations()->create(['locale' => 'vi', 'title' => 'Commentable post', 'slug' => 'commentable-post', 'excerpt' => 'x']);
         $token = $user->createToken('api-token')->plainTextToken;
 
         $this->withToken($token)
@@ -135,7 +145,8 @@ class BlogTest extends TestCase
 
     public function test_unauthenticated_user_cannot_comment(): void
     {
-        BlogPost::factory()->published()->create(['slug' => 'auth-required-post']);
+        $post = BlogPost::factory()->published()->create();
+        $post->translations()->create(['locale' => 'vi', 'title' => 'Auth required post', 'slug' => 'auth-required-post', 'excerpt' => 'x']);
 
         $this->postJson('/api/v1/blog/auth-required-post/comments', ['body' => 'Hello!'])
             ->assertStatus(401);

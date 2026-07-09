@@ -4,16 +4,15 @@ namespace App\Http\Controllers\Web;
 
 use App\Enums\BlogPostStatus;
 use App\Http\Controllers\Controller;
-use App\Models\BlogCategory;
-use App\Models\BlogCategoryTranslation;
-use App\Models\BlogPostTranslation;
-use App\Models\BlogTag;
 use App\Models\BusinessProfile;
-use App\Models\Seo\GeoEntityProfile;
 use App\Models\Setting;
+use App\Repositories\Eloquent\BlogCategoryRepository;
 use App\Repositories\Eloquent\BlogPostRepository;
+use App\Repositories\Eloquent\BlogTagRepository;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
+use App\Support\HeadingAnchors;
+use App\Support\ImageDimensions;
 use App\Support\LocaleUrl;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -27,7 +26,11 @@ use Tiptap\Nodes\TableRow;
 
 class BlogController extends Controller
 {
-    public function __construct(private BlogPostRepository $blogPostRepository) {}
+    public function __construct(
+        private BlogPostRepository $blogPostRepository,
+        private BlogCategoryRepository $blogCategoryRepository,
+        private BlogTagRepository $blogTagRepository,
+    ) {}
 
     public function index(string $locale): View
     {
@@ -35,28 +38,7 @@ class BlogController extends Controller
         $categoryFilter = array_filter((array) request('blog_category', []));
 
         // ── Category filter pills ──────────────────────────────────────────────
-        $blogCategories = BlogCategory::active()
-            ->whereNull('parent_id')
-            ->with([
-                'translations' => fn ($q) => $q->where('locale', $locale),
-                'children' => fn ($q) => $q->active()
-                    ->withCount(['posts as blog_count' => fn ($q) => $q->published()])
-                    ->with(['translations' => fn ($q) => $q->where('locale', $locale)]),
-            ])
-            ->withCount(['posts as root_count' => fn ($q) => $q->published()])
-            ->orderBy('sort_order')
-            ->get()
-            ->each(function ($cat) {
-                $tr = $cat->translations->first();
-                $cat->name = $tr?->name ?? $cat->name;
-                $cat->slug = $tr?->slug ?? $cat->slug;
-                $cat->children->each(function ($child) {
-                    $tr = $child->translations->first();
-                    $child->name = $tr?->name ?? $child->name;
-                    $child->slug = $tr?->slug ?? $child->slug;
-                });
-                $cat->total_blog_count = $cat->root_count + $cat->children->sum('blog_count');
-            });
+        $blogCategories = $this->blogCategoryRepository->getActiveTreeDecorated($locale);
 
         // ── Blog posts query ───────────────────────────────────────────────────
         $blogs = $this->blogPostRepository->paginateIndexDecorated($locale, $search, array_values($categoryFilter), 12);
@@ -159,15 +141,10 @@ class BlogController extends Controller
 
     public function category(string $locale, string $slug): View|RedirectResponse
     {
-        $translation = BlogCategoryTranslation::where('locale', $locale)
-            ->where('slug', $slug)
-            ->with('blogCategory')
-            ->first();
+        $translation = $this->blogCategoryRepository->findTranslationBySlug($locale, $slug);
 
         if (! $translation) {
-            $viTranslation = BlogCategoryTranslation::where('locale', config('app.fallback_locale'))
-                ->where('slug', $slug)
-                ->first();
+            $viTranslation = $this->blogCategoryRepository->findTranslationBySlug(config('app.fallback_locale'), $slug);
 
             if ($viTranslation) {
                 return redirect(
@@ -228,10 +205,8 @@ class BlogController extends Controller
         // CategoryTranslation), so no Tiptap JSON→HTML conversion needed here.
         $richContentHtml = filled($translation->rich_content) ? $translation->rich_content : null;
 
-        $geoProfile = GeoEntityProfile::where('model_type', 'blog_category')
-            ->where('model_id', (string) $blogCategory->id)
-            ->where('locale', $locale)
-            ->first();
+        $blogCategory->loadMissing('geoProfiles');
+        $geoProfile = $blogCategory->geoProfiles->firstWhere('locale', $locale);
         $faqItems = $geoProfile?->faq ?? [];
         $faqs = array_values(array_filter(array_map(
             fn ($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
@@ -264,17 +239,10 @@ class BlogController extends Controller
 
     public function show(string $locale, string $categorySlug, string $slug): View|RedirectResponse
     {
-        $translation = BlogPostTranslation::where('locale', $locale)
-            ->where('slug', $slug)
-            ->with('blogPost')
-            ->first();
+        $translation = $this->blogPostRepository->findTranslationBySlug($slug, $locale);
 
         if (! $translation) {
-            $viTranslation = BlogPostTranslation::where('slug', $slug)
-                ->whereIn('locale', config('app.supported_locales'))
-                ->where('locale', '!=', $locale)
-                ->with(['blogPost.blogCategory.translations'])
-                ->first();
+            $viTranslation = $this->blogPostRepository->findTranslationBySlug($slug);
 
             if ($viTranslation) {
                 $post = $viTranslation->blogPost->load('blogCategory.translations');
@@ -314,16 +282,20 @@ class BlogController extends Controller
             ->toArray();
 
         // ── GEO / FAQs ────────────────────────────────────────────────────────
-        $geoProfile = GeoEntityProfile::where('model_type', 'blog_post')
-            ->where('model_id', (string) $post->id)
-            ->where('locale', $locale)
-            ->first();
+        $post->loadMissing('geoProfiles');
+        $geoProfile = $post->geoProfiles->firstWhere('locale', $locale);
         $faqItems = $geoProfile?->faq
             ?? ($locale === 'vi' ? ($post->faq_items_vi ?? []) : ($post->faq_items_en ?? []));
         $faqs = array_values(array_filter(array_map(
             fn ($f) => (trim($f['question'] ?? '') && trim($f['answer'] ?? '')) ? $f : null,
             $faqItems
         )));
+
+        $aiSummary = trim((string) ($geoProfile?->ai_summary ?? '')) ?: null;
+        $keyFacts = array_values(array_filter(
+            (array) ($geoProfile?->key_facts ?? []),
+            fn ($f) => trim($f['label'] ?? '') !== '' && trim($f['value'] ?? '') !== ''
+        ));
 
         // ── Blog DTO ───────────────────────────────────────────────────────────
         $catTr = $post->blogCategory?->translations->firstWhere('locale', $locale);
@@ -353,6 +325,7 @@ class BlogController extends Controller
         }
 
         $readMins = max(1, (int) ceil(str_word_count(strip_tags($bodyHtml)) / 200));
+        $bodyHtml = HeadingAnchors::inject($bodyHtml);
 
         // ── Breadcrumb (visible) — mirrors JsonldService::buildBlogPostBreadcrumb()
         // so the visible trail never disagrees with the BreadcrumbList JSON-LD.
@@ -376,6 +349,7 @@ class BlogController extends Controller
             'category' => $catTr?->name ?? $post->blogCategory?->name,
             'category_slug' => $catTr?->slug ?? $post->blogCategory?->slug,
             'featured_image' => $rawImage ? 'storage/'.ltrim($rawImage, '/') : null,
+            'featured_image_dimensions' => ImageDimensions::resolve($rawImage),
             'published_at' => $post->published_at,
             'updated_at' => $post->updated_at,
             'formatted_published_date' => $post->published_at?->translatedFormat('d M, Y'),
@@ -383,6 +357,8 @@ class BlogController extends Controller
             'author' => $post->author,
             'tags' => $post->tags->pluck('name')->all(),
             'faqs' => $faqs,
+            'ai_summary' => $aiSummary,
+            'key_facts' => $keyFacts,
             'seo_description' => $seoMeta?->meta_description ?? $translation->excerpt,
             'canonical_url' => url()->current(),
         ];
@@ -402,18 +378,7 @@ class BlogController extends Controller
         ];
 
         // ── Sidebar: categories ────────────────────────────────────────────────
-        $categories = BlogCategory::active()
-            ->with(['translations' => fn ($q) => $q->where('locale', $locale)])
-            ->orderBy('sort_order')
-            ->get()
-            ->map(function ($cat) {
-                $tr = $cat->translations->first();
-
-                return (object) [
-                    'name' => $tr?->name ?? $cat->name,
-                    'slug' => $tr?->slug ?? $cat->slug,
-                ];
-            });
+        $categories = $this->blogCategoryRepository->getActiveDecorated($locale);
 
         // ── Sidebar: latest posts (excl. current) ─────────────────────────────
         $sidebarPostsBase = $this->blogPostRepository->latestExcludingDecorated($locale, $post->id, 13);
@@ -427,7 +392,7 @@ class BlogController extends Controller
             : collect();
 
         // ── Sidebar: tags ─────────────────────────────────────────────────────
-        $allTags = BlogTag::whereHas('posts', fn ($q) => $q->published())->pluck('name');
+        $allTags = $this->blogTagRepository->getNamesWithPublishedPosts();
 
         view()->share('alternateUrls', $alternateUrls);
 

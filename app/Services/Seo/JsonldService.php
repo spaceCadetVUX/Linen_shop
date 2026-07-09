@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Seo\JsonldSchema;
 use App\Models\Seo\JsonldTemplate;
 use App\Models\Setting;
+use App\Support\ImageDimensions;
 use App\Support\LocaleUrl;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ class JsonldService
      */
     private const MODEL_SCHEMA_TYPES = [
         'product' => [JsonldSchemaType::Product,        JsonldSchemaType::BreadcrumbList],
-        'blog_post' => [JsonldSchemaType::Article,        JsonldSchemaType::BreadcrumbList],
+        'blog_post' => [JsonldSchemaType::BlogPosting,    JsonldSchemaType::BreadcrumbList],
         'category' => [JsonldSchemaType::CollectionPage, JsonldSchemaType::BreadcrumbList],
         'blog_category' => [JsonldSchemaType::CollectionPage, JsonldSchemaType::BreadcrumbList],
         'brand' => [JsonldSchemaType::Brand,          JsonldSchemaType::BreadcrumbList],
@@ -38,6 +39,7 @@ class JsonldService
     private const SORT_ORDER = [
         JsonldSchemaType::Product->value => 10,
         JsonldSchemaType::Article->value => 10,
+        JsonldSchemaType::BlogPosting->value => 10,
         JsonldSchemaType::CollectionPage->value => 10,
         JsonldSchemaType::FaqPage->value => 50,
         JsonldSchemaType::VideoObject->value => 60,
@@ -101,7 +103,7 @@ class JsonldService
             }
 
             if ($morphAlias === 'blog_post') {
-                if ($schemaType === JsonldSchemaType::Article) {
+                if ($schemaType === JsonldSchemaType::BlogPosting) {
                     $resolved = $this->enrichArticleSchema($resolved, $model, $locale);
                 }
 
@@ -1266,19 +1268,22 @@ class JsonldService
         if (isset($payload['image']) && is_string($payload['image']) && filled($payload['image'])) {
             $imageObj = ['@type' => 'ImageObject', 'url' => $payload['image']];
 
-            $relativePath = $model->getAttribute('featured_image');
-            if (filled($relativePath)) {
-                $fullPath = storage_path('app/public/'.ltrim($relativePath, '/'));
-                if (file_exists($fullPath)) {
-                    [$w, $h] = @getimagesize($fullPath) ?: [null, null];
-                    if ($w && $h) {
-                        $imageObj['width'] = $w;
-                        $imageObj['height'] = $h;
-                    }
-                }
+            $dimensions = ImageDimensions::resolve($model->getAttribute('featured_image'));
+            if ($dimensions) {
+                $imageObj['width'] = $dimensions['width'];
+                $imageObj['height'] = $dimensions['height'];
             }
 
             $payload['image'] = $imageObj;
+        }
+
+        // ── speakable — lets voice assistants / AI Overviews read the
+        // headline and answer-first summary aloud without the full body.
+        if (! isset($payload['speakable'])) {
+            $payload['speakable'] = [
+                '@type' => 'SpeakableSpecification',
+                'cssSelector' => ['.jnl-post-title', '.jnl-post-subtitle', '.jnl-post-ai-summary'],
+            ];
         }
 
         // ── wordCount — computed from locale body, stripped of HTML ──────────
