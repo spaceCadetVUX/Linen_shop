@@ -738,3 +738,52 @@ updateNav();
   track.addEventListener('pointerup',     () => { px = null; track.style.cursor = 'grab'; });
   track.addEventListener('pointercancel', () => { px = null; track.style.cursor = 'grab'; });
 }());
+
+/* ---------- PDP review form — POST /api/v1/products/{slug}/reviews ---------- */
+(function () {
+  const form = document.getElementById('pdReviewForm');
+  if (!form) return;
+
+  const msg = document.getElementById('pdReviewFormMsg');
+  const slug = form.dataset.productSlug;
+  const isEn = form.dataset.locale === 'en';
+
+  function xsrfToken() {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function showMsg(text, isError) {
+    msg.textContent = text;
+    msg.hidden = false;
+    msg.classList.toggle('is-error', !!isError);
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const submitBtn = form.querySelector('.pd-review-submit');
+    submitBtn.disabled = true;
+
+    fetch(`/api/v1/products/${slug}/reviews`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-XSRF-TOKEN': xsrfToken(), 'Accept': 'application/json' },
+      body: new FormData(form),
+    })
+      .then(res => res.json().then(json => ({ ok: res.ok, json })))
+      .then(({ ok, json }) => {
+        if (!ok) {
+          const firstError = json.errors ? Object.values(json.errors)[0][0] : json.message;
+          showMsg(firstError || (isEn ? 'Something went wrong.' : 'Có lỗi xảy ra.'), true);
+          return;
+        }
+        form.reset();
+        showMsg(isEn
+          ? 'Thanks! Your review is pending approval.'
+          : 'Cảm ơn bạn! Đánh giá sẽ hiển thị sau khi được duyệt.', false);
+      })
+      .catch(() => showMsg(isEn ? 'Network error — please try again.' : 'Lỗi kết nối — vui lòng thử lại.', true))
+      .finally(() => { submitBtn.disabled = false; });
+  });
+}());

@@ -249,6 +249,114 @@
 @endif
 
 {{-- ============================================================
+     REVIEWS — SSR summary + list so the visible content matches the
+     AggregateRating JSON-LD (Google requires this). Submit form posts
+     via fetch() to /api/v1/products/{slug}/reviews (JS in app.js) —
+     guest reviews allowed, no storefront login exists yet. Reviews stay
+     pending (is_approved=false) until an admin approves in Filament.
+     ============================================================ --}}
+<section class="pd-reviews shop-section" id="pdReviews">
+  <h2 class="pd-reviews-title">{{ $locale === 'vi' ? 'Đánh giá sản phẩm' : 'Customer Reviews' }}</h2>
+
+  <div class="pd-reviews-summary">
+    <div class="pd-reviews-avg">
+      <span class="pd-reviews-avg-num">{{ $reviewSummary['count'] > 0 ? number_format($reviewSummary['average'], 1) : '—' }}</span>
+      <div class="pd-reviews-stars" aria-hidden="true">
+        @for($i = 1; $i <= 5; $i++)
+          <span class="pd-star @if($i <= round($reviewSummary['average'])) is-filled @endif">★</span>
+        @endfor
+      </div>
+      <span class="pd-reviews-count">
+        {{ $reviewSummary['count'] }} {{ $locale === 'vi' ? 'đánh giá' : ($reviewSummary['count'] == 1 ? 'review' : 'reviews') }}
+      </span>
+    </div>
+
+    <div class="pd-reviews-breakdown">
+      @foreach($reviewSummary['breakdown'] as $star => $count)
+        <div class="pd-reviews-bar-row">
+          <span class="pd-reviews-bar-label">{{ $star }}★</span>
+          <span class="pd-reviews-bar-track">
+            <span class="pd-reviews-bar-fill" style="width: {{ $reviewSummary['count'] > 0 ? round($count / $reviewSummary['count'] * 100) : 0 }}%"></span>
+          </span>
+          <span class="pd-reviews-bar-count">{{ $count }}</span>
+        </div>
+      @endforeach
+    </div>
+  </div>
+
+  <div class="pd-reviews-toolbar">
+    <form method="get" class="pd-reviews-sort-form">
+      <label for="pdReviewSort">{{ $locale === 'vi' ? 'Sắp xếp' : 'Sort' }}</label>
+      <select id="pdReviewSort" name="review_sort" onchange="this.form.submit()">
+        @foreach(\App\Enums\ReviewSort::cases() as $sortOption)
+          <option value="{{ $sortOption->value }}" @selected($reviewSort === $sortOption->value)>{{ $sortOption->label() }}</option>
+        @endforeach
+      </select>
+    </form>
+  </div>
+
+  <div class="pd-reviews-list" id="pdReviewsList">
+    @forelse($reviews as $review)
+      <article class="pd-review">
+        <div class="pd-review-head">
+          <div class="pd-review-stars" aria-hidden="true">
+            @for($i = 1; $i <= 5; $i++)
+              <span class="pd-star @if($i <= $review->rating) is-filled @endif">★</span>
+            @endfor
+          </div>
+          <span class="pd-review-author">{{ $review->author }}</span>
+          <time class="pd-review-date" datetime="{{ $review->created_at->toIso8601String() }}">{{ $review->created_at->format('d/m/Y') }}</time>
+        </div>
+        @if($review->title)
+          <h3 class="pd-review-title">{{ $review->title }}</h3>
+        @endif
+        <p class="pd-review-content">{{ $review->content }}</p>
+        @if($review->images->isNotEmpty())
+          <div class="pd-review-images">
+            @foreach($review->images as $image)
+              <img src="{{ $image->url }}" alt="{{ $locale === 'vi' ? 'Ảnh từ khách hàng' : 'Customer photo' }}" class="pd-review-img" loading="lazy">
+            @endforeach
+          </div>
+        @endif
+      </article>
+    @empty
+      <p class="pd-reviews-empty">{{ $locale === 'vi' ? 'Chưa có đánh giá nào cho sản phẩm này. Hãy là người đầu tiên!' : 'No reviews yet for this product. Be the first!' }}</p>
+    @endforelse
+  </div>
+
+  @if($reviews->hasPages())
+    <nav class="pd-reviews-pagination">{{ $reviews->onEachSide(1)->links() }}</nav>
+  @endif
+
+  <div class="pd-review-form-wrap">
+    <h3 class="pd-review-form-title">{{ $locale === 'vi' ? 'Viết đánh giá của bạn' : 'Write a review' }}</h3>
+    <form id="pdReviewForm" class="pd-review-form" data-product-slug="{{ $translation->slug ?? $product->slug }}" data-locale="{{ $locale }}">
+      <div class="pd-review-form-row">
+        <input type="text" name="author" required maxlength="100" placeholder="{{ $locale === 'vi' ? 'Tên của bạn' : 'Your name' }}" class="pd-review-input">
+        <input type="email" name="email" required maxlength="255" placeholder="{{ $locale === 'vi' ? 'Email (không hiển thị công khai)' : 'Email (not shown publicly)' }}" class="pd-review-input">
+      </div>
+      <div class="pd-review-form-rating">
+        <span class="pd-review-form-rating-label">{{ $locale === 'vi' ? 'Chọn số sao' : 'Your rating' }}</span>
+        <div class="pd-review-rating-input" role="radiogroup">
+          @for($i = 5; $i >= 1; $i--)
+            <input type="radio" name="rating" id="pdRating{{ $i }}" value="{{ $i }}" @if($i === 5) checked @endif>
+            <label for="pdRating{{ $i }}" class="pd-star-choice">★</label>
+          @endfor
+        </div>
+      </div>
+      <input type="text" name="title" maxlength="255" placeholder="{{ $locale === 'vi' ? 'Tiêu đề (không bắt buộc)' : 'Title (optional)' }}" class="pd-review-input">
+      <textarea name="content" rows="4" required maxlength="2000" placeholder="{{ $locale === 'vi' ? 'Chia sẻ cảm nhận của bạn về sản phẩm...' : 'Share your experience with this product...' }}" class="pd-review-textarea"></textarea>
+      <label class="pd-review-upload">
+        <input type="file" name="images" accept="image/*" multiple>
+        {{ $locale === 'vi' ? '+ Thêm ảnh (tối đa 5)' : '+ Add photos (max 5)' }}
+      </label>
+      <button type="submit" class="pd-review-submit">{{ $locale === 'vi' ? 'Gửi đánh giá' : 'Submit review' }}</button>
+      <p class="pd-review-form-msg" id="pdReviewFormMsg" hidden></p>
+    </form>
+  </div>
+</section>
+
+{{-- ============================================================
      RELATED PRODUCTS — same first category, max 8 (from controller).
      Uses .pd-related (PDP-specific CSS), cards via <x-product.card>.
      Hidden entirely when the product has no related items.

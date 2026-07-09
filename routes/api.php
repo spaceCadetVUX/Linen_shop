@@ -77,8 +77,10 @@ Route::prefix('v1')->group(function () {
     Route::get('search',            ProductSearchController::class);
 
     // ── Product Reviews ───────────────────────────────────────────────────
+    // Guest reviews allowed — storefront has no login UI yet (author/email
+    // come from the form). Still gated by admin approval before going public.
     Route::get('products/{slug}/reviews', [ReviewController::class, 'index']);
-    Route::middleware('auth:sanctum')->post('products/{slug}/reviews', [ReviewController::class, 'store']);
+    Route::post('products/{slug}/reviews', [ReviewController::class, 'store']);
 
     // ── Cart (S48) ────────────────────────────────────────────────────────
     // Guest + auth (X-Session-ID for guests, Bearer token for auth)

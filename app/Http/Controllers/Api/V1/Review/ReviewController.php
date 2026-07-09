@@ -42,8 +42,7 @@ class ReviewController extends Controller
 
         $review = $this->reviewService->submit(
             product: $product,
-            userId: $request->user()->id,
-            authorName: $request->user()->name,
+            userId: $request->user()?->id,
             data: $request->validated(),
             images: $request->file('images', []),
         );

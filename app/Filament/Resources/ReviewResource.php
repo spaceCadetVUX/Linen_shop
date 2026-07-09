@@ -53,6 +53,12 @@ class ReviewResource extends Resource
                 ->required()
                 ->maxLength(100),
 
+            Forms\Components\TextInput::make('email')
+                ->label('Email')
+                ->email()
+                ->maxLength(255)
+                ->helperText('Chỉ admin thấy — dùng để liên hệ lại khách khi cần, không hiện công khai.'),
+
             Forms\Components\Select::make('rating')
                 ->label('Rating')
                 ->options([
