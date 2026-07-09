@@ -235,5 +235,18 @@ Route::fallback(function (Request $request) {
         abort(404);
     }
 
-    return redirect('/vi/'.$path, 301);
+    // Entity routes (product/category/brand/manufacturer) use a FIXED
+    // Vietnamese path segment per locale (san-pham, danh-muc, thuong-hieu,
+    // nha-san-xuat) — not a generic {slug} catch-all. A bare English-style
+    // path like /products/{slug} redirected to /vi/products/{slug} 404s,
+    // since vi.product.show only matches /vi/san-pham/{slug}. Static pages
+    // (/about, /contact...) don't have this problem — vi.page.show is a
+    // real {slug} catch-all that accepts any segment name.
+    // 'blog' is deliberately excluded — both locales use it (blog_post AND
+    // blog_category on en, blog_category on vi), so it can't be disambiguated
+    // by segment name alone; falls through to the /vi/ default below.
+    $enOnlyEntitySegments = ['products', 'categories', 'brands', 'manufacturers'];
+    $targetLocale = in_array($firstSegment, $enOnlyEntitySegments, true) ? 'en' : 'vi';
+
+    return redirect("/{$targetLocale}/{$path}", 301);
 });

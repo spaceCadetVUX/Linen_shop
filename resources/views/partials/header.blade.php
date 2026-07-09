@@ -37,11 +37,18 @@
         <a href="{{ $enUrl }}" class="nav-lang-btn @if($currentLocale === 'en') is-active @endif">English</a>
       </div>
 
-      <button class="nav-btn nav-search-btn" aria-label="Tìm kiếm">
+      <button
+        class="nav-btn nav-search-btn"
+        id="navSearchBtn"
+        aria-label="Tìm kiếm"
+        aria-expanded="false"
+        data-autocomplete-url="{{ route($currentLocale . '.product.autocomplete') }}"
+        data-shop-url="{{ route($currentLocale . '.product.shop') }}"
+      >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
-        <span>Tìm kiếm</span>
+        <span>{{ $currentLocale === 'en' ? 'Search' : 'Tìm kiếm' }}</span>
       </button>
 
       <a href="{{ url('/account/wishlist') }}" class="nav-icon-btn" aria-label="Yêu thích">
@@ -60,6 +67,31 @@
 
   </div>
 </header>
+
+{{-- ============================================================
+     SEARCH OVERLAY — live suggestions via ProductController::autocomplete()
+     (LIKE query, locale-aware), "Enter" / "Xem tất cả" → real PLP search
+     (ProductSearchService, Meilisearch-backed) at ?q=. JS in app.js.
+     ============================================================ --}}
+<div class="search-overlay" id="searchOverlay"></div>
+<div class="search-wrap" id="searchWrap">
+  <div class="search-panel">
+    <form class="search-panel-inner" id="searchForm" role="search">
+      <svg class="search-panel-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="{{ $currentLocale === 'en' ? 'Search products…' : 'Tìm sản phẩm…' }}"
+        autocomplete="off"
+      >
+      <button type="button" class="search-close" id="searchClose" aria-label="Đóng">✕</button>
+    </form>
+    <div class="search-suggestions" id="searchSuggestions" hidden></div>
+  </div>
+</div>
 
 {{-- ============================================================
      MEGA MENU

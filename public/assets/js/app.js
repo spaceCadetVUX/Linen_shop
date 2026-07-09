@@ -787,3 +787,107 @@ updateNav();
       .finally(() => { submitBtn.disabled = false; });
   });
 }());
+
+/* ---------- Navbar search — live suggestions + submit to real PLP search ---------- */
+(function () {
+  const btn = document.getElementById('navSearchBtn');
+  const wrap = document.getElementById('searchWrap');
+  const overlay = document.getElementById('searchOverlay');
+  const closeBtn = document.getElementById('searchClose');
+  const form = document.getElementById('searchForm');
+  const input = document.getElementById('searchInput');
+  const suggestions = document.getElementById('searchSuggestions');
+  if (!btn || !wrap || !form || !input || !suggestions) return;
+
+  const autocompleteUrl = btn.dataset.autocompleteUrl;
+  const shopUrl = btn.dataset.shopUrl;
+  const isEn = document.documentElement.lang === 'en';
+  let debounceTimer = null;
+  let activeController = null;
+
+  function open() {
+    wrap.classList.add('is-open');
+    overlay.classList.add('is-open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('search-open');
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function close() {
+    wrap.classList.remove('is-open');
+    overlay.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('search-open');
+  }
+
+  function goToResults(q) {
+    window.location.href = shopUrl + '?q=' + encodeURIComponent(q);
+  }
+
+  function renderSuggestions(data, q) {
+    const products = data.products || [];
+
+    if (!products.length) {
+      suggestions.innerHTML = '<p class="search-suggestions-empty">'
+        + (isEn ? 'No products found.' : 'Không tìm thấy sản phẩm nào.') + '</p>';
+      suggestions.hidden = false;
+      return;
+    }
+
+    const items = products.map((p) => (
+      '<a href="' + p.url + '" class="search-suggestion">'
+      + '<span class="search-suggestion-img-wrap">'
+      + (p.image_url ? '<img src="' + p.image_url + '" alt="" class="search-suggestion-img" loading="lazy">' : '')
+      + '</span>'
+      + '<span class="search-suggestion-info">'
+      + '<span class="search-suggestion-name">' + p.name + '</span>'
+      + (p.brand ? '<span class="search-suggestion-brand">' + p.brand + '</span>' : '')
+      + '</span>'
+      + '</a>'
+    )).join('');
+
+    const footer = '<button type="button" class="search-suggestions-viewall">'
+      + (isEn ? 'View all results for “' + q + '”' : 'Xem tất cả kết quả cho “' + q + '”')
+      + ' (' + data.total + ')</button>';
+
+    suggestions.innerHTML = items + footer;
+    suggestions.hidden = false;
+
+    const viewAllBtn = suggestions.querySelector('.search-suggestions-viewall');
+    if (viewAllBtn) viewAllBtn.addEventListener('click', () => goToResults(q));
+  }
+
+  btn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && wrap.classList.contains('is-open')) close();
+  });
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    clearTimeout(debounceTimer);
+
+    if (q.length < 2) {
+      suggestions.hidden = true;
+      suggestions.innerHTML = '';
+      return;
+    }
+
+    debounceTimer = setTimeout(() => {
+      if (activeController) activeController.abort();
+      activeController = new AbortController();
+
+      fetch(autocompleteUrl + '?q=' + encodeURIComponent(q), { signal: activeController.signal })
+        .then((res) => res.json())
+        .then((data) => renderSuggestions(data, q))
+        .catch((err) => { if (err.name !== 'AbortError') suggestions.hidden = true; });
+    }, 300);
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (q.length > 0) goToResults(q);
+  });
+}());

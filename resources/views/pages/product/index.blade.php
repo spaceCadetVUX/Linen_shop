@@ -23,14 +23,27 @@
     </div>
   @endif
   <div class="plp-banner-info">
-    <h1 class="plp-banner-title">{{ $shopHero['title'] }}</h1>
-    @if($shopHero['intro'])
-      <div class="plp-banner-divider"></div>
-      <p class="plp-banner-desc">{{ $shopHero['intro'] }}</p>
+    @if(filled($keyword))
+      <h1 class="plp-banner-title">{{ $locale === 'vi' ? 'Kết quả tìm kiếm cho “'.$keyword.'”' : 'Search results for “'.$keyword.'”' }}</h1>
+    @else
+      <h1 class="plp-banner-title">{{ $shopHero['title'] }}</h1>
+      @if($shopHero['intro'])
+        <div class="plp-banner-divider"></div>
+        <p class="plp-banner-desc">{{ $shopHero['intro'] }}</p>
+      @endif
     @endif
     <p class="plp-banner-sub">{{ $products->total() }} sản phẩm</p>
   </div>
 </section>
+
+@if(filled($keyword) && $products->total() === 0)
+  <p class="plp-search-empty">
+    {{ $locale === 'vi'
+        ? 'Không tìm thấy sản phẩm phù hợp. Thử từ khoá khác hoặc xem toàn bộ cửa hàng.'
+        : 'No matching products. Try a different keyword or browse the full shop.' }}
+    <a href="{{ route($locale . '.product.shop') }}">{{ $locale === 'vi' ? 'Xem tất cả sản phẩm →' : 'View all products →' }}</a>
+  </p>
+@endif
 
 {{-- ============================================================
      FILTER TOOLBAR

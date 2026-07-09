@@ -3,15 +3,20 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 class SearchController extends Controller
 {
-    // ML-16: Meilisearch query with locale filter
-    public function index(Request $request, string $locale): Response
+    /**
+     * /{locale}/tim-kiem and /{locale}/search were a separate dead-end page
+     * (this used to return a raw debug string). The shop/PLP page
+     * (ProductController::index) already does real Meilisearch-backed
+     * keyword search via ?q= — redirect here instead of maintaining a
+     * second, duplicate results template.
+     */
+    public function index(Request $request, string $locale): RedirectResponse
     {
-        $q = $request->query('q', '');
-        return response("Search [{$q}] — {$locale}", 200);
+        return redirect()->route("{$locale}.product.shop", ['q' => $request->query('q', '')]);
     }
 }

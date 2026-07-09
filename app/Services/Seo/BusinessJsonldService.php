@@ -17,8 +17,8 @@ class BusinessJsonldService
      */
     public function getSchemas(?string $locale = null): array
     {
-        $locale  = $locale ?? app()->getLocale();
-        $cacheKey = self::CACHE_KEY . '_' . $locale;
+        $locale = $locale ?? app()->getLocale();
+        $cacheKey = self::CACHE_KEY.'_'.$locale;
 
         try {
             return Cache::store('redis')->remember(
@@ -42,16 +42,16 @@ class BusinessJsonldService
 
         $publisher = [
             '@type' => 'Organization',
-            'name'  => $profile->name,
-            'url'   => $baseUrl,
+            'name' => $profile->name,
+            'url' => $baseUrl,
         ];
 
         if (filled($profile->logo_path)) {
             $publisher['logo'] = [
                 '@type' => 'ImageObject',
-                'url'   => str_starts_with((string) $profile->logo_path, 'http')
+                'url' => str_starts_with((string) $profile->logo_path, 'http')
                     ? $profile->logo_path
-                    : $baseUrl . '/storage/' . ltrim((string) $profile->logo_path, '/'),
+                    : $baseUrl.'/storage/'.ltrim((string) $profile->logo_path, '/'),
             ];
         }
 
@@ -61,8 +61,8 @@ class BusinessJsonldService
     public function flushCache(): void
     {
         try {
-            Cache::store('redis')->forget(self::CACHE_KEY . '_vi');
-            Cache::store('redis')->forget(self::CACHE_KEY . '_en');
+            Cache::store('redis')->forget(self::CACHE_KEY.'_vi');
+            Cache::store('redis')->forget(self::CACHE_KEY.'_en');
         } catch (\Throwable) {
         }
     }
@@ -82,7 +82,7 @@ class BusinessJsonldService
         }
 
         $faqKey = $locale === 'en' ? 'faq_en' : 'faq';
-        $faq    = (array) ($profile->extra[$faqKey] ?? []);
+        $faq = (array) ($profile->extra[$faqKey] ?? []);
         if (! empty($faq)) {
             $schemas[] = $this->faqPage($faq);
         }
@@ -96,31 +96,54 @@ class BusinessJsonldService
 
         $schema = [
             '@context' => 'https://schema.org',
-            '@type'    => 'Organization',
-            '@id'      => $baseUrl . '/#organization',
-            'name'     => $p->name,
-            'url'      => $baseUrl,
+            '@type' => 'Organization',
+            '@id' => $baseUrl.'/#organization',
+            'name' => $p->name,
+            'url' => $baseUrl,
         ];
 
         $legalName = $locale === 'en'
             ? ($p->extra['legal_name_en'] ?? $p->legal_name ?? null)
             : ($p->legal_name ?? null);
-        if (filled($legalName))        $schema['legalName']    = $legalName;
+        if (filled($legalName)) {
+            $schema['legalName'] = $legalName;
+        }
         $desc = $locale === 'en'
             ? ($p->extra['description_en'] ?? $p->extra['tagline_en'] ?? null)
             : ($p->description ?? $p->tagline ?? null);
-        if (filled($desc))            $schema['description']  = $desc;
-        if (filled($p->email))        $schema['email']        = $p->email;
-        if (filled($p->phone))        $schema['telephone']    = $p->phone;
-        if (filled($p->founded_year)) $schema['foundingDate'] = (string) $p->founded_year;
-        if (filled($p->vat_number))   $schema['taxID']        = $p->vat_number;
+        if (filled($desc)) {
+            $schema['description'] = $desc;
+        }
+        if (filled($p->email)) {
+            $schema['email'] = $p->email;
+        }
+        if (filled($p->phone)) {
+            $schema['telephone'] = $p->phone;
+        }
+        if (filled($p->founded_year)) {
+            $schema['foundingDate'] = (string) $p->founded_year;
+        }
+        if (filled($p->vat_number)) {
+            $schema['taxID'] = $p->vat_number;
+        }
+
+        if (filled($p->phone) || filled($p->email)) {
+            $contactPoint = ['@type' => 'ContactPoint', 'contactType' => 'customer service'];
+            if (filled($p->phone)) {
+                $contactPoint['telephone'] = $p->phone;
+            }
+            if (filled($p->email)) {
+                $contactPoint['email'] = $p->email;
+            }
+            $schema['contactPoint'] = $contactPoint;
+        }
 
         if (filled($p->logo_path)) {
             $schema['logo'] = [
                 '@type' => 'ImageObject',
-                'url'   => str_starts_with((string) $p->logo_path, 'http')
+                'url' => str_starts_with((string) $p->logo_path, 'http')
                     ? $p->logo_path
-                    : $baseUrl . '/storage/' . ltrim((string) $p->logo_path, '/'),
+                    : $baseUrl.'/storage/'.ltrim((string) $p->logo_path, '/'),
             ];
         }
 
@@ -145,20 +168,23 @@ class BusinessJsonldService
 
         $schema = [
             '@context' => 'https://schema.org',
-            '@type'    => 'WebSite',
-            '@id'      => $baseUrl . '/#website',
-            'name'     => $p->name,
-            'url'      => $baseUrl,
+            '@type' => 'WebSite',
+            '@id' => $baseUrl.'/#website',
+            'name' => $p->name,
+            'url' => $baseUrl,
+            'publisher' => ['@id' => $baseUrl.'/#organization'],
         ];
 
-        if (filled($tagline)) $schema['description'] = $tagline;
+        if (filled($tagline)) {
+            $schema['description'] = $tagline;
+        }
 
         return array_merge($schema, [
             'potentialAction' => [
-                '@type'       => 'SearchAction',
-                'target'      => [
-                    '@type'       => 'EntryPoint',
-                    'urlTemplate' => $baseUrl . '/search?q={search_term_string}',
+                '@type' => 'SearchAction',
+                'target' => [
+                    '@type' => 'EntryPoint',
+                    'urlTemplate' => $baseUrl.'/search?q={search_term_string}',
                 ],
                 'query-input' => 'required name=search_term_string',
             ],
@@ -171,27 +197,31 @@ class BusinessJsonldService
 
         $schema = [
             '@context' => 'https://schema.org',
-            '@type'    => 'LocalBusiness',
-            '@id'      => $baseUrl . '/#localbusiness',
-            'name'     => $p->name,
-            'url'      => $baseUrl,
+            '@type' => 'LocalBusiness',
+            '@id' => $baseUrl.'/#localbusiness',
+            'name' => $p->name,
+            'url' => $baseUrl,
         ];
 
-        if (filled($p->phone))   $schema['telephone'] = $p->phone;
-        if (filled($p->email))   $schema['email']     = $p->email;
+        if (filled($p->phone)) {
+            $schema['telephone'] = $p->phone;
+        }
+        if (filled($p->email)) {
+            $schema['email'] = $p->email;
+        }
 
         if (filled($p->logo_path)) {
             $schema['image'] = str_starts_with((string) $p->logo_path, 'http')
                 ? $p->logo_path
-                : $baseUrl . '/storage/' . ltrim((string) $p->logo_path, '/');
+                : $baseUrl.'/storage/'.ltrim((string) $p->logo_path, '/');
         }
 
         $schema['address'] = $this->postalAddress($p);
 
         if ($p->latitude && $p->longitude) {
             $schema['geo'] = [
-                '@type'     => 'GeoCoordinates',
-                'latitude'  => $p->latitude,
+                '@type' => 'GeoCoordinates',
+                'latitude' => $p->latitude,
                 'longitude' => $p->longitude,
             ];
         }
@@ -207,16 +237,16 @@ class BusinessJsonldService
         // Support both array format [{day,open,close}] and legacy keyed format {Monday:{open,close}}
         if (array_is_list($raw)) {
             $hours = collect($raw)
-                ->map(fn (array $h): string => ($dayMap[ucfirst(strtolower($h['day'] ?? ''))] ?? ($h['day'] ?? '')) . ' '
-                    . trim(($h['open'] ?? '') . '-' . ($h['close'] ?? ''), '-'))
+                ->map(fn (array $h): string => ($dayMap[ucfirst(strtolower($h['day'] ?? ''))] ?? ($h['day'] ?? '')).' '
+                    .trim(($h['open'] ?? '').'-'.($h['close'] ?? ''), '-'))
                 ->filter(fn (string $entry): bool => filled(trim(explode(' ', $entry, 2)[1] ?? '')))
                 ->values()
                 ->all();
         } else {
             $hours = collect($raw)
-                ->map(fn ($h, string $d): string => ($dayMap[ucfirst(strtolower($d))] ?? $d) . ' ' . (
+                ->map(fn ($h, string $d): string => ($dayMap[ucfirst(strtolower($d))] ?? $d).' '.(
                     is_array($h)
-                        ? trim(($h['open'] ?? '') . '-' . ($h['close'] ?? ''), '-')
+                        ? trim(($h['open'] ?? '').'-'.($h['close'] ?? ''), '-')
                         : trim((string) ($h ?? ''))
                 ))
                 ->filter(fn (string $entry): bool => filled(trim(explode(' ', $entry, 2)[1] ?? '')))
@@ -234,11 +264,21 @@ class BusinessJsonldService
     private function postalAddress(BusinessProfile $p): array
     {
         $address = ['@type' => 'PostalAddress'];
-        if (filled($p->address_line)) $address['streetAddress']   = $p->address_line;
-        if (filled($p->city))         $address['addressLocality'] = $p->city;
-        if (filled($p->state))        $address['addressRegion']   = $p->state;
-        if (filled($p->country))      $address['addressCountry']  = $p->country;
-        if (filled($p->postal_code))  $address['postalCode']      = $p->postal_code;
+        if (filled($p->address_line)) {
+            $address['streetAddress'] = $p->address_line;
+        }
+        if (filled($p->city)) {
+            $address['addressLocality'] = $p->city;
+        }
+        if (filled($p->state)) {
+            $address['addressRegion'] = $p->state;
+        }
+        if (filled($p->country)) {
+            $address['addressCountry'] = $p->country;
+        }
+        if (filled($p->postal_code)) {
+            $address['postalCode'] = $p->postal_code;
+        }
 
         return $address;
     }
@@ -246,17 +286,17 @@ class BusinessJsonldService
     private function faqPage(array $faq): array
     {
         $entities = array_map(fn (array $item): array => [
-            '@type'          => 'Question',
-            'name'           => $item['question'] ?? '',
+            '@type' => 'Question',
+            'name' => $item['question'] ?? '',
             'acceptedAnswer' => [
                 '@type' => 'Answer',
-                'text'  => $item['answer'] ?? '',
+                'text' => $item['answer'] ?? '',
             ],
         ], $faq);
 
         return [
-            '@context'   => 'https://schema.org',
-            '@type'      => 'FAQPage',
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
             'mainEntity' => $entities,
         ];
     }
