@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Review extends Model
 {
@@ -12,6 +13,7 @@ class Review extends Model
         'product_id',
         'user_id',
         'author',
+        'email',
         'title',
         'rating',
         'content',
@@ -43,5 +45,10 @@ class Review extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ReviewImage::class)->orderBy('sort_order');
     }
 }

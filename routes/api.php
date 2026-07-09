@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\Address\AddressController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use App\Http\Controllers\Api\V1\Product\ProductSearchController;
+use App\Http\Controllers\Api\V1\Review\ReviewController;
 use App\Http\Controllers\Api\V1\Site\SiteConfigController;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,10 @@ Route::prefix('v1')->group(function () {
     Route::get('products',          [ProductController::class, 'index']);
     Route::get('products/{slug}',   [ProductController::class, 'show']);
     Route::get('search',            ProductSearchController::class);
+
+    // ── Product Reviews ───────────────────────────────────────────────────
+    Route::get('products/{slug}/reviews', [ReviewController::class, 'index']);
+    Route::middleware('auth:sanctum')->post('products/{slug}/reviews', [ReviewController::class, 'store']);
 
     // ── Cart (S48) ────────────────────────────────────────────────────────
     // Guest + auth (X-Session-ID for guests, Bearer token for auth)

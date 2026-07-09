@@ -10,8 +10,10 @@ use App\Models\FilterGroup;
 use App\Models\ProductTranslation;
 use App\Models\Setting;
 use App\Models\SizeGuide;
+use App\Enums\ReviewSort;
 use App\Repositories\Eloquent\BlogPostRepository;
 use App\Services\Catalog\ProductSearchService;
+use App\Services\Review\ReviewService;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
 use App\Support\LocaleUrl;
@@ -23,6 +25,7 @@ class ProductController extends Controller
 {
     public function __construct(
         private readonly ProductSearchService $productSearchService,
+        private readonly ReviewService $reviewService,
     ) {}
 
     public function index(string $locale): View|JsonResponse
@@ -340,10 +343,19 @@ class ProductController extends Controller
         // Journal section cuối PDP — 4 bài mới nhất, cùng shape với homepage.
         $latestBlogs = app(BlogPostRepository::class)->latestDecorated($locale, 4);
 
+        // Reviews — SSR đủ để hiện đúng nội dung khớp AggregateRating JSON-LD
+        // (Google yêu cầu review trong schema phải khớp nội dung hiển thị trên trang).
+        // Form gửi review mới (JS/fetch) gọi thẳng API /products/{slug}/reviews.
+        $reviewSort = ReviewSort::tryFrom((string) request()->query('review_sort', ''))?->value
+            ?? ReviewSort::Newest->value;
+        $reviews = $this->reviewService->listForProduct($product, $reviewSort);
+        $reviewSummary = $this->reviewService->summaryFor($product);
+
         return view('pages.product.show', compact(
             'product', 'translation', 'alternateUrls', 'seoMeta', 'jsonldSchemas', 'locale',
             'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
-            'relatedProducts', 'variantsData', 'optionTypesData', 'latestBlogs', 'sizeGuide'
+            'relatedProducts', 'variantsData', 'optionTypesData', 'latestBlogs', 'sizeGuide',
+            'reviews', 'reviewSummary', 'reviewSort'
         ));
     }
 }
