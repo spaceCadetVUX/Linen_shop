@@ -3,6 +3,7 @@
 use App\Http\Controllers\Web\AboutController;
 use App\Http\Controllers\Web\AuthorController;
 use App\Http\Controllers\Web\BlogController;
+use App\Http\Controllers\Web\CartController;
 use App\Http\Controllers\Web\CategoryController;
 use App\Http\Controllers\Web\HealthController;
 use App\Http\Controllers\Web\HomeController;
@@ -137,6 +138,10 @@ Route::prefix('vi')
         Route::get('tai-khoan/yeu-thich', [WishlistController::class, 'index'])
             ->name('vi.account.wishlist');
 
+        // ── Giỏ hàng (guest-session cart, xem CartController) ─────────────────
+        Route::get('gio-hang', [CartController::class, 'index'])
+            ->name('vi.cart');
+
         // ── Trang tĩnh — catch-all, phải đặt cuối cùng ───────────────────────
         Route::get('{slug}', [PageController::class, 'show'])
             ->name('vi.page.show');
@@ -217,6 +222,10 @@ Route::prefix('en')
         // ── Wishlist (guest-session, see WishlistController) ──────────────────
         Route::get('account/wishlist', [WishlistController::class, 'index'])
             ->name('en.account.wishlist');
+
+        // ── Cart (guest-session, see CartController) ──────────────────────────
+        Route::get('cart', [CartController::class, 'index'])
+            ->name('en.cart');
 
         // ── Static pages — catch-all, must be last ────────────────────────────
         Route::get('{slug}', [PageController::class, 'show'])

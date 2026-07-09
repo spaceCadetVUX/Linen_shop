@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\Catalog\ManufacturerController;
 use App\Http\Controllers\Api\V1\Category\CategoryController;
 use App\Http\Controllers\Api\V1\Address\AddressController;
 use App\Http\Controllers\Api\V1\Order\OrderController;
+use App\Http\Controllers\Api\V1\OrderInquiry\OrderInquiryController;
 use App\Http\Controllers\Api\V1\Product\ProductController;
 use App\Http\Controllers\Api\V1\Product\ProductSearchController;
 use App\Http\Controllers\Api\V1\Review\ReviewController;
@@ -91,6 +92,9 @@ Route::prefix('v1')->group(function () {
     Route::put('cart/items/{cartItem}',         [CartItemController::class, 'update']);
     Route::delete('cart/items/{cartItem}',      [CartItemController::class, 'destroy']);
     Route::middleware('auth:sanctum')->post('cart/merge', [CartController::class, 'merge']);
+
+    // ── Order Inquiry ("Liên hệ đặt hàng" — stand-in for checkout) ─────────
+    Route::post('order-inquiries', [OrderInquiryController::class, 'store']);
 
     // ── Wishlist ──────────────────────────────────────────────────────────
     // Guest + auth, same resolution as Cart (X-Session-ID for guests).

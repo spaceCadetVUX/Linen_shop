@@ -35,6 +35,27 @@ function apiHeaders(extra) {
   }, extra || {});
 }
 
+function setNavCartCount(count) {
+  const countEl = document.getElementById('navCartCount');
+  if (!countEl) return;
+  if (count > 0) {
+    countEl.textContent = count > 99 ? '99+' : String(count);
+    countEl.hidden = false;
+  } else {
+    countEl.hidden = true;
+  }
+}
+
+/* ---------- Navbar cart badge — item count, every page ---------- */
+(function () {
+  if (!document.getElementById('navCartBtn')) return;
+
+  fetch('/api/v1/cart', { headers: apiHeaders() })
+    .then((res) => res.json())
+    .then((json) => setNavCartCount(json.data ? json.data.item_count : 0))
+    .catch(() => {});
+}());
+
 /* ---------- Hero Logo: shrink on scroll → nav-logo fade in ---------- */
 (function () {
   const heroLogoWrap = document.querySelector('.hero-logo-wrap');
@@ -663,18 +684,58 @@ updateNav();
     });
   }
 
-  /* ── Add to bag ── */
+  /* ── Add to bag — real POST /api/v1/cart/items, not a fake 2.2s animation ──
+     Note: cart_items has no variant column yet — this always adds the base
+     product regardless of which colour/size is selected in the UI above.
+     Cart can't distinguish variants until that's added to the schema. ── */
   const addBtn = document.getElementById('pdAddBtn');
   if (addBtn) {
+    const productId = addBtn.dataset.productId;
+    const isEnPage = document.documentElement.lang === 'en';
+    const defaultLabel = addBtn.textContent;
+
     addBtn.addEventListener('click', () => {
       if (addBtn.disabled) return;
-      addBtn.textContent = 'Đã thêm vào giỏ ✓';
-      addBtn.classList.add('pd-added');
       addBtn.disabled = true;
-      setTimeout(() => {
-        addBtn.classList.remove('pd-added');
-        updateVariantUi();
-      }, 2200);
+
+      // #pdVariantId is set by the colour/size selector JS above
+      // (updateVariantUi()) — empty string when the product has no variants.
+      const variantIdInput = document.getElementById('pdVariantId');
+      const variantId = variantIdInput ? variantIdInput.value : '';
+
+      fetch('/api/v1/cart/items', {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({
+          product_id: productId,
+          variant_id: variantId || null,
+          quantity: 1,
+        }),
+      })
+        .then((res) => res.json().then((json) => ({ ok: res.ok, json })))
+        .then(({ ok, json }) => {
+          addBtn.textContent = ok
+            ? (isEnPage ? 'Added to bag ✓' : 'Đã thêm vào giỏ ✓')
+            : (json.message || (isEnPage ? 'Could not add' : 'Không thêm được'));
+          if (ok) {
+            addBtn.classList.add('pd-added');
+            if (json.data) setNavCartCount(json.data.item_count);
+          }
+
+          setTimeout(() => {
+            addBtn.classList.remove('pd-added');
+            addBtn.disabled = false;
+            addBtn.textContent = defaultLabel;
+            updateVariantUi();
+          }, 2200);
+        })
+        .catch(() => {
+          addBtn.textContent = isEnPage ? 'Network error' : 'Lỗi kết nối';
+          setTimeout(() => {
+            addBtn.disabled = false;
+            addBtn.textContent = defaultLabel;
+          }, 2200);
+        });
     });
   }
 
@@ -1008,5 +1069,222 @@ updateNav();
       items.forEach((item) => grid.appendChild(renderCard(item)));
       updateEmptyState();
     })
+    .catch(() => { emptyState.hidden = false; });
+}());
+
+/* ---------- Cart page — hydrate from GET /api/v1/cart, wire qty/remove ---------- */
+(function () {
+  const page = document.getElementById('cartPage');
+  const layout = document.getElementById('cartLayout');
+  const itemsCol = document.getElementById('cartItemsCol');
+  const emptyState = document.getElementById('cartEmpty');
+  const countLabel = document.getElementById('cartCountLabel');
+  const totalsCount = document.getElementById('cartTotalsCount');
+  const subtotalEl = document.getElementById('cartSubtotal');
+  const grandTotalEl = document.getElementById('cartGrandTotal');
+  const checkoutBtn = document.getElementById('cartCheckoutBtn');
+  if (!page || !itemsCol) return;
+
+  const locale = page.dataset.locale;
+  const isEn = locale === 'en';
+  const shopUrlPrefix = isEn ? '/en/products/' : '/vi/san-pham/';
+  let currentCart = null;
+
+  function formatVnd(v) { return Number(v).toLocaleString('vi-VN') + ' ₫'; }
+
+  function buildOrderSummaryText(cart) {
+    const lines = (cart.items || []).map((item) => {
+      const variant = item.variant_label ? ' (' + item.variant_label + ')' : '';
+      return '- ' + item.product.name + variant + ' x' + item.quantity + ' = ' + formatVnd(item.subtotal);
+    });
+    lines.push('');
+    lines.push((isEn ? 'Total: ' : 'Tổng cộng: ') + formatVnd(cart.total));
+    return lines.join('\n');
+  }
+
+  function renderCart(cart) {
+    currentCart = cart;
+    const items = cart.items || [];
+    itemsCol.innerHTML = '';
+    setNavCartCount(cart.item_count);
+
+    if (!items.length) {
+      layout.hidden = true;
+      emptyState.hidden = false;
+      if (countLabel) countLabel.textContent = '';
+      return;
+    }
+
+    layout.hidden = false;
+    emptyState.hidden = true;
+    if (countLabel) countLabel.textContent = '(' + cart.item_count + ')';
+    if (totalsCount) totalsCount.textContent = '(' + items.length + (isEn ? ' items' : ' sản phẩm') + ')';
+    if (subtotalEl) subtotalEl.textContent = formatVnd(cart.total);
+    if (grandTotalEl) grandTotalEl.textContent = formatVnd(cart.total);
+    if (checkoutBtn) checkoutBtn.disabled = false;
+
+    items.forEach((item) => itemsCol.appendChild(renderItem(item)));
+  }
+
+  function renderItem(item) {
+    const p = item.product;
+    const url = shopUrlPrefix + p.slug;
+
+    const el = document.createElement('article');
+    el.className = 'cart-item';
+    el.dataset.cartItemId = item.id;
+
+    el.innerHTML =
+      '<a href="' + url + '" class="cart-item-thumb">'
+      + (p.thumbnail ? '<img src="' + p.thumbnail + '" alt="' + p.name + '" class="cart-item-thumb-img">' : '')
+      + '</a>'
+      + '<div class="cart-item-body">'
+      + '<div class="cart-item-top">'
+      + '<div class="cart-item-meta">'
+      + '<a href="' + url + '" class="cart-item-name">' + p.name + '</a>'
+      + (item.variant_label ? '<p class="cart-item-variant">' + item.variant_label + '</p>' : '')
+      + '</div>'
+      + '<button class="cart-item-del" aria-label="' + (isEn ? 'Remove' : 'Xóa sản phẩm') + '">'
+      + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      + '</button>'
+      + '</div>'
+      + '<div class="cart-item-foot">'
+      + '<div class="cart-qty">'
+      + '<button class="cart-qty-btn cart-qty-minus" aria-label="' + (isEn ? 'Decrease' : 'Giảm số lượng') + '">−</button>'
+      + '<span class="cart-qty-val">' + item.quantity + '</span>'
+      + '<button class="cart-qty-btn cart-qty-plus" aria-label="' + (isEn ? 'Increase' : 'Tăng số lượng') + '">+</button>'
+      + '</div>'
+      + '<span class="cart-item-price">' + formatVnd(item.subtotal) + '</span>'
+      + '</div>'
+      + '</div>';
+
+    el.querySelector('.cart-item-del').addEventListener('click', () => removeItem(item.id));
+    el.querySelector('.cart-qty-plus').addEventListener('click', () => updateQty(item.id, item.quantity + 1));
+    el.querySelector('.cart-qty-minus').addEventListener('click', () => {
+      if (item.quantity <= 1) {
+        removeItem(item.id);
+      } else {
+        updateQty(item.id, item.quantity - 1);
+      }
+    });
+
+    return el;
+  }
+
+  function updateQty(cartItemId, quantity) {
+    fetch('/api/v1/cart/items/' + cartItemId, {
+      method: 'PUT',
+      headers: apiHeaders(),
+      body: JSON.stringify({ quantity }),
+    })
+      .then((res) => res.json())
+      .then((json) => { if (json.data) renderCart(json.data); })
+      .catch(() => {});
+  }
+
+  function removeItem(cartItemId) {
+    fetch('/api/v1/cart/items/' + cartItemId, {
+      method: 'DELETE',
+      headers: apiHeaders(),
+    })
+      .then((res) => res.json())
+      .then((json) => { if (json.data) renderCart(json.data); })
+      .catch(() => {});
+  }
+
+  /* ── "Liên hệ đặt hàng" popup — stand-in for real checkout/payment ── */
+  const inquiryOverlay = document.getElementById('inquiryOverlay');
+  const inquiryModal = document.getElementById('inquiryModal');
+  const inquiryClose = document.getElementById('inquiryClose');
+  const inquiryTabs = document.querySelectorAll('.inquiry-tab');
+  const inquiryPanes = document.querySelectorAll('.inquiry-pane');
+  const inquiryZaloLink = document.getElementById('inquiryZaloLink');
+  const inquiryPhoneLink = document.getElementById('inquiryPhoneLink');
+  const inquiryMessage = document.getElementById('inquiryMessage');
+  const inquiryEmailForm = document.getElementById('inquiryEmailForm');
+  const inquiryFormMsg = document.getElementById('inquiryFormMsg');
+  const shopPhone = page.dataset.shopPhone || '';
+
+  function openInquiry() {
+    if (!currentCart) return;
+    const summary = buildOrderSummaryText(currentCart);
+
+    if (inquiryMessage) inquiryMessage.value = summary;
+    if (inquiryPhoneLink && shopPhone) {
+      inquiryPhoneLink.href = 'tel:' + shopPhone;
+      inquiryPhoneLink.textContent = shopPhone;
+    }
+    if (inquiryZaloLink && shopPhone) {
+      inquiryZaloLink.href = 'https://zalo.me/' + shopPhone.replace(/[^0-9]/g, '');
+      inquiryZaloLink.addEventListener('click', () => {
+        if (navigator.clipboard) navigator.clipboard.writeText(summary).catch(() => {});
+      }, { once: true });
+    }
+
+    inquiryOverlay.classList.add('is-open');
+    inquiryModal.hidden = false;
+    inquiryModal.classList.add('is-open');
+  }
+
+  function closeInquiry() {
+    inquiryOverlay.classList.remove('is-open');
+    inquiryModal.classList.remove('is-open');
+    setTimeout(() => { inquiryModal.hidden = true; }, 300);
+  }
+
+  if (checkoutBtn) checkoutBtn.addEventListener('click', openInquiry);
+  if (inquiryClose) inquiryClose.addEventListener('click', closeInquiry);
+  if (inquiryOverlay) inquiryOverlay.addEventListener('click', closeInquiry);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && inquiryModal && !inquiryModal.hidden) closeInquiry();
+  });
+
+  inquiryTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      inquiryTabs.forEach((t) => t.classList.remove('is-active'));
+      tab.classList.add('is-active');
+      inquiryPanes.forEach((pane) => { pane.hidden = pane.dataset.pane !== tab.dataset.tab; });
+    });
+  });
+
+  if (inquiryEmailForm) {
+    inquiryEmailForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const submitBtn = inquiryEmailForm.querySelector('.inquiry-submit');
+      const formData = new FormData(inquiryEmailForm);
+      submitBtn.disabled = true;
+
+      fetch('/api/v1/order-inquiries', {
+        method: 'POST',
+        headers: apiHeaders(),
+        body: JSON.stringify({
+          name: formData.get('name'),
+          phone: formData.get('phone'),
+          email: formData.get('email') || null,
+          message: formData.get('message'),
+          channel: 'email',
+        }),
+      })
+        .then((res) => res.json().then((json) => ({ ok: res.ok, json })))
+        .then(({ ok, json }) => {
+          inquiryFormMsg.hidden = false;
+          inquiryFormMsg.classList.toggle('is-error', !ok);
+          inquiryFormMsg.textContent = ok
+            ? (isEn ? 'Sent! We\'ll contact you shortly.' : 'Đã gửi! Shop sẽ liên hệ lại sớm.')
+            : (json.message || (isEn ? 'Something went wrong.' : 'Có lỗi xảy ra.'));
+          if (ok) inquiryEmailForm.reset();
+        })
+        .catch(() => {
+          inquiryFormMsg.hidden = false;
+          inquiryFormMsg.classList.add('is-error');
+          inquiryFormMsg.textContent = isEn ? 'Network error — please try again.' : 'Lỗi kết nối — vui lòng thử lại.';
+        })
+        .finally(() => { submitBtn.disabled = false; });
+    });
+  }
+
+  fetch('/api/v1/cart?locale=' + encodeURIComponent(locale), { headers: apiHeaders() })
+    .then((res) => res.json())
+    .then((json) => { if (json.data) renderCart(json.data); })
     .catch(() => { emptyState.hidden = false; });
 }());

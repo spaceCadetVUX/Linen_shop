@@ -30,6 +30,7 @@ class CartItemController extends Controller
             $cart,
             $request->validated('product_id'),
             (int) $request->validated('quantity'),
+            $request->validated('variant_id'),
         );
 
         return $this->success(data: new CartResource($cart), message: 'Item added to cart', status: 201);

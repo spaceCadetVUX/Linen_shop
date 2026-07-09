@@ -1,6 +1,36 @@
 # TODO
 
-> Cập nhật: 2026-07-09 — session: Footer/Mega Menu dynamic (shipping/payment/contact), Business Profile Country + Return Policy, Product Reviews (guest submit + admin duyệt + JSON-LD AggregateRating), MerchantReturnPolicy JSON-LD, Navbar search (autocomplete + Meilisearch PLP), fix fallback redirect 404. **Chưa verify runtime gì cả** — không kết nối được `postgres` từ shell host (`could not translate host name "postgres"`), giống các session trước.
+> Cập nhật: 2026-07-09 (tiếp) — session: Wishlist (guest-session, toggle thật, trang `/tai-khoan/yeu-thich`), Cart page thật (`/gio-hang`, `/cart`) + nối "Thêm vào giỏ hàng"/"Yêu thích" từ nút giả (chỉ đổi chữ, không lưu gì) sang gọi API thật, Cart hỗ trợ variant (màu/size riêng dòng). Phát hiện `resources/views/pages/cart/index.blade.php` và `pages/account/wishlist.blade.php` tồn tại từ trước nhưng 100% mockup hardcode (ảnh hotlink domain lạ `elleandriley.com`, không route, không JS) — đã build lại thật theo đúng thiết kế đó. **Vẫn chưa verify runtime** — lý do như cũ (không kết nối `postgres` từ host).
+
+## 🔴 Cần chạy khi Docker lên — giờ có 5 migration đang chờ (cộng dồn cả session trước)
+
+```bash
+docker compose exec php-fpm php artisan migrate
+docker compose restart horizon
+```
+
+- `2026_07_09_100000_create_review_images_table.php`
+- `2026_07_09_100001_add_email_to_reviews_table.php`
+- `2026_07_09_100002_add_rating_check_constraint_to_reviews_table.php`
+- `2026_07_09_110000_create_wishlist_items_table.php` (mới)
+- `2026_07_09_120000_add_variant_id_to_cart_items_table.php` (mới — đổi unique constraint `cart_items`, nhớ kiểm tra không có data cũ vi phạm constraint mới trước khi migrate lên môi trường có data thật)
+
+## 🟠 Đã code xong hôm nay, chưa verify runtime (cần Docker + trình duyệt thật)
+
+1. **Wishlist thật** — nút tim trên PDP (`#pdWishBtn`) trước đây chỉ toggle CSS class, giờ gọi `POST /api/v1/wishlist/toggle` thật (guest qua `X-Session-ID` localStorage, sẵn `merge()` cho login sau). Trang `/tai-khoan/yeu-thich` (`vi`) / `/account/wishlist` (`en`) — trước đây không có route nào — giờ load thật, có `noindex`.
+2. **Cart thật** — nút "Thêm vào giỏ hàng" (`#pdAddBtn`) trước đây chỉ đổi chữ 2.2s rồi thôi, giờ gọi `POST /api/v1/cart/items` thật, gửi kèm `variant_id` từ input ẩn `#pdVariantId` (bộ chọn màu/size đã có sẵn). Trang `/gio-hang` (`vi`) / `/cart` (`en`) — route mới, đổi số lượng/xoá gọi API thật. Thêm icon giỏ hàng + badge số lượng vào navbar (trước đây thiếu hoàn toàn).
+3. **Cart hỗ trợ variant** — `cart_items` thêm `product_variant_id`, unique theo `(cart_id, product_id, product_variant_id)` — 1 sản phẩm 2 màu/size là 2 dòng riêng, tồn kho check theo variant khi có chọn. `CartItemResource` trả `variant_label` (tái dùng `ProductVariant::combination_label` có sẵn, trước đó không nơi nào gọi tới nên chưa ai biết nó hoạt động đúng hay không).
+4. **Fix bug locale y hệt review** — `WishlistItemResource` và `CartItemResource` trước đây chỉ đọc field gốc (`products.name/slug/price`), không đọc `ProductTranslation` → trang EN sẽ hiện tên tiếng Việt + link 404 (slug sai locale). Đã sửa cả 2, theo `?locale=` query param frontend gửi kèm.
+
+## 🟡 Đã phát hiện, CHƯA fix — cần quyết định hoặc làm tiếp (bổ sung — xem thêm mục 🟡 phía dưới của session trước)
+
+12. **Nút "Thanh toán" trên trang giỏ hàng để `disabled`, có ghi chú "đang hoàn thiện"** — vì `orders` API bắt buộc `auth:sanctum` (`routes/api.php`) trong khi `orders.user_id` là `nullable` (rõ ràng thiết kế gốc định cho guest order) và storefront chưa có trang đăng nhập. Cần quyết định: mở `orders` cho guest (giống Cart/Wishlist) hay bắt buộc login trước khi checkout — xem lại câu trả lời "cách chuyên nghiệp nhất" đã trao đổi (khuyến nghị: guest checkout, login là tuỳ chọn).
+13. **Không có coupon/mã giảm giá nào cả** — đã bỏ hẳn ô "Mã giảm giá" khỏi trang giỏ hàng thật (mockup có nhưng không backend) để tránh dựng thêm 1 nút giả.
+14. **`Cart::total()` / `CartItem::subtotal` tính theo giá gốc (vi), không qua `ProductTranslation`** — khác với field hiển thị (`price`/`name` đã fix locale). Rủi ro thấp vì seed data hiện tại EN không set giá riêng (`price: null` trong `ProductTranslation`) nên luôn fallback đúng — nhưng nếu sau này admin set giá USD riêng cho bản EN, tổng tiền có thể lệch so với giá từng dòng hiển thị. Chưa sửa vì chưa có nhu cầu thật.
+15. `resources/views/partials/cart-drawer.blade.php` **vẫn còn rỗng 0 byte, không dùng** — quyết định làm cart dạng trang riêng (`/gio-hang`) theo đúng mockup `Z/cart.html` thay vì drawer trượt, nên file này giờ là dead file thật sự, có thể xoá khi dọn dẹp (không xoá vội, để anh xác nhận).
+16. `layouts/checkout.blade.php` + `layouts/auth.blade.php` — vẫn rỗng 0 byte như session trước, chưa động tới (phụ thuộc quyết định mục #12).
+
+## 🟢 SEO nice-to-have (so với chuẩn Shopee) — không bắt buộc, làm khi có thời gian
 
 ## 🔴 Cần chạy khi Docker lên — 3 migration mới đang chờ
 

@@ -199,7 +199,7 @@
 
         <div class="pd-actions">
           <input type="hidden" id="pdVariantId" value="">
-          <button class="pd-add-btn" id="pdAddBtn" type="button">Thêm vào giỏ hàng</button>
+          <button class="pd-add-btn" id="pdAddBtn" type="button" data-product-id="{{ $product->id }}">Thêm vào giỏ hàng</button>
         </div>
 
         {{-- Detailed info — always visible, clamped to ~2 clear lines with a
