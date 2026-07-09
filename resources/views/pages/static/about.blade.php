@@ -17,12 +17,12 @@
           <div class="about-hero-overlay"></div>
         </div>
         <div class="about-hero-content">
-          <p class="about-hero-eyebrow">Về chúng tôi</p>
+          <p class="about-hero-eyebrow">{{ __('about.hero.eyebrow') }}</p>
           <h1 class="about-hero-title">CacyLinen</h1>
-          <p class="about-hero-tagline">Thời trang tối giản · Vải tự nhiên · Thiết kế lâu bền</p>
+          <p class="about-hero-tagline">{{ __('about.hero.tagline') }}</p>
         </div>
         <div class="about-hero-scroll" aria-hidden="true">
-          <span class="about-hero-scroll-label">Cuộn xuống</span>
+          <span class="about-hero-scroll-label">{{ __('about.hero.scroll') }}</span>
           <div class="about-hero-scroll-line"></div>
         </div>
       </section>
@@ -30,16 +30,16 @@
       <!-- ② MANIFESTO -->
       <section class="about-manifesto">
         <div class="about-manifesto-inner">
-          <p class="about-manifesto-pre">Triết lý của chúng tôi</p>
+          <p class="about-manifesto-pre">{{ __('about.manifesto.pre') }}</p>
           <div class="about-manifesto-rule" aria-hidden="true"></div>
           <blockquote class="about-manifesto-quote">
-            <span class="about-manifesto-line">Ít hơn,</span>
-            <span class="about-manifesto-line">nhưng tốt hơn.</span>
-            <span class="about-manifesto-line about-manifesto-line--accent">Mãi mãi.</span>
+            <span class="about-manifesto-line">{{ __('about.manifesto.quote_line1') }}</span>
+            <span class="about-manifesto-line">{{ __('about.manifesto.quote_line2') }}</span>
+            <span class="about-manifesto-line about-manifesto-line--accent">{{ __('about.manifesto.quote_line3') }}</span>
           </blockquote>
           <p class="about-manifesto-body">
-            CacyLinen được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản —<br>
-            từ những chất liệu thuần khiết, những đường cắt may lâu bền, và những lựa chọn có ý thức.
+            {{ __('about.manifesto.body_line1') }}<br>
+            {{ __('about.manifesto.body_line2') }}
           </p>
         </div>
       </section>
@@ -51,31 +51,31 @@
           <!-- Left: year -->
           <div class="about-story-pull">
             <span class="about-story-pull-mark">&ldquo;</span>
-            <p class="about-story-pull-quote">tại sao thời trang phải phức tạp?</p>
+            <p class="about-story-pull-quote">{{ __('about.story.pull_quote') }}</p>
             <span class="about-story-pull-year">2018</span>
           </div>
 
           <!-- Right: content -->
           <div class="about-story-content">
-            <p class="about-story-eyebrow">Câu chuyện thương hiệu</p>
-            <h2 class="about-story-title">Bắt đầu từ<br>một câu hỏi đơn giản</h2>
+            <p class="about-story-eyebrow">{{ __('about.story.eyebrow') }}</p>
+            <h2 class="about-story-title">{{ __('about.story.title_line1') }}<br>{{ __('about.story.title_line2') }}</h2>
             <div class="about-story-body">
-              <p>Năm 2018, CacyLinen ra đời từ một câu hỏi rất đơn giản: <em>tại sao thời trang phải phức tạp?</em> Chúng tôi tin rằng một chiếc áo đẹp không cần nhiều chi tiết — nó chỉ cần được làm tốt, từ chất liệu tốt, và mang lại cảm giác đúng khi mặc lên người.</p>
-              <p>Khởi đầu từ một xưởng nhỏ tại Hà Nội với vỏn vẹn 12 mẫu thiết kế, CacyLinen dần trở thành địa chỉ tin cậy cho những ai tìm kiếm phong cách tối giản, lâu bền và có ý thức với môi trường.</p>
-              <p>Hôm nay, mỗi sản phẩm của CacyLinen vẫn được thiết kế theo cùng một triết lý: ít hơn, nhưng tốt hơn.</p>
+              <p>{{ __('about.story.body_p1_before') }} <em>{{ __('about.story.body_p1_em') }}</em> {{ __('about.story.body_p1_after') }}</p>
+              <p>{{ __('about.story.body_p2') }}</p>
+              <p>{{ __('about.story.body_p3') }}</p>
             </div>
             <div class="about-story-stats">
               <div class="about-story-stat">
                 <span class="about-story-stat-num">1.200<sup>+</sup></span>
-                <span class="about-story-stat-label">Khách hàng tin dùng</span>
+                <span class="about-story-stat-label">{{ __('about.story.stat1_label') }}</span>
               </div>
               <div class="about-story-stat">
                 <span class="about-story-stat-num">48</span>
-                <span class="about-story-stat-label">Mẫu thiết kế</span>
+                <span class="about-story-stat-label">{{ __('about.story.stat2_label') }}</span>
               </div>
               <div class="about-story-stat">
                 <span class="about-story-stat-num">100%</span>
-                <span class="about-story-stat-label">Vải tự nhiên</span>
+                <span class="about-story-stat-label">{{ __('about.story.stat3_label') }}</span>
               </div>
             </div>
           </div>
@@ -87,8 +87,8 @@
       <section class="about-mat">
 
         <div class="about-mat-intro">
-          <p class="about-mat-eyebrow">Chất liệu</p>
-          <h2 class="about-mat-title">Tinh hoa<br>từ thiên nhiên</h2>
+          <p class="about-mat-eyebrow">{{ __('about.materials.eyebrow') }}</p>
+          <h2 class="about-mat-title">{{ __('about.materials.title_line1') }}<br>{{ __('about.materials.title_line2') }}</h2>
         </div>
 
         <div class="about-mat-grid">
@@ -98,8 +98,8 @@
             <img src="https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160"
                  alt="Linen" class="about-mat-img">
             <div class="about-mat-overlay">
-              <span class="about-mat-label">Linen</span>
-              <p class="about-mat-desc">Thoáng mát · Bền bỉ · Tự nhiên</p>
+              <span class="about-mat-label">{{ __('about.materials.linen_label') }}</span>
+              <p class="about-mat-desc">{{ __('about.materials.linen_desc') }}</p>
             </div>
           </div>
 
@@ -108,8 +108,8 @@
             <img src="https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Black.jpg?v=1779070489&width=2160"
                  alt="Cashmere" class="about-mat-img">
             <div class="about-mat-overlay">
-              <span class="about-mat-label">Cashmere</span>
-              <p class="about-mat-desc">Mềm mại · Ấm áp · Sang trọng</p>
+              <span class="about-mat-label">{{ __('about.materials.cashmere_label') }}</span>
+              <p class="about-mat-desc">{{ __('about.materials.cashmere_desc') }}</p>
             </div>
           </div>
 
@@ -118,8 +118,8 @@
             <img src="https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=2160"
                  alt="Cotton" class="about-mat-img">
             <div class="about-mat-overlay">
-              <span class="about-mat-label">Cotton</span>
-              <p class="about-mat-desc">Nhẹ nhàng · Thấm hút · Tinh khiết</p>
+              <span class="about-mat-label">{{ __('about.materials.cotton_label') }}</span>
+              <p class="about-mat-desc">{{ __('about.materials.cotton_desc') }}</p>
             </div>
           </div>
 
@@ -128,8 +128,8 @@
             <img src="https://elleandriley.com/cdn/shop/files/Bandana-Scarf-Black-Sand_80abcf68-ce45-46c1-8665-8419cb22e876.jpg?v=1781216042&width=2160"
                  alt="Silk" class="about-mat-img">
             <div class="about-mat-overlay">
-              <span class="about-mat-label">Silk</span>
-              <p class="about-mat-desc">Óng ánh · Mịn màng · Tinh tế</p>
+              <span class="about-mat-label">{{ __('about.materials.silk_label') }}</span>
+              <p class="about-mat-desc">{{ __('about.materials.silk_desc') }}</p>
             </div>
           </div>
 
@@ -143,22 +143,22 @@
           <div class="about-values-col">
             <span class="about-values-num">01</span>
             <div class="about-values-divider"></div>
-            <h3 class="about-values-name">Tối giản</h3>
-            <p class="about-values-desc">Chúng tôi tin rằng một thiết kế đẹp là thiết kế không thể bỏ bớt thêm gì nữa. Mỗi đường cắt, mỗi chi tiết đều có lý do tồn tại — không hơn, không kém.</p>
+            <h3 class="about-values-name">{{ __('about.values.col1_name') }}</h3>
+            <p class="about-values-desc">{{ __('about.values.col1_desc') }}</p>
           </div>
 
           <div class="about-values-col">
             <span class="about-values-num">02</span>
             <div class="about-values-divider"></div>
-            <h3 class="about-values-name">Bền vững</h3>
-            <p class="about-values-desc">Từng sản phẩm của CacyLinen được làm để tồn tại lâu dài — không phải theo xu hướng của một mùa, mà theo thời gian. Chất liệu tự nhiên, quy trình có trách nhiệm, thiết kế vượt mùa.</p>
+            <h3 class="about-values-name">{{ __('about.values.col2_name') }}</h3>
+            <p class="about-values-desc">{{ __('about.values.col2_desc') }}</p>
           </div>
 
           <div class="about-values-col">
             <span class="about-values-num">03</span>
             <div class="about-values-divider"></div>
-            <h3 class="about-values-name">Chân thực</h3>
-            <p class="about-values-desc">Không có trend giả tạo, không có marketing rỗng. CacyLinen nói thật về chất liệu, về quy trình, về giá trị. Sự tin tưởng của khách hàng là thứ chúng tôi trân trọng nhất.</p>
+            <h3 class="about-values-name">{{ __('about.values.col3_name') }}</h3>
+            <p class="about-values-desc">{{ __('about.values.col3_desc') }}</p>
           </div>
 
         </div>
@@ -170,23 +170,23 @@
         <!-- LEFT: sticky text panel -->
         <div class="about-sticky-left">
           <div class="about-sticky-text">
-            <p class="about-sticky-eyebrow">Quy trình</p>
+            <p class="about-sticky-eyebrow">{{ __('about.sticky.eyebrow') }}</p>
 
             <div class="about-sticky-texts">
               <div class="about-sticky-slide-text active" data-slide="0">
                 <span class="about-sticky-step">01 / 03</span>
-                <h2 class="about-sticky-title">Thiết kế</h2>
-                <p class="about-sticky-desc">Mỗi bộ sưu tập bắt đầu từ một ý tưởng đơn giản — một dáng áo, một màu vải, một cảm xúc. Chúng tôi phác thảo hàng chục mẫu trước khi chọn ra những thiết kế thực sự xứng đáng được may.</p>
+                <h2 class="about-sticky-title">{{ __('about.sticky.step1_title') }}</h2>
+                <p class="about-sticky-desc">{{ __('about.sticky.step1_desc') }}</p>
               </div>
               <div class="about-sticky-slide-text" data-slide="1">
                 <span class="about-sticky-step">02 / 03</span>
-                <h2 class="about-sticky-title">Chất liệu</h2>
-                <p class="about-sticky-desc">Chúng tôi tìm kiếm những chất liệu tốt nhất từ các nhà cung cấp có uy tín — linen Bỉ, cashmere Mông Cổ, cotton organic. Mỗi mảnh vải đều được kiểm tra tay trước khi đưa vào sản xuất.</p>
+                <h2 class="about-sticky-title">{{ __('about.sticky.step2_title') }}</h2>
+                <p class="about-sticky-desc">{{ __('about.sticky.step2_desc') }}</p>
               </div>
               <div class="about-sticky-slide-text" data-slide="2">
                 <span class="about-sticky-step">03 / 03</span>
-                <h2 class="about-sticky-title">Hoàn thiện</h2>
-                <p class="about-sticky-desc">Từng đường may, từng chi tiết hoàn thiện đều được thợ lành nghề kiểm tra bằng tay. Không có dây chuyền hàng loạt — mỗi sản phẩm là kết quả của sự chú tâm và tự hào nghề nghiệp.</p>
+                <h2 class="about-sticky-title">{{ __('about.sticky.step3_title') }}</h2>
+                <p class="about-sticky-desc">{{ __('about.sticky.step3_desc') }}</p>
               </div>
             </div>
 
@@ -226,36 +226,31 @@
         <div class="about-stats-overflow">
           <div class="about-stats-track">
 
+            @php
+              $aboutStatsSet = [
+                  ['1.200+', __('about.stats.customers')],
+                  ['6', __('about.stats.years')],
+                  ['100%', __('about.stats.natural_fabric')],
+                  ['0', __('about.stats.synthetic')],
+              ];
+            @endphp
+
             <!-- Set A -->
             <div class="about-stats-inner">
-              <span class="about-stats-num">1.200+</span>
-              <span class="about-stats-label">khách hàng</span>
-              <span class="about-stats-sep">·</span>
-              <span class="about-stats-num">6</span>
-              <span class="about-stats-label">năm</span>
-              <span class="about-stats-sep">·</span>
-              <span class="about-stats-num">100%</span>
-              <span class="about-stats-label">vải tự nhiên</span>
-              <span class="about-stats-sep">·</span>
-              <span class="about-stats-num">0</span>
-              <span class="about-stats-label">chất tổng hợp</span>
-              <span class="about-stats-sep">·</span>
+              @foreach ($aboutStatsSet as [$num, $label])
+                <span class="about-stats-num">{{ $num }}</span>
+                <span class="about-stats-label">{{ $label }}</span>
+                <span class="about-stats-sep">·</span>
+              @endforeach
             </div>
 
             <!-- Set B — duplicate for seamless loop -->
             <div class="about-stats-inner" aria-hidden="true">
-              <span class="about-stats-num">1.200+</span>
-              <span class="about-stats-label">khách hàng</span>
-              <span class="about-stats-sep">·</span>
-              <span class="about-stats-num">6</span>
-              <span class="about-stats-label">năm</span>
-              <span class="about-stats-sep">·</span>
-              <span class="about-stats-num">100%</span>
-              <span class="about-stats-label">vải tự nhiên</span>
-              <span class="about-stats-sep">·</span>
-              <span class="about-stats-num">0</span>
-              <span class="about-stats-label">chất tổng hợp</span>
-              <span class="about-stats-sep">·</span>
+              @foreach ($aboutStatsSet as [$num, $label])
+                <span class="about-stats-num">{{ $num }}</span>
+                <span class="about-stats-label">{{ $label }}</span>
+                <span class="about-stats-sep">·</span>
+              @endforeach
             </div>
 
           </div>
@@ -275,11 +270,11 @@
         <div class="about-fq-content">
           <div class="about-fq-mark">&ldquo;</div>
           <blockquote class="about-fq-quote">
-            Chúng tôi không làm thời trang — chúng tôi làm những thứ bạn sẽ mặc mười năm nữa.
+            {{ __('about.founder.quote') }}
           </blockquote>
           <footer class="about-fq-footer">
             <span class="about-fq-name">MINH VŨ</span>
-            <span class="about-fq-role">Người code trang này muốn trĩ</span>
+            <span class="about-fq-role">{{ __('about.founder.role') }}</span>
           </footer>
         </div>
 
@@ -289,9 +284,9 @@
       <section class="about-cta">
 
         <div class="about-cta-head">
-          <p class="about-cta-eyebrow">Bộ sưu tập</p>
-          <h2 class="about-cta-title">Khám phá<br><em>bộ sưu tập</em></h2>
-          <a href="{{ url('/collections') }}" class="about-cta-btn">Xem tất cả &rarr;</a>
+          <p class="about-cta-eyebrow">{{ __('about.cta.eyebrow') }}</p>
+          <h2 class="about-cta-title">{{ __('about.cta.title_line1') }}<br><em>{{ __('about.cta.title_line2') }}</em></h2>
+          <a href="{{ url('/collections') }}" class="about-cta-btn">{{ __('about.cta.btn') }} &rarr;</a>
         </div>
 
         <!-- Scrolling thumbnail reel -->

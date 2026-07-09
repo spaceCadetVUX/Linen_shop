@@ -39,10 +39,13 @@ class CategoryController extends Controller
             ->whereHas('category', fn ($q) => $q->where('is_active', true))
             ->with(['category' => fn ($q) => $q->withCount([
                 'products as product_count' => fn ($q2) => $q2->where('is_active', true),
-            ])])
+            ])->with('parent')])
             ->orderBy('name')
             ->get()
-            ->filter(fn ($tr) => $tr->category !== null);
+            // A child category can be individually is_active=true while its parent
+            // isn't — isPubliclyVisible() is the same rule show() enforces, so a
+            // category never appears here as a link that then 404s when clicked.
+            ->filter(fn ($tr) => $tr->category?->isPubliclyVisible());
 
         $fallbackTitle = $locale === 'vi'
             ? (Setting::get('category_index_title') ?: 'Danh mục sản phẩm')
@@ -67,9 +70,13 @@ class CategoryController extends Controller
             $alt = CategoryTranslation::where('slug', $slug)
                 ->whereIn('locale', config('app.supported_locales'))
                 ->where('locale', '!=', $locale)
+                ->with('category.parent')
                 ->first();
 
-            if ($alt) {
+            // Redirecting to a slug whose category (or parent) isn't publicly
+            // visible would just land the visitor on a second 404 — abort here
+            // directly instead of spending a redirect hop on a dead end.
+            if ($alt && $alt->category?->isPubliclyVisible()) {
                 return redirect(LocaleUrl::for('category', $alt->slug, $alt->locale), 302);
             }
 
