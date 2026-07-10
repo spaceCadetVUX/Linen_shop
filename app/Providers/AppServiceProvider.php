@@ -43,6 +43,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Meilisearch\Client as MeilisearchClient;
@@ -84,6 +85,14 @@ class AppServiceProvider extends ServiceProvider
         // in non-production environments. This forces eager loading discipline
         // and makes N+1 problems surface immediately in dev/test.
         Model::preventLazyLoading(! app()->isProduction());
+
+        // TLS terminates at the host nginx / Cloudflare edge — this app never
+        // serves plain HTTP in production. Force the scheme so URL::to()/url()
+        // (Livewire's asset + update URIs included) stop depending on proxy
+        // header detection, which was intermittently resolving to http://.
+        if (app()->isProduction()) {
+            URL::forceScheme('https');
+        }
 
         $this->registerMorphMap();
         $this->registerEncryptedUserProvider();
