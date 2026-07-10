@@ -12,13 +12,8 @@ class LlmsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_llms_txt_returns_plain_text(): void
-    {
-        // No root document — controller returns a minimal stub at 200
-        $this->get('/llms.txt')
-            ->assertStatus(200)
-            ->assertHeader('Content-Type', 'text/plain; charset=UTF-8');
-    }
+    // Root /llms.txt redirect behavior is covered by
+    // Tests\Feature\Multilingual\LlmsTest::test_root_llms_redirects_to_vi.
 
     public function test_llms_full_txt_returns_plain_text(): void
     {

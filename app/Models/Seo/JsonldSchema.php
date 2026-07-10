@@ -12,6 +12,7 @@ class JsonldSchema extends Model
         'model_type',
         'model_id',
         'locale',
+        'source_id',
         'schema_type',
         'label',
         'payload',

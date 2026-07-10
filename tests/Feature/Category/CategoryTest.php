@@ -50,13 +50,12 @@ class CategoryTest extends TestCase
         $product  = Product::factory()->create(['is_active' => true]);
         $product->categories()->attach($category->id);
 
+        // Flat shape per doc/API_ROUTE_MAP.md — data.{id,name,slug,...} + data.products,
+        // not nested under a 'category' key.
         $this->getJson('/api/v1/categories/smartphones')
             ->assertStatus(200)
             ->assertJsonStructure([
-                'data' => [
-                    'category' => ['id', 'name', 'slug'],
-                    'products',
-                ],
+                'data' => ['id', 'name', 'slug', 'products'],
                 'meta' => ['total', 'current_page'],
             ])
             ->assertJsonPath('meta.total', 1);

@@ -14,6 +14,15 @@ export function registerSprint3Tools(server: McpServer) {
   );
 
   server.tool(
+    "check_blog_post_readiness",
+    "Kiểm tra blog post đủ điều kiện publish chưa. Gọi trước publish_blog_post.",
+    {
+      slug: z.string().describe("Blog post slug"),
+    },
+    async ({ slug }) => ok(await api("GET", `/mcp/blog-posts/${slug}/readiness`)),
+  );
+
+  server.tool(
     "save_blog_post",
     "Upsert blog post — tạo mới hoặc update content, translations, SEO, GEO/FAQ.",
     {
@@ -82,6 +91,15 @@ export function registerSprint3Tools(server: McpServer) {
       slug: z.string().describe("Blog category slug"),
     },
     async ({ slug }) => ok(await api("GET", `/mcp/blog-categories/${slug}/context`)),
+  );
+
+  server.tool(
+    "check_blog_category_readiness",
+    "Kiểm tra blog category đủ điều kiện activate chưa. Gọi trước activate_blog_category.",
+    {
+      slug: z.string().describe("Blog category slug"),
+    },
+    async ({ slug }) => ok(await api("GET", `/mcp/blog-categories/${slug}/readiness`)),
   );
 
   server.tool(

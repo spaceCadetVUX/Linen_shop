@@ -947,7 +947,9 @@ Dịch content từ locale nguồn sang locale đích cho danh sách entity.
 
 ## Sprint 6 — Import từ Specs
 
-> Paste datasheet text hoặc URL → server parse + MCP generate content → save draft.
+> Paste datasheet text → server parse attributes thô + tra manufacturer/category → Claude (client MCP) tự viết content → save draft.
+>
+> Server KHÔNG generate translations/SEO/FAQ — Claude Desktop chính là "AI" trong pipeline này, không cần gọi thêm LLM nào ở backend.
 
 ### `POST /api/v1/mcp/import/product-from-specs`
 
@@ -957,32 +959,32 @@ Dịch content từ locale nguồn sang locale đích cho danh sách entity.
   "manufacturer_slug": "jung",
   "category_slug": "knx-input-devices",
   "specs_text": "Model: 2094 TSM\nChannels: 4\nProtocol: KNX TP\nPower: Bus-powered\n...",
-  "locales": ["vi", "en"],
-  "auto_activate": false
+  "locales": ["vi", "en"]
 }
 ```
 
 **Behavior:**
-- Server parse specs → chuẩn bị context → trả về content đề xuất.
-- Claude review response → gọi `PUT /mcp/products/{slug}` để lưu chính thức.
-- Không tự lưu — chỉ generate preview để Claude kiểm tra trước.
+- Server parse `specs_text` theo dòng `Label: Value` → `parsed_attributes` thô (best-effort, không strict).
+- Server tra `manufacturer_slug`/`category_slug` có tồn tại chưa (read-only, không auto-create — auto-create stub vẫn là việc của `save_product`).
+- Claude đọc `parsed_attributes`, tự viết translations/SEO/FAQ, rồi gọi `PUT /mcp/products/{slug}` để lưu chính thức.
+- Không tự lưu, không có `auto_activate` — endpoint này không ghi DB nên activate không áp dụng được.
 
 **Response:**
 ```json
 {
-  "suggested": {
-    "translations": {
-      "vi": { "name": "...", "description": "...", "short_description": "..." },
-      "en": { "name": "...", "description": "...", "short_description": "..." }
-    },
-    "seo": {
-      "vi": { "meta_title": "...", "meta_description": "..." },
-      "en": { "meta_title": "...", "meta_description": "..." }
-    },
-    "faq_items_vi": [...],
-    "faq_items_en": [...]
-  },
-  "save_url": "PUT /api/v1/mcp/products/knx-push-button-4-fold"
+  "slug": "knx-push-button-4-fold",
+  "product_exists": false,
+  "parsed_attributes": [
+    { "name": "Model", "value": "2094 TSM" },
+    { "name": "Channels", "value": "4" },
+    { "name": "Protocol", "value": "KNX TP" },
+    { "name": "Power", "value": "Bus-powered" }
+  ],
+  "manufacturer": { "slug": "jung", "exists": true, "name": "JUNG" },
+  "category": { "slug": "knx-input-devices", "exists": true, "name": "KNX Input Devices" },
+  "locales": ["vi", "en"],
+  "save_url": "PUT /api/v1/mcp/products/knx-push-button-4-fold",
+  "note": "Chỉ parse attributes thô — Claude viết content rồi gọi save_product."
 }
 ```
 

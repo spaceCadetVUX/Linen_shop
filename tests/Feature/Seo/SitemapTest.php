@@ -20,17 +20,19 @@ class SitemapTest extends TestCase
 
     public function test_sitemap_index_contains_child_links(): void
     {
+        // Child sitemaps are locale-prefixed (sitemap-{locale}-{type}.xml) —
+        // see SitemapController::child() / routes/web.php.
         SitemapIndex::create([
-            'name'      => 'products',
-            'filename'  => 'sitemap-products.xml',
-            'url'       => url('sitemap-products.xml'),
+            'name'      => 'vi-products',
+            'filename'  => 'sitemap-vi-products.xml',
+            'url'       => url('sitemap-vi-products.xml'),
             'is_active' => true,
         ]);
 
         $response = $this->get('/sitemap.xml');
 
         $response->assertStatus(200);
-        $this->assertStringContainsString('sitemap-products.xml', $response->getContent());
+        $this->assertStringContainsString('sitemap-vi-products.xml', $response->getContent());
     }
 
     public function test_product_sitemap_returns_xml(): void
@@ -38,13 +40,14 @@ class SitemapTest extends TestCase
         Storage::fake('public');
 
         SitemapIndex::create([
-            'name'      => 'products',
-            'filename'  => 'sitemap-products.xml',
-            'url'       => url('sitemap-products.xml'),
+            'name'      => 'vi-products',
+            'filename'  => 'sitemap-vi-products.xml',
+            'url'       => url('sitemap-vi-products.xml'),
+            'locale'    => 'vi',
             'is_active' => true,
         ]);
 
-        $this->get('/sitemap-products.xml')
+        $this->get('/sitemap-vi-products.xml')
             ->assertStatus(200)
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
     }
@@ -54,13 +57,14 @@ class SitemapTest extends TestCase
         Storage::fake('public');
 
         SitemapIndex::create([
-            'name'      => 'blog',
-            'filename'  => 'sitemap-blog.xml',
-            'url'       => url('sitemap-blog.xml'),
+            'name'      => 'vi-blog',
+            'filename'  => 'sitemap-vi-blog.xml',
+            'url'       => url('sitemap-vi-blog.xml'),
+            'locale'    => 'vi',
             'is_active' => true,
         ]);
 
-        $this->get('/sitemap-blog.xml')
+        $this->get('/sitemap-vi-blog.xml')
             ->assertStatus(200);
     }
 

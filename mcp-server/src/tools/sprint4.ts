@@ -14,6 +14,15 @@ export function registerSprint4Tools(server: McpServer) {
   );
 
   server.tool(
+    "check_brand_readiness",
+    "Kiểm tra brand đủ điều kiện activate chưa. Gọi trước activate_brand.",
+    {
+      slug: z.string().describe("Brand slug"),
+    },
+    async ({ slug }) => ok(await api("GET", `/mcp/brands/${slug}/readiness`)),
+  );
+
+  server.tool(
     "save_brand",
     "Upsert brand — tạo mới hoặc update content, SEO.",
     {
@@ -49,6 +58,15 @@ export function registerSprint4Tools(server: McpServer) {
       slug: z.string().describe("Manufacturer slug"),
     },
     async ({ slug }) => ok(await api("GET", `/mcp/manufacturers/${slug}/context`)),
+  );
+
+  server.tool(
+    "check_manufacturer_readiness",
+    "Kiểm tra manufacturer đủ điều kiện activate chưa. Gọi trước activate_manufacturer.",
+    {
+      slug: z.string().describe("Manufacturer slug"),
+    },
+    async ({ slug }) => ok(await api("GET", `/mcp/manufacturers/${slug}/readiness`)),
   );
 
   server.tool(

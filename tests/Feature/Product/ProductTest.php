@@ -91,6 +91,9 @@ class ProductTest extends TestCase
         JsonldSchema::create([
             'model_type'        => 'product',
             'model_id'          => $product->id,
+            // Explicit — app.fallback_locale is 'en' in this project, which
+            // would silently filter out a schema left on the 'vi' DB default.
+            'locale'            => 'vi',
             'schema_type'       => JsonldSchemaType::Product,
             'label'             => 'Product Schema',
             'payload'           => ['@type' => 'Product'],
@@ -99,7 +102,7 @@ class ProductTest extends TestCase
             'sort_order'        => 0,
         ]);
 
-        $response = $this->getJson('/api/v1/products/schema-product')
+        $response = $this->getJson('/api/v1/products/schema-product?locale=vi')
             ->assertStatus(200);
 
         $this->assertNotEmpty($response->json('data.jsonld_schemas'));

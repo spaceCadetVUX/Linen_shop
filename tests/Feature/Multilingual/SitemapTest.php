@@ -37,7 +37,9 @@ class SitemapTest extends TestCase
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
             ->getContent();
 
-        $this->assertSame(8, substr_count($content, '<sitemap>'));
+        // 8 DB-seeded child indexes + 1 hardcoded sitemap-static.xml that
+        // SitemapController::index() always injects (no sitemap_indexes row).
+        $this->assertSame(9, substr_count($content, '<sitemap>'));
     }
 
     public function test_child_sitemap_has_hreflang_xlinks(): void

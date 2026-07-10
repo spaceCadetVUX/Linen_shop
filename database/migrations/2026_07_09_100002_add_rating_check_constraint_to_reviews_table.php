@@ -13,11 +13,19 @@ return new class extends Migration
         // a stray tinker/seeder insert from writing 0 or 200 into this
         // tinyInteger unsigned column, which would silently break the
         // hardcoded bestRating:5 / worstRating:1 in the AggregateRating JSON-LD.
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE reviews ADD CONSTRAINT reviews_rating_between_1_and_5 CHECK (rating BETWEEN 1 AND 5)');
     }
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE reviews DROP CONSTRAINT reviews_rating_between_1_and_5');
     }
 };

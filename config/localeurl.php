@@ -14,7 +14,12 @@
  */
 return [
 
-    'supported_locales' => ['vi', 'en'],
+    // Single source of truth lives in config/app.php (used ~40 places across
+    // the codebase) — derived here instead of duplicated so adding a locale
+    // only requires editing one file. Safe: Laravel loads config files in
+    // alphabetical order (LoadConfiguration::ksort), so app.php is always
+    // available by the time this file is required.
+    'supported_locales' => config('app.supported_locales', ['vi', 'en']),
 
     'default_locale' => 'vi',
 

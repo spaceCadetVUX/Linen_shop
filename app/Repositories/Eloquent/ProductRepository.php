@@ -169,12 +169,15 @@ class ProductRepository extends BaseRepository
             $query->whereHas('categories', fn ($q) => $q->where('slug', $filters['category']));
         }
 
+        // Effective price (sale_price when it undercuts price) — same definition
+        // as searchWithFiltersSql(), so a filter here matches what the storefront
+        // shows for the same product instead of ignoring active sales.
         if (isset($filters['min_price']) && is_numeric($filters['min_price'])) {
-            $query->where('price', '>=', (float) $filters['min_price']);
+            $query->whereRaw('LEAST(price, COALESCE(sale_price, price)) >= ?', [(float) $filters['min_price']]);
         }
 
         if (isset($filters['max_price']) && is_numeric($filters['max_price'])) {
-            $query->where('price', '<=', (float) $filters['max_price']);
+            $query->whereRaw('LEAST(price, COALESCE(sale_price, price)) <= ?', [(float) $filters['max_price']]);
         }
 
         if (! empty($filters['in_stock'])) {

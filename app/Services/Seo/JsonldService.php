@@ -152,16 +152,16 @@ class JsonldService
                 }
             }
 
-            JsonldSchema::updateOrCreate(
+            $this->upsertJsonldSchema(
                 [
                     'model_type' => $morphAlias,
                     'model_id' => $model->getKey(),
                     'schema_type' => $schemaType->value,
                     'locale' => $locale,
+                    'source_id' => '',
                 ],
                 [
                     'label' => $template->label,
-                    'locale' => $locale,
                     'payload' => $resolved,
                     'is_active' => true,
                     'is_auto_generated' => true,
@@ -332,6 +332,36 @@ class JsonldService
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    /**
+     * Atomic INSERT ... ON CONFLICT ... DO UPDATE against the
+     * unique(model_type, model_id, schema_type, locale, source_id) index.
+     *
+     * Replaces updateOrCreate(), which has a first()-then-create() gap: two
+     * concurrent 'seo' queue workers (Horizon allows up to 3 in production)
+     * syncing the same key at once could both pass the first() check and
+     * both create(), leaving duplicate rows with no constraint to stop it.
+     *
+     * $key must include 'source_id' — '' for every schema type except
+     * VideoObject, which uses the video's own id so one product can have
+     * N VideoObject rows without colliding with the unique index.
+     */
+    private function upsertJsonldSchema(array $key, array $attributes): void
+    {
+        $now = now();
+
+        $row = array_merge($key, $attributes, [
+            'payload' => json_encode($attributes['payload'] ?? []),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        JsonldSchema::upsert(
+            [$row],
+            ['model_type', 'model_id', 'schema_type', 'locale', 'source_id'],
+            [...array_keys($attributes), 'updated_at']
+        );
+    }
 
     /**
      * Enrich the resolved Product schema payload with relationship data
@@ -1144,16 +1174,16 @@ class JsonldService
         // JSON-LD graph (e.g. a CollectionPage referenced as a WebPage).
         $primaryType = (self::MODEL_SCHEMA_TYPES[$morphAlias][0] ?? null)?->value ?? 'WebPage';
 
-        JsonldSchema::updateOrCreate(
+        $this->upsertJsonldSchema(
             [
                 'model_type' => $morphAlias,
                 'model_id' => $model->getKey(),
                 'schema_type' => JsonldSchemaType::FaqPage->value,
                 'locale' => $locale,
+                'source_id' => '',
             ],
             [
                 'label' => 'FAQ Schema',
-                'locale' => $locale,
                 'payload' => [
                     '@context' => 'https://schema.org',
                     '@type' => 'FAQPage',
@@ -1339,10 +1369,13 @@ class JsonldService
             $schemaKey = JsonldSchemaType::VideoObject->value;
 
             // Never overwrite manually curated video schemas.
+            // Keyed by the video's own id, not its title — a `label` built
+            // from `$video->title` orphaned the old row on every rename
+            // since updateOrCreate() would no longer find it by the new title.
             $hasManualOverride = JsonldSchema::where('model_type', $morphAlias)
                 ->where('model_id', $model->getKey())
                 ->where('schema_type', $schemaKey)
-                ->where('label', 'Video: '.$video->title)
+                ->where('source_id', (string) $video->id)
                 ->where('is_auto_generated', false)
                 ->exists();
 
@@ -1368,16 +1401,16 @@ class JsonldService
                 $payload['duration'] = $video->duration;
             }
 
-            JsonldSchema::updateOrCreate(
+            $this->upsertJsonldSchema(
                 [
                     'model_type' => $morphAlias,
                     'model_id' => $model->getKey(),
                     'schema_type' => $schemaKey,
                     'locale' => $locale,
-                    'label' => 'Video: '.$video->title,
+                    'source_id' => (string) $video->id,
                 ],
                 [
-                    'locale' => $locale,
+                    'label' => 'Video: '.$video->title,
                     'payload' => $payload,
                     'is_active' => true,
                     'is_auto_generated' => true,

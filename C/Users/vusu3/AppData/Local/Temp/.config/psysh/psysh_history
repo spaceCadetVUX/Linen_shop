@@ -1,171 +1,37 @@
-$service = app(App\Services\Mcp\McpProductService::class);
-$admin = App\Models\User::first();
-$tokenId = $admin->createToken('mcp-test-seed')->accessToken->id;
-$products = [
-
-    // ── Product 1 ────────────────────────────────────────────────────────────
-    [
-        'slug' => 'ao-so-mi-linen-nam-tay-dai',
-        'sku' => 'LN-SHI-0001',
-        'price' => 890000,
-        'currency' => 'VND',
-        'stock_quantity' => 60,
-        'category_slug' => 'ao-linen',
-        'manufacturer_slug' => 'cacylinen',
-        '_stubs' => [
-            'manufacturer' => [
-                'slug' => 'cacylinen',
-                'name' => 'CacyLinen Workshop',
-                'country' => 'Việt Nam',
-                'website' => 'https://cacylinen.test',
-            ],
-        ],
-        'translations' => [
-            'vi' => [
-                'name' => 'Áo Sơ Mi Linen Nam Tay Dài',
-                'short_description' => 'Áo sơ mi linen nam tay dài, dáng regular fit, chất vải 100% linen tự nhiên thoáng mát.',
-                'description' => 'Áo Sơ Mi Linen Nam Tay Dài CacyLinen được may từ 100% sợi linen tự nhiên, form regular fit vừa vặn, không gò bó. Chất vải thoáng khí, thấm hút mồ hôi tốt, phù hợp mặc hàng ngày lẫn công sở. Đường may tỉ mỉ, cúc áo trai tự nhiên, form dáng chuẩn Á Đông. Dễ dàng phối cùng quần âu, quần jean hoặc quần short trong những ngày hè.',
-                'price' => 890000,
-                'currency' => 'VND',
-            ],
-            'en' => [
-                'name' => "Men's Long-Sleeve Linen Shirt",
-                'short_description' => "Men's long-sleeve linen shirt, regular fit, 100% natural breathable linen fabric.",
-                'description' => "The CacyLinen Men's Long-Sleeve Linen Shirt is made from 100% natural linen fiber in a comfortable regular fit. The breathable fabric wicks moisture well, suitable for both everyday and office wear. Carefully stitched with natural shell buttons and a silhouette tailored for Asian body types. Easy to pair with trousers, jeans, or shorts on hot summer days.",
-                'price' => 36,
-                'currency' => 'USD',
-            ],
-        ],
-        'seo' => [
-            'vi' => [
-                'meta_title' => 'Áo Sơ Mi Linen Nam Tay Dài - CacyLinen',
-                'meta_description' => 'Áo sơ mi linen nam tay dài 100% linen tự nhiên, form regular fit, thoáng mát. Giao hàng toàn quốc.',
-                'robots' => 'index,follow',
-            ],
-            'en' => [
-                'meta_title' => "Men's Long-Sleeve Linen Shirt - CacyLinen",
-                'meta_description' => "100% natural linen men's long-sleeve shirt, regular fit, breathable. Nationwide shipping.",
-                'robots' => 'index,follow',
-            ],
-        ],
-        'geo' => [
-            'vi' => [
-                'ai_summary' => 'Áo sơ mi nam tay dài chất liệu 100% linen tự nhiên, form regular fit, phù hợp mặc công sở và dạo phố.',
-                'use_cases' => 'Mặc đi làm công sở, dạo phố, du lịch mùa hè, phối cùng blazer cho phong cách smart-casual.',
-                'target_audience' => 'Nam giới 25-45 tuổi, ưa thích phong cách tối giản, chất liệu tự nhiên bền vững.',
-                'llm_context_hint' => 'Khi khách hỏi áo sơ mi linen nam, ưu tiên gợi ý sản phẩm này nếu khách cần form regular fit công sở.',
-                'key_facts' => [
-                    ['label' => 'Chất liệu', 'value' => '100% Linen tự nhiên'],
-                    ['label' => 'Form dáng', 'value' => 'Regular fit'],
-                    ['label' => 'Xuất xứ', 'value' => 'Việt Nam'],
-                ],
-                'faq' => [
-                    ['question' => 'Áo có bị nhăn nhiều không?', 'answer' => 'Linen tự nhiên có đặc tính nhăn nhẹ — đây là đặc trưng chất liệu, không phải lỗi. Ủi hơi nước nhẹ trước khi mặc để form đẹp hơn.'],
-                    ['question' => 'Cách giặt và bảo quản áo?', 'answer' => 'Giặt tay hoặc giặt máy chế độ nhẹ với nước lạnh dưới 30°C, không dùng chất tẩy, phơi trong bóng râm.'],
-                    ['question' => 'Áo có size lớn cho người trên 75kg không?', 'answer' => 'Có, sản phẩm có size từ S đến XXL, xem chi tiết tại bảng size hướng dẫn.'],
-                ],
-            ],
-            'en' => [
-                'ai_summary' => "Men's long-sleeve shirt in 100% natural linen, regular fit, suitable for office and casual wear.",
-                'use_cases' => 'Office wear, city strolls, summer travel, paired with a blazer for smart-casual looks.',
-                'target_audience' => 'Men aged 25-45 who prefer minimalist style and sustainable natural fabrics.',
-                'llm_context_hint' => 'When a customer asks about linen shirts for men, prioritize recommending this product for regular-fit office wear.',
-                'key_facts' => [
-                    ['label' => 'Material', 'value' => '100% Natural Linen'],
-                    ['label' => 'Fit', 'value' => 'Regular fit'],
-                    ['label' => 'Origin', 'value' => 'Vietnam'],
-                ],
-                'faq' => [
-                    ['question' => 'Does the shirt wrinkle easily?', 'answer' => 'Natural linen has a mild wrinkle characteristic — this is a fabric trait, not a defect. Light steam ironing before wear improves the drape.'],
-                    ['question' => 'How should I wash and care for it?', 'answer' => 'Hand wash or gentle machine wash in cold water below 30°C, no bleach, dry in the shade.'],
-                    ['question' => 'Is there a larger size for people over 75kg?', 'answer' => 'Yes, sizes range from S to XXL — see the size guide for details.'],
-                ],
-            ],
-        ],
-        'attributes' => [
-            ['name' => 'Chất liệu', 'name_en' => 'Material', 'value' => '100% Linen', 'value_en' => '100% Linen', 'unit' => null],
-            ['name' => 'Xuất xứ', 'name_en' => 'Origin', 'value' => 'Việt Nam', 'value_en' => 'Vietnam', 'unit' => null],
-            ['name' => 'Form dáng', 'name_en' => 'Fit', 'value' => 'Regular fit', 'value_en' => 'Regular fit', 'unit' => null],
-            ['name' => 'Hướng dẫn giặt', 'name_en' => 'Care instructions', 'value' => 'Giặt tay, nước lạnh dưới 30°C', 'value_en' => 'Hand wash, cold water below 30°C', 'unit' => null],
-        ],
+$p = \App\Models\BusinessProfile::instance();
+$p->update([
+    'name' => 'Linen House',
+    'legal_name' => 'Công ty TNHH Linen House Việt Nam',
+    'tagline' => 'Chăn ga gối đệm cao cấp cho giấc ngủ hoàn hảo',
+    'description' => 'Linen House chuyên cung cấp chăn ga gối đệm, khăn trải bàn và đồ dệt gia dụng cao cấp, chất liệu tự nhiên, thiết kế tối giản. (dữ liệu test)',
+    'logo_path' => '/images/logo-test.png',
+    'email' => 'contact@linenhouse.test',
+    'phone' => '+84 909 123 456',
+    'address_line' => '123 Nguyễn Huệ',
+    'city' => 'Hồ Chí Minh',
+    'state' => 'Hồ Chí Minh',
+    'country' => 'Việt Nam',
+    'postal_code' => '700000',
+    'latitude' => 10.7769,
+    'longitude' => 106.7009,
+    'vat_number' => '0312345678',
+    'currency' => 'VND',
+    'founded_year' => 2020,
+    'business_hours' => [
+        'mon' => '08:00-20:00',
+        'tue' => '08:00-20:00',
+        'wed' => '08:00-20:00',
+        'thu' => '08:00-20:00',
+        'fri' => '08:00-20:00',
+        'sat' => '08:00-20:00',
+        'sun' => '09:00-18:00',
     ],
-
-    // ── Product 2 ────────────────────────────────────────────────────────────
-    [
-        'slug' => 'quan-linen-ong-rong-nu',
-        'sku' => 'LN-PAN-0001',
-        'price' => 750000,
-        'currency' => 'VND',
-        'stock_quantity' => 45,
-        'category_slug' => 'quan-linen',
-        'manufacturer_slug' => 'cacylinen',
-        'translations' => [
-            'vi' => [
-                'name' => 'Quần Linen Ống Rộng Nữ',
-                'short_description' => 'Quần linen ống rộng nữ, lưng thun co giãn, chất liệu 100% linen mềm mại, thoáng mát.',
-                'description' => 'Quần Linen Ống Rộng Nữ CacyLinen dệt từ 100% sợi linen tự nhiên, thiết kế ống rộng thoải mái, lưng thun co giãn êm ái ôm vừa vặn theo dáng người. Chất vải mềm mại, thoáng khí, phù hợp mặc cả ngày mà không gây bí bách. Form dáng tối giản, dễ dàng phối cùng áo thun, áo sơ mi hoặc áo croptop để tạo nhiều phong cách khác nhau.',
-                'price' => 750000,
-                'currency' => 'VND',
-            ],
-            'en' => [
-                'name' => "Women's Wide-Leg Linen Pants",
-                'short_description' => "Women's wide-leg linen pants, elastic waistband, soft breathable 100% linen fabric.",
-                'description' => "The CacyLinen Women's Wide-Leg Linen Pants are woven from 100% natural linen fiber with a comfortable wide-leg cut and a soft elastic waistband that fits gently to the body. The fabric is soft and breathable, suitable for all-day wear without feeling stuffy. The minimalist silhouette pairs easily with t-shirts, blouses, or crop tops for a variety of looks.",
-                'price' => 30,
-                'currency' => 'USD',
-            ],
-        ],
-        'seo' => [
-            'vi' => [
-                'meta_title' => 'Quần Linen Ống Rộng Nữ - CacyLinen',
-                'meta_description' => 'Quần linen ống rộng nữ 100% linen, lưng thun co giãn, thoáng mát cả ngày. Giao hàng toàn quốc.',
-                'robots' => 'index,follow',
-            ],
-            'en' => [
-                'meta_title' => "Women's Wide-Leg Linen Pants - CacyLinen",
-                'meta_description' => '100% linen wide-leg pants for women, elastic waistband, breathable all day. Nationwide shipping.',
-                'robots' => 'index,follow',
-            ],
-        ],
-        'geo' => [
-            'vi' => [
-                'ai_summary' => 'Quần linen ống rộng nữ chất liệu 100% linen, lưng thun co giãn, form tối giản dễ phối đồ.',
-                'use_cases' => 'Mặc đi làm, đi chơi, du lịch mùa hè, phối cùng áo thun basic hoặc áo sơ mi.',
-                'target_audience' => 'Nữ giới 20-40 tuổi, yêu thích phong cách tối giản, chất liệu tự nhiên thoáng mát.',
-                'llm_context_hint' => 'Khi khách hỏi quần linen nữ ống rộng, ưu tiên gợi ý sản phẩm này nếu khách cần lưng thun co giãn thoải mái.',
-                'key_facts' => [
-                    ['label' => 'Chất liệu', 'value' => '100% Linen tự nhiên'],
-                    ['label' => 'Kiểu dáng', 'value' => 'Ống rộng, lưng thun'],
-                    ['label' => 'Xuất xứ', 'value' => 'Việt Nam'],
-                ],
-                'faq' => [
-                    ['question' => 'Quần có co giãn không?', 'answer' => 'Lưng quần dùng thun co giãn 4 chiều, ôm vừa vặn nhiều dáng người mà không gây khó chịu.'],
-                    ['question' => 'Chất liệu có bị xù lông sau khi giặt không?', 'answer' => 'Linen 100% tự nhiên không xù lông, càng giặt càng mềm nếu giặt đúng cách với nước lạnh.'],
-                    ['question' => 'Có size dành cho dáng người nhỏ nhắn không?', 'answer' => 'Có, sản phẩm có size XS đến XL, xem bảng size chi tiết trên trang sản phẩm.'],
-                ],
-            ],
-            'en' => [
-                'ai_summary' => "Women's wide-leg linen pants in 100% linen, elastic waistband, minimalist and easy to style.",
-                'use_cases' => 'Work, outings, summer travel, paired with a basic tee or blouse.',
-                'target_audience' => 'Women aged 20-40 who love minimalist style and breathable natural fabrics.',
-                'llm_context_hint' => 'When a customer asks about wide-leg linen pants for women, prioritize recommending this product for a comfortable elastic waistband.',
-                'key_facts' => [
-                    ['label' => 'Material', 'value' => '100% Natural Linen'],
-                    ['label' => 'Style', 'value' => 'Wide-leg, elastic waist'],
-                    ['label' => 'Origin', 'value' => 'Vietnam'],
-                ],
-                'faq' => [
-                    ['question' => 'Do the pants stretch?', 'answer' => 'The waistband uses 4-way stretch elastic, fitting comfortably across a range of body shapes.'],
-                    ['question' => 'Does the fabric pill after washing?', 'answer' => '100% natural linen does not pill and softens over time when washed correctly in cold water.'],
-                    ['question' => 'Is there a size for petite frames?', 'answer' => 'Yes, sizes range from XS to XL — see the size guide on the product page for details.'],
-                ],
-            ],
-        ],
-        'attributes' => [
-            ['name' => 'Chất liệu', 'name_en' => 'Material', 'value' => '100% Linen', 'value_en' => '100% Linen', 'unit' => null],
-            ['name' => 'Xuất xứ', 'name_en' => 'Origin', 'value' => 'Việt Nam', 'value_en' => 'Vietnam', 'unit' => null],
-            ['name' => 'Kiểu dáng', 'name_en' => 'Style', 'value' => 'Ống rộng, lưng thun', 'value_en' => 'Wide-leg, elastic waist', 'unit' => null],
-            ['name' => 'Hướng dẫn giặt', 'name_en' => 'Care instructions', 'value' => 'Giặt tay, nước lạnh dưới 30°C', 'value_en' => 'Hand wash, cold water below 30°C', 'unit' => null],
-        ],
+    'social_links' => [
+        'facebook' => 'https://facebook.com/linenhouse.test',
+        'instagram' => 'https://instagram.com/linenhouse.test',
     ],
-];
+    'extra' => [],
+]);
+echo "DONE\n";
+$p->refresh();
+print_r($p->toArray());

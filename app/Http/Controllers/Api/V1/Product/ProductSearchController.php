@@ -107,11 +107,15 @@ class ProductSearchController extends Controller
         }
 
         if ($type === 'all' || $type === 'blog') {
-            $paginator = BlogPost::with('blogCategory')
+            $locale = app()->getLocale();
+
+            $paginator = BlogPost::with(['blogCategory', 'translations' => fn ($q) => $q->where('locale', $locale)])
                 ->published()
-                ->where(fn ($query) => $query
-                    ->where('title', 'ilike', $term)
-                    ->orWhere('excerpt', 'ilike', $term))
+                ->whereHas('translations', fn ($q) => $q
+                    ->where('locale', $locale)
+                    ->where(fn ($q2) => $q2
+                        ->where('title', 'ilike', $term)
+                        ->orWhere('excerpt', 'ilike', $term)))
                 ->paginate($perPage, ['*'], 'page', $page);
 
             $totalBlog = $paginator->total();
@@ -140,11 +144,16 @@ class ProductSearchController extends Controller
 
     private function formatBlogPost(BlogPost $b): array
     {
+        // title/slug/excerpt live on blog_post_translations, not blog_posts itself
+        // (multilingual refactor, 2026-05-27) — translation() falls back to
+        // app.fallback_locale when the current locale has no row.
+        $t = $b->translation();
+
         return [
             'id'      => $b->id,
-            'title'   => $b->title,
-            'slug'    => $b->slug,
-            'excerpt' => $b->excerpt,
+            'title'   => $t?->title,
+            'slug'    => $t?->slug,
+            'excerpt' => $t?->excerpt,
         ];
     }
 }

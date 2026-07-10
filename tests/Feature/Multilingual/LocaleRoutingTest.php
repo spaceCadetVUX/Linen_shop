@@ -11,7 +11,9 @@ class LocaleRoutingTest extends TestCase
 
     public function test_root_redirects_to_locale(): void
     {
-        $this->get('/')->assertStatus(302);
+        // Permanent (301) — routes/web.php intentionally uses redirect('/vi/', 301)
+        // for SEO (root is a single canonical destination, not a temporary one).
+        $this->get('/')->assertStatus(301);
     }
 
     public function test_valid_locale_returns_200(): void
@@ -31,8 +33,11 @@ class LocaleRoutingTest extends TestCase
 
     public function test_no_locale_path_redirects_301(): void
     {
+        // 'products' is an English-only entity segment (vi.product.show only
+        // matches /vi/san-pham/{slug}) — the fallback route deliberately sends
+        // it to /en/, not /vi/, so it resolves instead of 404ing.
         $this->get('/products/test')
             ->assertStatus(301)
-            ->assertRedirect('/vi/products/test');
+            ->assertRedirect('/en/products/test');
     }
 }

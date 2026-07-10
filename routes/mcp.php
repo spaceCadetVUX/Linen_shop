@@ -4,6 +4,7 @@ use App\Http\Controllers\Mcp\AuditController;
 use App\Http\Controllers\Mcp\Batch\SeoMetaController  as BatchSeoMetaController;
 use App\Http\Controllers\Mcp\Batch\TranslateController as BatchTranslateController;
 use App\Http\Controllers\Mcp\EntityListController;
+use App\Http\Controllers\Mcp\Import\FromSpecsController as ImportFromSpecsController;
 use App\Http\Controllers\Mcp\ReviewQueueController;
 use App\Http\Controllers\Mcp\SearchController;
 use App\Http\Controllers\Mcp\BlogCategory\ActivateController  as BlogCategoryActivateController;
@@ -96,6 +97,9 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
         // Sprint 5: Batch operations
         Route::post('batch/seo-meta',  BatchSeoMetaController::class);
         Route::post('batch/translate', BatchTranslateController::class);
+
+        // Sprint 6: Import from specs — parse only, never writes
+        Route::post('import/product-from-specs', ImportFromSpecsController::class);
     });
 
     // ── mcp:publish — activate / publish ──────────────────────────────────────

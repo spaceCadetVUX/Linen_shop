@@ -628,11 +628,10 @@ z.object({
   category_slug:     z.string().optional(),
   specs_text:        z.string(),  // raw text từ datasheet
   locales:           z.array(z.string()).default(["vi","en"]),
-  auto_activate:     z.boolean().default(false),
 })
 ```
 
-**Lưu ý:** Endpoint này trả về `suggested` content — không tự lưu. Claude đọc response rồi gọi `save_product` để lưu chính thức.
+**Lưu ý:** Server chỉ parse `specs_text` thành `parsed_attributes` thô + tra existence của manufacturer/category — không generate translations/SEO/FAQ (Claude Desktop là "AI" trong pipeline này, không cần LLM riêng ở backend). Không tự lưu, không có `auto_activate`. Claude đọc `parsed_attributes`, tự viết content, rồi gọi `save_product` để lưu chính thức.
 
 ---
 

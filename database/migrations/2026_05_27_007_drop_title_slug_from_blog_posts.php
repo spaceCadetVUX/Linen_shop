@@ -9,6 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('blog_posts', function (Blueprint $table) {
+            // SQLite refuses to drop a column still carrying a unique index
+            // (Postgres cascades this automatically, which is why the bug
+            // went unnoticed) — drop the constraint explicitly first.
+            $table->dropUnique(['slug']);
             $table->dropColumn(['title', 'slug']);
         });
     }

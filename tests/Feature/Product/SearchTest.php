@@ -4,6 +4,7 @@ namespace Tests\Feature\Product;
 
 use App\Enums\BlogPostStatus;
 use App\Models\BlogPost;
+use App\Models\BlogPostTranslation;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
@@ -46,15 +47,16 @@ class SearchTest extends TestCase
     {
         Product::factory()->create(['name' => 'LED Smart Panel', 'is_active' => true]);
 
-        BlogPost::create([
+        $post = BlogPost::factory()->create(['status' => BlogPostStatus::Published, 'published_at' => now()->subDay()]);
+        BlogPostTranslation::create([
+            'blog_post_id' => $post->id,
+            'locale'       => 'vi',
             'title'        => 'LED Installation Guide',
             'slug'         => 'led-installation-guide',
-            'content'      => 'Full content here.',
-            'status'       => BlogPostStatus::Published,
-            'published_at' => now(),
+            'excerpt'      => 'Full content here.',
         ]);
 
-        $this->getJson('/api/v1/search?q=LED')
+        $this->getJson('/api/v1/search?q=LED&locale=vi')
             ->assertStatus(200)
             ->assertJsonStructure([
                 'status',
@@ -75,15 +77,16 @@ class SearchTest extends TestCase
     {
         Product::factory()->create(['name' => 'LED Panel Pro', 'is_active' => true]);
 
-        BlogPost::create([
+        $post = BlogPost::factory()->create(['status' => BlogPostStatus::Published, 'published_at' => now()->subDay()]);
+        BlogPostTranslation::create([
+            'blog_post_id' => $post->id,
+            'locale'       => 'vi',
             'title'        => 'LED Blog Post',
             'slug'         => 'led-blog-post',
-            'content'      => 'Some content.',
-            'status'       => BlogPostStatus::Published,
-            'published_at' => now(),
+            'excerpt'      => 'Some content.',
         ]);
 
-        $this->getJson('/api/v1/search?q=LED&type=products')
+        $this->getJson('/api/v1/search?q=LED&type=products&locale=vi')
             ->assertStatus(200)
             ->assertJsonPath('data.blog', [])
             ->assertJsonPath('meta.total_blog', 0)
@@ -94,15 +97,16 @@ class SearchTest extends TestCase
     {
         Product::factory()->create(['name' => 'LED Panel Pro', 'is_active' => true]);
 
-        BlogPost::create([
+        $post = BlogPost::factory()->create(['status' => BlogPostStatus::Published, 'published_at' => now()->subDay()]);
+        BlogPostTranslation::create([
+            'blog_post_id' => $post->id,
+            'locale'       => 'vi',
             'title'        => 'LED Blog Guide',
             'slug'         => 'led-blog-guide',
-            'content'      => 'Some content.',
-            'status'       => BlogPostStatus::Published,
-            'published_at' => now(),
+            'excerpt'      => 'Some content.',
         ]);
 
-        $this->getJson('/api/v1/search?q=LED&type=blog')
+        $this->getJson('/api/v1/search?q=LED&type=blog&locale=vi')
             ->assertStatus(200)
             ->assertJsonPath('data.products', [])
             ->assertJsonPath('meta.total_products', 0)
@@ -122,14 +126,16 @@ class SearchTest extends TestCase
 
     public function test_excludes_draft_blog_posts(): void
     {
-        BlogPost::create([
-            'title'   => 'LED Draft Article',
-            'slug'    => 'led-draft-article',
-            'content' => 'Draft content.',
-            'status'  => BlogPostStatus::Draft,
+        $post = BlogPost::factory()->create(['status' => BlogPostStatus::Draft, 'published_at' => null]);
+        BlogPostTranslation::create([
+            'blog_post_id' => $post->id,
+            'locale'       => 'vi',
+            'title'        => 'LED Draft Article',
+            'slug'         => 'led-draft-article',
+            'excerpt'      => 'Draft content.',
         ]);
 
-        $this->getJson('/api/v1/search?q=LED&type=blog')
+        $this->getJson('/api/v1/search?q=LED&type=blog&locale=vi')
             ->assertStatus(200)
             ->assertJsonPath('meta.total_blog', 0);
     }
