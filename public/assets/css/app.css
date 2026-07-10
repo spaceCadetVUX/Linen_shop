@@ -1770,11 +1770,14 @@ img    { display: block; }
    EDITORIAL GRID — 3-column category showcase
 ============================================ */
 .edit-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-grid-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(32%, 1fr));
   grid-auto-rows: min(88vh, 900px);
-  gap: 0.5px;
-  background: rgba(255,255,255,0.14);
 }
 
 .edit-grid-item {
@@ -1791,9 +1794,6 @@ img    { display: block; }
 .edit-grid.in-view .edit-grid-item:nth-child(1) { opacity: 1; transform: none; }
 .edit-grid.in-view .edit-grid-item:nth-child(2) { opacity: 1; transform: none; transition-delay: 0.12s; }
 .edit-grid.in-view .edit-grid-item:nth-child(3) { opacity: 1; transform: none; transition-delay: 0.24s; }
-.edit-grid.in-view .edit-grid-item:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.36s; }
-.edit-grid.in-view .edit-grid-item:nth-child(5) { opacity: 1; transform: none; transition-delay: 0.48s; }
-.edit-grid.in-view .edit-grid-item:nth-child(6) { opacity: 1; transform: none; transition-delay: 0.6s; }
 
 .edit-grid-img {
   position: absolute;
@@ -1862,23 +1862,27 @@ img    { display: block; }
 .edit-grid-nav { display: none; }
 
 @media (max-width: 1024px) {
-  .edit-grid { grid-auto-rows: min(68vh, 700px); }
+  .edit-grid-row { grid-auto-rows: min(68vh, 700px); }
   .edit-grid-label { bottom: 24px; left: 20px; }
 }
 
 @media (max-width: 640px) {
   /* Carousel vuốt ngang, mỗi danh mục cao 100vh — snap tự nhiên bằng CSS,
-     không cần JS xử lý touch/drag. JS (app.js) chỉ lo dots + auto-slide. */
+     không cần JS xử lý touch/drag. JS (app.js) chỉ lo dots + auto-slide.
+     .edit-grid-row chuyển thành display:contents để item thoát khỏi wrapper
+     dòng-3, quay lại làm flex item trực tiếp của .edit-grid (carousel liên
+     tục qua mọi danh mục, không bị đứt theo từng nhóm 3). */
   .edit-grid {
     position: relative;
     display: flex;
-    grid-template-columns: none;
+    flex-direction: row;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   .edit-grid::-webkit-scrollbar { display: none; }
+  .edit-grid-row { display: contents; }
   .edit-grid-item {
     flex: 0 0 100%;
     scroll-snap-align: start;
@@ -2330,291 +2334,76 @@ img    { display: block; }
 }
 
 /* ============================================
-   TIKTOK INSPIRATION — video carousel
-   Positioning via data-pos (-2 … 2).
-   JS sets data-pos; CSS handles all transitions.
+   CAT ROW — 1 hàng sản phẩm/danh mục, carousel cuộn ngang
+   (Sản phẩm nổi bật, danh mục chọn qua Category.show_on_landing)
+   .cat-row-track: grid-auto-flow:column, mỗi item rộng 1/4 (desktop) hoặc
+   1/2 (mobile) khung nhìn — cuộn bằng scroll-snap, có thể vuốt tay/trackpad
+   trực tiếp. Nút prev/next chỉ gọi track.scrollBy(1 màn hình) nên hoạt động
+   song song với vuốt tay, không xung đột (cùng scrollLeft).
 ============================================ */
-.tiktok-section {
-  background: var(--white);
-  padding-bottom: 80px;
-}
+.cat-row { margin-top: 56px; }
+.cat-row:first-of-type { margin-top: 40px; }
 
-.tiktok-header {
-  text-align: center;
-  padding: 80px var(--pad-x) 40px;
-}
-
-.tiktok-eyebrow {
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ash);
-  margin-bottom: 12px;
-}
-
-.tiktok-title {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 3.5vw, 50px);
-  font-weight: 400;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-
-/* Stage — side vignette fade */
-.tiktok-stage {
-  position: relative;
-}
-.tiktok-stage::before,
-.tiktok-stage::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0;
-  width: clamp(40px, 8vw, 120px);
-  z-index: 3;
-  pointer-events: none;
-}
-.tiktok-stage::before {
-  left: 0;
-  background: linear-gradient(to right, var(--white) 0%, transparent 100%);
-}
-.tiktok-stage::after {
-  right: 0;
-  background: linear-gradient(to left, var(--white) 0%, transparent 100%);
-}
-
-/* Track — 5-column grid */
-.tiktok-track {
-  display: grid;
-  grid-template-columns: 0.52fr 0.74fr 1fr 0.74fr 0.52fr;
-  height: min(72vh, 600px);
-  min-height: 380px;
-  gap: 3px;
-  align-items: end;
-  overflow: hidden;
-}
-
-/* ---- Item ---- */
-.tiktok-item {
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  will-change: height, filter;
-  /* default = center state (overridden below by data-pos) */
-  height: 100%;
-  filter: brightness(1) saturate(1);
-  transition:
-    height  0.72s var(--ease-spring),
-    filter  0.55s ease;
-}
-
-/* Position states */
-.tiktok-item[data-pos="-2"],
-.tiktok-item[data-pos="2"]  { height: 60%; filter: brightness(0.58) saturate(0.7); }
-
-.tiktok-item[data-pos="-1"],
-.tiktok-item[data-pos="1"]  { height: 82%; filter: brightness(0.78) saturate(0.88); }
-
-.tiktok-item[data-pos="0"]  { height: 100%; filter: brightness(1) saturate(1); cursor: default; }
-
-/* Hover: side items lift slightly */
-.tiktok-item[data-pos="-2"]:hover,
-.tiktok-item[data-pos="2"]:hover  { filter: brightness(0.72) saturate(0.82); }
-.tiktok-item[data-pos="-1"]:hover,
-.tiktok-item[data-pos="1"]:hover  { filter: brightness(0.88) saturate(0.94); }
-
-/* ---- Image ---- */
-.tiktok-img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  /* outer items: zoomed-in for parallax depth */
-  transform: scale(1.10);
-  transition: transform 0.9s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-/* Center: no zoom */
-.tiktok-item[data-pos="0"] .tiktok-img { transform: scale(1); }
-
-/* Side hover: pull back toward center scale */
-.tiktok-item[data-pos="-1"]:hover .tiktok-img,
-.tiktok-item[data-pos="1"]:hover  .tiktok-img { transform: scale(1.04); }
-.tiktok-item[data-pos="-2"]:hover .tiktok-img,
-.tiktok-item[data-pos="2"]:hover  .tiktok-img { transform: scale(1.06); }
-
-/* ---- Center vignette (bottom gradient for video UI) ---- */
-.tiktok-item[data-pos="0"]::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(0,0,0,0.30) 0%,
-    rgba(0,0,0,0.08) 40%,
-    transparent 65%
-  );
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* ---- Video controls (center only) ---- */
-.tiktok-ctrl {
-  position: absolute;
-  z-index: 2;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
+.cat-row-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.25s ease, transform 0.2s ease;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 var(--pad-x) 20px;
 }
-.tiktok-item[data-pos="0"] .tiktok-ctrl { opacity: 1; }
-.tiktok-ctrl:hover { opacity: 0.72 !important; transform: scale(1.1); }
-
-.tiktok-ctrl--play {
-  top: 12px; left: 12px;
-  background: rgba(255,255,255,0.92);
+.cat-row-title {
+  font-family: var(--font-display);
+  font-size: clamp(17px, 1.7vw, 22px);
+  font-weight: 400;
+  font-style: italic;
   color: var(--ink);
 }
-.tiktok-ctrl--mute {
-  bottom: 12px; right: 12px;
-  background: rgba(0,0,0,0.48);
-  color: var(--white);
+
+.cat-row-wrap {
+  position: relative;
+  padding: 0 var(--pad-x);
 }
 
-/* ---- Arrows ---- */
-.tiktok-arrow {
+.cat-row-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 3 * 3px) / 4);
+  gap: 3px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+.cat-row-track::-webkit-scrollbar { display: none; }
+
+.cat-row-item { scroll-snap-align: start; min-width: 0; }
+
+.cat-row-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 5;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.90);
-  color: var(--ink);
+  z-index: 2;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.13);
-  opacity: 0.72;
-  transition: background 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
-}
-.tiktok-arrow:hover {
-  background: var(--white);
-  opacity: 1;
-  transform: translateY(-50%) scale(1.08);
-}
-.tiktok-arrow--prev { left: 16px; }
-.tiktok-arrow--next { right: 16px; }
-
-/* ---- Bottom ---- */
-.tiktok-bottom {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  padding-top: 16px;
-}
-
-.tiktok-product-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
   background: var(--white);
   border: 0.5px solid var(--pebble);
-  min-width: 260px;
-  transition: opacity 0.28s ease;
-}
-
-.tiktok-product-thumb {
-  width: 50px; height: 64px;
-  object-fit: cover;
-  object-position: center top;
-  flex-shrink: 0;
-  background: var(--stone);
-}
-
-.tiktok-product-info { display: flex; flex-direction: column; gap: 4px; }
-
-.tiktok-product-brand {
-  font-family: var(--font-body);
-  font-size: 8px; font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ash);
-}
-
-.tiktok-product-name {
-  font-family: var(--font-body);
-  font-size: 12px; font-weight: 400;
-  color: var(--ink);
-  line-height: 1.3;
-}
-
-.tiktok-product-price {
-  font-family: var(--font-body);
-  font-size: 12px; font-weight: 400;
+  border-radius: 50%;
   color: var(--graphite);
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
-
-/* ---- Dots — pill animation ---- */
-.tiktok-dots { display: flex; align-items: center; gap: 6px; }
-
-.tiktok-dot {
-  display: block;
-  width: 6px; height: 6px;
-  border-radius: 3px;
-  background: var(--pebble);
-  cursor: pointer;
-  transition:
-    width      0.42s var(--ease-spring),
-    background 0.3s  ease;
-}
-.tiktok-dot--active { width: 22px; background: var(--ink); }
-
-/* ---- Responsive ---- */
-@media (max-width: 1024px) {
-  .tiktok-header { padding: 60px var(--pad-x) 32px; }
-  .tiktok-track {
-    grid-template-columns: 0.45fr 0.72fr 1fr 0.72fr 0.45fr;
-    height: min(62vh, 500px);
-  }
-}
+.cat-row-nav:hover { color: var(--ink); border-color: var(--ink); }
+.cat-row-nav--prev { left: calc(var(--pad-x) - 20px); }
+.cat-row-nav--next { right: calc(var(--pad-x) - 20px); }
 
 @media (max-width: 768px) {
-  .tiktok-track {
-    grid-template-columns: 0.35fr 0.68fr 1fr 0.68fr 0.35fr;
-    height: min(65vh, 480px);
-  }
-  .tiktok-stage::before,
-  .tiktok-stage::after { width: 30px; }
-}
-
-@media (max-width: 640px) {
-  .tiktok-header { padding: 56px 24px 28px; }
-  .tiktok-track {
-    grid-template-columns: 1fr;
-    height: 85vw;
-    max-height: 480px;
-  }
-  .tiktok-item[data-pos="-2"],
-  .tiktok-item[data-pos="-1"],
-  .tiktok-item[data-pos="1"],
-  .tiktok-item[data-pos="2"] { display: none; }
-  .tiktok-item[data-pos="0"] { height: 100%; }
-  .tiktok-stage::before,
-  .tiktok-stage::after { display: none; }
-  .tiktok-arrow { width: 32px; height: 32px; }
-  .tiktok-product-card { width: 90%; max-width: 340px; }
+  .cat-row { margin-top: 40px; }
+  .cat-row-header { padding: 0 20px 16px; }
+  .cat-row-wrap { padding: 0 20px; }
+  .cat-row-track { grid-auto-columns: calc((100% - 3px) / 2); gap: 3px; }
+  /* Mobile: bỏ nút prev/next — chỉ còn vuốt tay ngang qua .cat-row-track */
+  .cat-row-nav { display: none; }
 }
 
 /* ============================================

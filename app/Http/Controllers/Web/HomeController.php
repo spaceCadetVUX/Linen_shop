@@ -109,22 +109,48 @@ class HomeController extends Controller
         $seoMeta = null;
         $ogType = 'website';
 
-        // Shop grid — sản phẩm mới nhất, bật/tắt + tiêu đề từ LandingSetup
-        // (extra['landing']['featured_enabled'/'featured_title']).
+        // Shop grid — 1 hàng carousel/danh mục, bật/tắt + tiêu đề section từ
+        // LandingSetup (extra['landing']['featured_enabled'/'featured_title']).
+        // Danh mục nào lên đây + thứ tự do admin set trực tiếp trên Category
+        // (tab General: show_on_landing + sort_order) — không quản lý ở đây.
         $featuredEnabled = (bool) ($landing['featured_enabled'] ?? true);
         $featuredTitle = ($isEn ? ($landing['featured_title_en'] ?? null) : null)
             ?? $landing['featured_title'] ?? ($isEn ? 'Featured products' : 'Sản phẩm nổi bật');
-        $featuredProducts = collect();
+        $featuredCategoryRows = collect();
         if ($featuredEnabled) {
-            $featuredProducts = ProductTranslation::where('product_translations.locale', $locale)
-                ->join('products', 'products.id', '=', 'product_translations.product_id')
-                ->where('products.is_active', true)
-                ->whereNull('products.deleted_at')
-                ->select('product_translations.*')
-                ->with(['product.images'])
-                ->orderByDesc('products.created_at')
-                ->limit(8)
+            $featuredCategories = Category::where('show_on_landing', true)
+                ->where('is_active', true)
+                ->orderBy('sort_order')
                 ->get();
+
+            foreach ($featuredCategories as $category) {
+                $categoryTranslation = $category->translation($locale);
+                if (! $categoryTranslation) {
+                    continue;
+                }
+
+                $products = ProductTranslation::where('product_translations.locale', $locale)
+                    ->join('products', 'products.id', '=', 'product_translations.product_id')
+                    ->join('category_product', 'category_product.product_id', '=', 'products.id')
+                    ->where('category_product.category_id', $category->id)
+                    ->where('products.is_active', true)
+                    ->whereNull('products.deleted_at')
+                    ->select('product_translations.*')
+                    ->with(['product.images'])
+                    ->orderByDesc('products.created_at')
+                    ->limit(12)
+                    ->get();
+
+                if ($products->isEmpty()) {
+                    continue;
+                }
+
+                $featuredCategoryRows->push([
+                    'title' => $categoryTranslation->name,
+                    'url' => route($locale.'.category.show', $categoryTranslation->slug),
+                    'products' => $products,
+                ]);
+            }
         }
 
         // journal-grid desktop là 4 cột
@@ -138,7 +164,7 @@ class HomeController extends Controller
             'locale', 'businessSchemas', 'faqItems', 'latestBlogs',
             'seoMeta', 'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
             'heroImageUrl', 'heroEyebrow', 'heroHeadline', 'heroCtaLabel', 'heroCtaUrl', 'heroCtaLabel2', 'heroCtaUrl2',
-            'editorialItems', 'featuredEnabled', 'featuredTitle', 'featuredProducts', 'promotions'
+            'editorialItems', 'featuredEnabled', 'featuredTitle', 'featuredCategoryRows', 'promotions'
         ));
     }
 }

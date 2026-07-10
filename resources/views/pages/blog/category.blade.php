@@ -24,17 +24,6 @@
             {{ $translation->description }}
           </p>
         @endif
-
-        {{-- Subcategory pills — children come with per-locale name/slug + blog_count from controller --}}
-        @if($blogCategory->children->isNotEmpty())
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:24px;">
-            @foreach($blogCategory->children as $child)
-              <a href="{{ route($locale . '.blog.category', $child->slug) }}" class="jnl-tag">
-                {{ $child->name }}@if($child->blog_count) ({{ $child->blog_count }})@endif
-              </a>
-            @endforeach
-          </div>
-        @endif
       </div>
 
       <!-- Divider -->

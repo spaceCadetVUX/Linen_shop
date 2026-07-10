@@ -130,6 +130,11 @@ class CategoryResource extends Resource
 
                             Forms\Components\Toggle::make('is_active')
                                 ->default(true),
+
+                            Forms\Components\Toggle::make('show_on_landing')
+                                ->label('Hiện trên trang chủ (Sản phẩm nổi bật)')
+                                ->helperText('Bật để danh mục này có 1 hàng sản phẩm riêng trên landing page. Thứ tự các hàng theo Sort Order.')
+                                ->default(false),
                         ])
                         ->columns(2),
 

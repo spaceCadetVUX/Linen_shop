@@ -6,10 +6,11 @@
     <div class="footer-col footer-col--left">
       <h4 class="footer-col-title">Bộ sưu tập</h4>
       <nav class="footer-nav">
-        <a href="{{ url('/shop/ao-linen') }}">Áo linen</a>
-        <a href="{{ url('/shop/quan-vay') }}">Quần &amp; Váy</a>
-        <a href="{{ url('/shop/bo-set') }}">Bộ set linen</a>
-        <a href="{{ url('/shop/phu-kien') }}">Phụ kiện</a>
+        @forelse($footerCategories as $cat)
+          <a href="{{ $cat['url'] }}">{{ $cat['name'] }}</a>
+        @empty
+          <a href="{{ $footerShopUrl }}">Xem tất cả sản phẩm</a>
+        @endforelse
       </nav>
     </div>
 

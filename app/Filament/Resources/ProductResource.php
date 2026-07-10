@@ -121,7 +121,11 @@ class ProductResource extends Resource
 
                             Forms\Components\Select::make('size_guide_id')
                                 ->label('Hướng dẫn size')
-                                ->relationship('sizeGuide', 'key')
+                                ->relationship(
+                                    'sizeGuide',
+                                    'key',
+                                    modifyQueryUsing: fn (Builder $query) => $query->with('translationVi'),
+                                )
                                 ->getOptionLabelFromRecordUsing(
                                     fn ($record) => $record->translationVi?->name ?: $record->key
                                 )

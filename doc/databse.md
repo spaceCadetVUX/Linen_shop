@@ -41,7 +41,7 @@ E-commerce Side                     Blog Side
 users                               blog_posts
   └── addresses                       └── blog_comments
   └── carts (+ expires_at)            └── blog_post_tag (pivot)
-        └── cart_items              blog_categories (nested)
+        └── cart_items              blog_categories (flat)
   └── orders                        blog_tags
         └── order_items
 
@@ -363,7 +363,6 @@ cache                    sessions
 | Column | Type | Constraints | Notes |
 |---|---|---|---|
 | `id` | bigint | PK, auto-increment | |
-| `parent_id` | bigint | FK → blog_categories.id, nullable | Self-referencing |
 | `name` | varchar(255) | NOT NULL | |
 | `slug` | varchar(255) | NOT NULL, UNIQUE | |
 | `description` | text | nullable | |
@@ -371,7 +370,8 @@ cache                    sessions
 | `created_at` | timestamp | NOT NULL | |
 | `updated_at` | timestamp | NOT NULL | |
 
-> **Indexes:** `slug` (unique), `parent_id`, `is_active`
+> **Indexes:** `slug` (unique), `is_active`
+> Flat — no parent/child hierarchy (removed 2026-07-10; product `categories` keeps its own separate self-referencing `parent_id`).
 
 ---
 
@@ -720,7 +720,6 @@ orders
  └── has many  → order_items       (order_id)
 
 blog_categories
- ├── belongs to → blog_categories  (parent_id, self-referencing)
  └── has many  → blog_posts        (blog_category_id)
 
 blog_posts
@@ -831,7 +830,7 @@ php artisan vendor:publish --provider="Spatie\ActivityLog\ActivitylogServiceProv
 031_create_sessions_table                       ← Laravel fallback
 ```
 
-> **Note on self-referencing tables:** `categories.parent_id` and `blog_categories.parent_id` are nullable FKs. Add the FK constraint after the table exists — PostgreSQL supports deferred constraints or simply add the FK in the same migration since the column is nullable.
+> **Note on self-referencing tables:** `categories.parent_id` is a nullable FK. Add the FK constraint after the table exists — PostgreSQL supports deferred constraints or simply add the FK in the same migration since the column is nullable. (`blog_categories` was flattened 2026-07-10 — no longer self-referencing.)
 
 ---
 

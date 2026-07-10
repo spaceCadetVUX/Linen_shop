@@ -18,7 +18,6 @@ class BlogCategoryFactory extends Factory
         $name = fake()->unique()->words(fake()->numberBetween(1, 3), true);
 
         return [
-            'parent_id'   => null,
             'name'        => ucwords($name),
             'slug'        => Str::slug($name) . '-' . fake()->unique()->numberBetween(100, 9999),
             'description' => fake()->sentence(),

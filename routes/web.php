@@ -20,6 +20,22 @@ use App\Support\LocaleUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// ── Sessionless public pages ──────────────────────────────────────────────────
+// Anonymous, GET-only, content pages (category/product/blog/...) never read
+// session() and have no @csrf forms — dropping these lets Cache-Control: public
+// (see cache.public middleware) actually mean something. Without this, every
+// response still carries Set-Cookie (XSRF-TOKEN + session id, added by
+// PreventRequestForgery/StartSession regardless of route), which makes CDNs/
+// proxies refuse to cache the response no matter what Cache-Control says.
+// Cart/Wishlist/Search stay on the full 'web' stack — they're user-specific.
+$sessionless = [
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
+];
+
 // ── Root: detect preferred locale → redirect ─────────────────────────────────
 Route::get('/', function () {
     return redirect('/vi/', 301);
@@ -68,14 +84,16 @@ if (app()->isLocal() || app()->environment('staging')) {
 // ══════════════════════════════════════════════════════════════════════════════
 Route::prefix('vi')
     ->middleware('set.locale:vi')
-    ->group(function () {
+    ->group(function () use ($sessionless) {
 
         Route::get('/', [HomeController::class, 'index'])
-            ->name('vi.index');
+            ->name('vi.index')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Giới thiệu ────────────────────────────────────────────────────────
         Route::get('gioi-thieu', [AboutController::class, 'show'])
-            ->name('vi.about');
+            ->name('vi.about')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Tìm kiếm autocomplete (trước tim-kiem để tránh slug collision) ───
         Route::get('tim-kiem/goi-y', [ProductController::class, 'autocomplete'])
@@ -87,31 +105,38 @@ Route::prefix('vi')
 
         // ── Cửa hàng / Danh mục sản phẩm ─────────────────────────────────────
         Route::get('cua-hang', [ProductController::class, 'index'])
-            ->name('vi.product.shop');
+            ->name('vi.product.shop')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         Route::get('danh-muc', [CategoryController::class, 'index'])
-            ->name('vi.product.category');
+            ->name('vi.product.category')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Danh mục + Sản phẩm ───────────────────────────────────────────────
         Route::get('danh-muc/{slug}', [CategoryController::class, 'show'])
-            ->name('vi.category.show');
+            ->name('vi.category.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         Route::get('san-pham/{slug}', [ProductController::class, 'show'])
-            ->name('vi.product.show');
+            ->name('vi.product.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Blog ──────────────────────────────────────────────────────────────
         Route::get('bai-viet', [BlogController::class, 'index'])
-            ->name('vi.blog.index');
+            ->name('vi.blog.index')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         Route::get('blog/{slug}', [BlogController::class, 'category'])
-            ->name('vi.blog.category');
+            ->name('vi.blog.category')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // Legacy: redirect old /vi/chu-de/{slug} → /vi/blog/{slug}
         Route::get('chu-de/{slug}', fn (string $locale, string $slug) => redirect("/{$locale}/blog/{$slug}", 301));
 
         // Nested: /vi/bai-viet/{category_slug}/{slug}
         Route::get('bai-viet/{category_slug}/{slug}', [BlogController::class, 'show'])
-            ->name('vi.blog.show');
+            ->name('vi.blog.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // Legacy flat URL → 301 to nested (SEO backward compat)
         Route::get('bai-viet/{slug}', function (string $locale, string $slug) {
@@ -126,11 +151,13 @@ Route::prefix('vi')
 
         // ── Tác giả ───────────────────────────────────────────────────────────
         Route::get('tac-gia/{slug}', [AuthorController::class, 'show'])
-            ->name('vi.author.show');
+            ->name('vi.author.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Hướng dẫn chọn size ──────────────────────────────────────────────
         Route::get('huong-dan-size', [SizeGuideController::class, 'index'])
-            ->name('vi.size-guide');
+            ->name('vi.size-guide')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // Legacy hardcoded link /size-guide (fallback redirects here without locale)
         Route::get('size-guide', fn () => redirect(route('vi.size-guide'), 301));
@@ -154,14 +181,16 @@ Route::prefix('vi')
 // ══════════════════════════════════════════════════════════════════════════════
 Route::prefix('en')
     ->middleware('set.locale:en')
-    ->group(function () {
+    ->group(function () use ($sessionless) {
 
         Route::get('/', [HomeController::class, 'index'])
-            ->name('en.index');
+            ->name('en.index')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── About ─────────────────────────────────────────────────────────────
         Route::get('about', [AboutController::class, 'show'])
-            ->name('en.about');
+            ->name('en.about')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Search autocomplete (trước search để tránh slug collision) ────────
         Route::get('search/autocomplete', [ProductController::class, 'autocomplete'])
@@ -173,21 +202,26 @@ Route::prefix('en')
 
         // ── Shop / Category listing ───────────────────────────────────────────
         Route::get('shop', [ProductController::class, 'index'])
-            ->name('en.product.shop');
+            ->name('en.product.shop')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         Route::get('categories', [CategoryController::class, 'index'])
-            ->name('en.product.category');
+            ->name('en.product.category')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Categories + Products ─────────────────────────────────────────────
         Route::get('categories/{slug}', [CategoryController::class, 'show'])
-            ->name('en.category.show');
+            ->name('en.category.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         Route::get('products/{slug}', [ProductController::class, 'show'])
-            ->name('en.product.show');
+            ->name('en.product.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Blog ──────────────────────────────────────────────────────────────
         Route::get('blog', [BlogController::class, 'index'])
-            ->name('en.blog.index');
+            ->name('en.blog.index')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // Legacy: old /en/blog/category/{slug} → /en/blog/{slug} (301)
         // Must be declared before blog/{category_slug}/{slug} to avoid collision
@@ -195,7 +229,8 @@ Route::prefix('en')
 
         // Blog post: /en/blog/{category_slug}/{post_slug}
         Route::get('blog/{category_slug}/{slug}', [BlogController::class, 'show'])
-            ->name('en.blog.show');
+            ->name('en.blog.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // Blog category + legacy flat post redirect: /en/blog/{slug}
         Route::get('blog/{slug}', function (string $locale, string $slug) {
@@ -207,15 +242,18 @@ Route::prefix('en')
 
             // Serve as blog category page
             return app(BlogController::class)->category($locale, $slug);
-        })->name('en.blog.category');
+        })->name('en.blog.category')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Authors ───────────────────────────────────────────────────────────
         Route::get('authors/{slug}', [AuthorController::class, 'show'])
-            ->name('en.author.show');
+            ->name('en.author.show')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Size guide ────────────────────────────────────────────────────────
         Route::get('size-guide', [SizeGuideController::class, 'index'])
-            ->name('en.size-guide');
+            ->name('en.size-guide')
+            ->middleware('cache.public')->withoutMiddleware($sessionless);
 
         // ── Wishlist (guest-session, see WishlistController) ──────────────────
         Route::get('account/wishlist', [WishlistController::class, 'index'])

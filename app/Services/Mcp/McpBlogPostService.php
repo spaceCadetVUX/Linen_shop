@@ -54,7 +54,8 @@ class McpBlogPostService
                 // ── Author ────────────────────────────────────────────────────
                 if (!empty($data['author_slug'])) {
                     $author = Author::where('slug', $data['author_slug'])->first();
-                    if ($author) $post->author_id = $author->id;
+                    if (!$author) abort(422, "Author '{$data['author_slug']}' not found.");
+                    $post->author_id = $author->id;
                 }
 
                 // ── Featured image ────────────────────────────────────────────
@@ -142,11 +143,14 @@ class McpBlogPostService
     {
         $post = $this->findBySlug($slug, ['translations', 'seoMetas', 'geoProfiles', 'blogCategory.translations', 'author', 'tags', 'jsonldSchemas']);
 
-        // Public post URL is nested under its category (/bai-viet/{category}/{slug});
-        // a category-less post is unreachable (redirect loop) once published —
-        // same rule enforced on the Filament admin form (BlogPostResource).
-        if (! $post->blog_category_id) {
-            abort(422, "Cannot publish '{$slug}': blog_category is required. Call save_blog_post with blog_category_slug first.");
+        // Gate on the full readiness check (same pattern as
+        // McpProductService::activate() / McpBlogCategoryService::activate()) —
+        // catches every blocking issue (missing vi title/body/slug/meta,
+        // missing or inactive blog_category) instead of only the category
+        // existence check this used to do on its own.
+        $readiness = $this->computeReadiness($post);
+        if (! $readiness['ready']) {
+            abort(422, "Cannot publish '{$slug}': ".implode('; ', $readiness['blocking_issues']));
         }
 
         $publishedAt = isset($data['published_at'])
@@ -171,33 +175,34 @@ class McpBlogPostService
 
     private function computeReadiness(BlogPost $post): array
     {
+        $post->loadMissing('blogCategory');
+
         $checks   = [];
         $blocking = [];
         $warnings = [];
         $score    = 0;
         $total    = 0;
 
+        // Every check below is blocking for both locales — same rule
+        // McpCategoryService/McpProductService/McpBlogCategoryService use.
+        // (Previously only vi blocked here, so blog posts were the one
+        // resource publishable without any en content at all.)
         foreach (['vi', 'en'] as $locale) {
-            $isBlocking = $locale === 'vi';
             $tr         = $post->translations->firstWhere('locale', $locale);
             $seoMeta    = $post->seoMetas->firstWhere('locale', $locale);
             $geoProfile = $post->geoProfiles->firstWhere('locale', $locale);
 
-            // has_title (blocking for vi)
+            // has_title (blocking)
             $hasTitle = filled($tr?->title);
             $checks[$locale]['has_title'] = ['pass' => $hasTitle];
             $total++; if ($hasTitle) $score++;
-            if (!$hasTitle) {
-                $isBlocking ? $blocking[] = "{$locale}.title missing" : $warnings[] = "{$locale}.title missing";
-            }
+            if (!$hasTitle) $blocking[] = "{$locale}.title missing";
 
-            // has_body (blocking for vi)
+            // has_body (blocking)
             $hasBody = filled($tr?->body);
             $checks[$locale]['has_body'] = ['pass' => $hasBody];
             $total++; if ($hasBody) $score++;
-            if (!$hasBody) {
-                $isBlocking ? $blocking[] = "{$locale}.body missing" : $warnings[] = "{$locale}.body missing";
-            }
+            if (!$hasBody) $blocking[] = "{$locale}.body missing";
 
             // body_min_length (warning only)
             $bodyLen   = mb_strlen($tr?->body ?? '');
@@ -212,21 +217,17 @@ class McpBlogPostService
             $total++; if ($hasExcerpt) $score++;
             if (!$hasExcerpt) $warnings[] = "{$locale}.excerpt chưa có";
 
-            // has_slug (blocking for vi)
+            // has_slug (blocking)
             $hasSlug = filled($tr?->slug);
             $checks[$locale]['has_slug'] = ['pass' => $hasSlug];
             $total++; if ($hasSlug) $score++;
-            if (!$hasSlug) {
-                $isBlocking ? $blocking[] = "{$locale}.slug missing" : $warnings[] = "{$locale}.slug missing";
-            }
+            if (!$hasSlug) $blocking[] = "{$locale}.slug missing";
 
-            // has_meta_title (blocking for vi, warning for en)
+            // has_meta_title (blocking)
             $hasMetaTitle = filled($seoMeta?->meta_title);
             $checks[$locale]['has_meta_title'] = ['pass' => $hasMetaTitle];
             $total++; if ($hasMetaTitle) $score++;
-            if (!$hasMetaTitle) {
-                $isBlocking ? $blocking[] = "{$locale}.meta_title missing" : $warnings[] = "{$locale}.meta_title missing";
-            }
+            if (!$hasMetaTitle) $blocking[] = "{$locale}.meta_title missing";
 
             // meta_title_length (warning)
             $metaTitleLen = mb_strlen($seoMeta?->meta_title ?? '');
@@ -235,13 +236,11 @@ class McpBlogPostService
             $total++; if ($metaTitleOk) $score++;
             if ($hasMetaTitle && !$metaTitleOk) $warnings[] = "{$locale}.meta_title quá dài ({$metaTitleLen}/70 ký tự)";
 
-            // has_meta_description (blocking for vi, warning for en)
+            // has_meta_description (blocking)
             $hasMetaDesc = filled($seoMeta?->meta_description);
             $checks[$locale]['has_meta_description'] = ['pass' => $hasMetaDesc];
             $total++; if ($hasMetaDesc) $score++;
-            if (!$hasMetaDesc) {
-                $isBlocking ? $blocking[] = "{$locale}.meta_description missing" : $warnings[] = "{$locale}.meta_description missing";
-            }
+            if (!$hasMetaDesc) $blocking[] = "{$locale}.meta_description missing";
 
             // has_faq (warning)
             $faqItems = $geoProfile?->faq ?? $post->{"faq_items_{$locale}"} ?? [];
@@ -263,6 +262,15 @@ class McpBlogPostService
         $checks['general']['has_blog_category'] = ['pass' => $hasBlogCategory];
         $total++; if ($hasBlogCategory) $score++;
         if (!$hasBlogCategory) $blocking[] = 'blog_category chưa có — bắt buộc để URL bài viết hoạt động';
+
+        // category_is_active (blocking — same rule as McpProductService::computeReadiness().
+        // BlogController::category() 404s on an inactive category but ::show() never checks
+        // it, so publishing against an inactive category creates a reachable-but-orphaned
+        // post: live at its own URL, gone from the category page and post listing.)
+        $categoryIsActive = ! $hasBlogCategory || (bool) $post->blogCategory?->is_active;
+        $checks['general']['category_is_active'] = ['pass' => $categoryIsActive];
+        $total++; if ($categoryIsActive) $score++;
+        if (!$categoryIsActive) $blocking[] = "blog_category '{$post->blogCategory?->slug}' chưa active";
 
         $scorePercent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
 

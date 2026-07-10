@@ -27,6 +27,8 @@ class CreateProduct extends CreateRecord
         $data['currency'] = $vi['currency'] ?? 'VND';
         $data['stock_quantity'] = filled($data['stock_quantity'] ?? null) ? $data['stock_quantity'] : 0;
 
+        $this->captureTranslationsForSave($data['translations'] ?? []);
+
         return $data;
     }
 

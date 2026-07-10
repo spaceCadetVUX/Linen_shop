@@ -87,6 +87,13 @@ class ProductTranslation extends Model
             return RichContentRenderer::make($decoded)->toHtml();
         }
 
-        return is_string($raw) ? nl2br(e($raw)) : null;
+        if (! is_string($raw)) {
+            return null;
+        }
+
+        // Some legacy/imported rows hold raw HTML instead of genuine plain
+        // text — render markup as-is rather than escaping it into visible
+        // "<p>" tags; only escape+nl2br for content with no tags at all.
+        return $raw !== strip_tags($raw) ? $raw : nl2br(e($raw));
     }
 }

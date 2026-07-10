@@ -59,7 +59,7 @@
       @forelse($product->images as $image)
         <div class="pd-gimg-wrap" data-image-id="{{ $image->id }}">
           @if($loop->first && $salePrice && $product->show_price)
-            <div class="pd-img-badge"><span class="badge badge-muted">Sale</span></div>
+            <div class="pd-img-badge"><span class="badge badge-sale">Sale</span></div>
           @endif
           <img
             src="{{ $image->url }}"

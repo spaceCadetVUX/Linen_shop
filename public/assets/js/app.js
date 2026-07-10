@@ -230,10 +230,32 @@ updateNav();
   var currentCat = null;
   var swapTimer  = null;
 
-  function swap(cat, label) {
-    if (cat === currentCat) return;
+  /* Ghi nội dung vào card ngay lập tức, không animation — dùng cho lần
+     render đầu (page load) và làm phần "Phase 2" bên trong swap(). */
+  function render(cat, label) {
     currentCat = cat;
     var products = DATA[cat] || [];
+    var hasProducts = products.length > 0;
+    grid.hidden = !hasProducts;
+    if (empty) empty.hidden = hasProducts;
+
+    cards.forEach(function (card, i) {
+      var p = products[i];
+      card.style.display = p ? '' : 'none';
+      if (!p) return;
+
+      var img  = card.querySelector('.mega-product-img');
+      var name = card.querySelector('.mega-product-name');
+      img.src  = p.image;
+      img.alt  = p.name;
+      name.textContent = p.name;
+      card.href = p.url;
+    });
+    if (eyebrow) eyebrow.textContent = label;
+  }
+
+  function swap(cat, label) {
+    if (cat === currentCat) return;
 
     clearTimeout(swapTimer);
 
@@ -245,23 +267,7 @@ updateNav();
 
     /* Phase 2: after fade-out completes, update content then animate in */
     swapTimer = setTimeout(function () {
-      var hasProducts = products.length > 0;
-      grid.hidden = !hasProducts;
-      if (empty) empty.hidden = hasProducts;
-
-      cards.forEach(function (card, i) {
-        var p = products[i];
-        card.style.display = p ? '' : 'none';
-        if (!p) return;
-
-        var img  = card.querySelector('.mega-product-img');
-        var name = card.querySelector('.mega-product-name');
-        img.src  = p.image;
-        img.alt  = p.name;
-        name.textContent = p.name;
-        card.href = p.url;
-      });
-      if (eyebrow) eyebrow.textContent = label;
+      render(cat, label);
 
       cards.forEach(function (c) { c.classList.remove('is-leaving'); });
       void grid.offsetWidth;
@@ -269,8 +275,27 @@ updateNav();
     }, 190);
   }
 
-  document.querySelectorAll('.mega-col--collection [data-mega-cat]').forEach(function (link) {
+  var catLinks = Array.prototype.slice.call(document.querySelectorAll('.mega-col--collection [data-mega-cat]'));
+
+  /* Lần load đầu (trước khi hover bất kỳ category nào): render ngay category
+     đầu tiên ở cột 2 để cột 3 không còn để trống placeholder rỗng. */
+  if (catLinks.length) render(catLinks[0].dataset.megaCat, catLinks[0].dataset.megaLabel || 'Sản phẩm tiêu biểu');
+
+  /* Auto-cycle lần lượt qua các category (top-to-bottom như cột 2) mỗi 5s —
+     giống pattern megaNewSlider ở cột 1. Dừng vĩnh viễn ngay khi user hover
+     vào bất kỳ category nào; chỉ tick khi mega menu đang mở (.open) để
+     tránh đổi nội dung ngầm lúc menu đang đóng. */
+  var autoIndex = 0;
+  var autoTimer = catLinks.length > 1 ? setInterval(function () {
+    if (!megaWrap.classList.contains('open')) return;
+    autoIndex = (autoIndex + 1) % catLinks.length;
+    var link = catLinks[autoIndex];
+    swap(link.dataset.megaCat, link.dataset.megaLabel || 'Sản phẩm tiêu biểu');
+  }, 5000) : null;
+
+  catLinks.forEach(function (link) {
     link.addEventListener('mouseenter', function () {
+      clearInterval(autoTimer);
       swap(link.dataset.megaCat, link.dataset.megaLabel || 'Sản phẩm tiêu biểu');
     });
   });
@@ -373,213 +398,7 @@ updateNav();
   document.querySelectorAll('.cat-block').forEach(el => blockObs.observe(el));
   document.querySelectorAll('.section-divider').forEach(el => dividerObs.observe(el));
   document.querySelectorAll('.brand-stmt-body, .brand-stmt-cta').forEach(el => blockObs.observe(el));
-  document.querySelectorAll('.edit-grid, .feat-product, .shop-section, .tiktok-section, .journal-section').forEach(el => blockObs.observe(el));
-}());
-
-/* ---------- TikTok carousel ---------- */
-(function () {
-  const section = document.getElementById('tiktokSection');
-  if (!section) return;
-
-  const SLIDES = [
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_tee_Pale_Blue.jpg?v=1778216637&width=2160',       brand: 'CacyLinen', name: 'Áo linen cổ chữ V',   price: '660.000 ₫'   },
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange2.jpg?v=1778217470&width=2160',  brand: 'CacyLinen', name: 'Áo blouse thắt nơ',    price: '720.000 ₫'   },
-    { img: 'https://elleandriley.com/cdn/shop/files/Cashmere_Crew_Camel3.jpg?v=1779070696&width=2160',    brand: 'CacyLinen', name: 'Đầm linen cổ chữ V',   price: '1.290.000 ₫' },
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_BrownMelange.jpg?v=1778217470&width=2160',   brand: 'CacyLinen', name: 'Áo crop linen',         price: '620.000 ₫'   },
-    { img: 'https://elleandriley.com/cdn/shop/files/Slim_Tee_Birch.jpg?v=1778217589&width=2160',          brand: 'CacyLinen', name: 'Áo linen oversized',    price: '680.000 ₫'   },
-  ];
-
-  const N      = SLIDES.length;
-  const CENTER = 2;   // index của DOM item trung tâm trong grid (0-based)
-  let   cur    = 2;   // slide index đang active
-  let   locked = false;
-
-  const track = section.querySelector('.tiktok-track');
-  const items = Array.from(section.querySelectorAll('.tiktok-item'));
-  const dots  = Array.from(section.querySelectorAll('.tiktok-dot'));
-  const card  = section.querySelector('.tiktok-product-card');
-  const thumb = section.querySelector('.tiktok-product-thumb');
-  const bEl   = section.querySelector('.tiktok-product-brand');
-  const nEl   = section.querySelector('.tiktok-product-name');
-  const pEl   = section.querySelector('.tiktok-product-price');
-
-  /* Scale tương ứng với vị trí grid — không đổi suốt vòng đời */
-  const SCALES = items.map((_, pos) => pos === CENTER ? 1 : 1.10);
-
-  /* Cập nhật dots + product card (instant, không fade) */
-  function syncBottom() {
-    dots.forEach((d, i) => d.classList.toggle('tiktok-dot--active', i === cur));
-    const s = SLIDES[cur];
-    thumb.src       = s.img;
-    thumb.alt       = s.name;
-    bEl.textContent = s.brand;
-    nEl.textContent = s.name;
-    pEl.textContent = s.price;
-  }
-
-  /* Đồng bộ width của card với center column */
-  function syncCardWidth() {
-    if (window.innerWidth <= 640 || !card) return;
-    card.style.width = items[CENTER].offsetWidth + 'px';
-  }
-
-  /* Init — set data-pos + src ngay (không animation) */
-  function initData() {
-    items.forEach((item, pos) => {
-      const idx = ((cur - CENTER + pos) % N + N) % N;
-      const s   = SLIDES[idx];
-      item.dataset.pos = pos - CENTER;
-      const img = item.querySelector('.tiktok-img');
-      img.src = s.img;
-      img.alt = s.name;
-    });
-    syncBottom();
-  }
-
-  /* Video auto-play — sẵn sàng khi thay <img> bằng <video class="tiktok-video"> */
-  function syncVideoPlayback() {
-    items.forEach(item => {
-      const video = item.querySelector('.tiktok-video');
-      if (!video) return;
-      parseInt(item.dataset.pos, 10) === 0
-        ? video.play().catch(() => {})
-        : (video.pause(), (video.currentTime = 0));
-    });
-  }
-
-  /* Auto-advance */
-  let autoTimer = null;
-  function startAuto() {
-    clearInterval(autoTimer);
-    autoTimer = setInterval(() => goTo(cur + 1), 5000);
-  }
-  function stopAuto() { clearInterval(autoTimer); }
-
-  /* -------------------------------------------------------
-     Navigate — crossfade + subtle zoom (editorial style)
-  ------------------------------------------------------- */
-  const FADE_OUT = 240;
-  const FADE_IN  = 500;
-  const EASE_IN  = 'cubic-bezier(0.16, 1, 0.3, 1)'; // ease-out-expo
-  const DRIFT    = 32; // px — đủ để cảm nhận hướng, không lộ liễu
-
-  function goTo(rawIdx) {
-    if (locked) return;
-    const next = ((rawIdx % N) + N) % N;
-    if (next === cur) return;
-    locked = true;
-
-    const dir = rawIdx > cur ? 1 : -1;
-
-    // Phase 1: fade out + drift nhẹ theo hướng
-    items.forEach((item, pos) => {
-      const img = item.querySelector('.tiktok-img');
-      img.style.transition = `opacity ${FADE_OUT}ms ease, transform ${FADE_OUT}ms ease`;
-      img.style.opacity    = '0';
-      img.style.transform  = `scale(${SCALES[pos]}) translateX(${-dir * DRIFT}px)`;
-    });
-
-    setTimeout(() => {
-      cur = next;
-      items.forEach((item, pos) => {
-        const idx = ((cur - CENTER + pos) % N + N) % N;
-        const s   = SLIDES[idx];
-        const img = item.querySelector('.tiktok-img');
-        img.src = s.img;
-        img.alt = s.name;
-        // đặt sẵn từ phía đối diện, invisible
-        img.style.transition = 'none';
-        img.style.opacity    = '0';
-        img.style.transform  = `scale(${SCALES[pos]}) translateX(${dir * DRIFT}px)`;
-      });
-
-      syncBottom();
-      syncVideoPlayback();
-      startAuto();
-
-      // Phase 2: fade in + drift về 0
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        items.forEach((item, pos) => {
-          const img = item.querySelector('.tiktok-img');
-          img.style.transition = `opacity ${FADE_IN}ms ease, transform ${FADE_IN}ms ${EASE_IN}`;
-          img.style.opacity    = '1';
-          img.style.transform  = `scale(${SCALES[pos]}) translateX(0)`;
-        });
-
-        setTimeout(() => {
-          items.forEach(item => {
-            const img = item.querySelector('.tiktok-img');
-            img.style.transition = 'none';
-            img.style.transform  = '';
-            img.style.opacity    = '';
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-              img.style.transition = '';
-            }));
-          });
-          locked = false;
-        }, FADE_IN + 20);
-      }));
-    }, FADE_OUT + 16);
-  }
-
-  /* --- Events --- */
-
-  /* Arrows */
-  section.querySelector('.tiktok-arrow--prev').addEventListener('click', () => goTo(cur - 1));
-  section.querySelector('.tiktok-arrow--next').addEventListener('click', () => goTo(cur + 1));
-
-  /* Dots */
-  dots.forEach((d, i) => d.addEventListener('click', () => goTo(i)));
-
-  /* Click side item → navigate đến nó */
-  items.forEach(item => {
-    item.addEventListener('click', () => {
-      const dp = parseInt(item.dataset.pos, 10);
-      if (dp !== 0) goTo(cur + dp);
-    });
-  });
-
-  /* Touch swipe */
-  let tx = 0, ty = 0;
-  track.addEventListener('touchstart', e => {
-    tx = e.touches[0].clientX;
-    ty = e.touches[0].clientY;
-  }, { passive: true });
-  track.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - tx;
-    const dy = e.changedTouches[0].clientY - ty;
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 44) {
-      goTo(dx < 0 ? cur + 1 : cur - 1);
-    }
-  }, { passive: true });
-
-  /* Mouse drag (desktop) */
-  let dragStart = null;
-  track.addEventListener('pointerdown', e => { dragStart = e.clientX; });
-  track.addEventListener('pointerup', e => {
-    if (dragStart === null) return;
-    const dx = e.clientX - dragStart;
-    dragStart = null;
-    if (Math.abs(dx) > 55) goTo(dx < 0 ? cur + 1 : cur - 1);
-  });
-  track.addEventListener('pointerleave', () => { dragStart = null; });
-
-  /* Keyboard */
-  section.setAttribute('tabindex', '-1');
-  section.addEventListener('keydown', e => {
-    if (e.key === 'ArrowLeft')  goTo(cur - 1);
-    if (e.key === 'ArrowRight') goTo(cur + 1);
-  });
-
-  /* Hover: pause auto-advance */
-  section.addEventListener('mouseenter', stopAuto, { passive: true });
-  section.addEventListener('mouseleave', startAuto, { passive: true });
-
-  /* --- Init --- */
-  initData();
-  syncCardWidth();
-  startAuto();
-  window.addEventListener('resize', syncCardWidth, { passive: true });
+  document.querySelectorAll('.edit-grid, .feat-product, .shop-section, .journal-section').forEach(el => blockObs.observe(el));
 }());
 
 /* ---------- Promotion countdown ---------- */
@@ -660,6 +479,26 @@ updateNav();
     tab.addEventListener('click', () => {
       tabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
+    });
+  });
+}());
+
+/* ---------- Featured category rows — 1 hàng/danh mục, cuộn ngang.
+   Nút prev/next chỉ dịch track.scrollBy(1 màn hình) trên chính scrollLeft
+   của .cat-row-track, nên vuốt tay/trackpad và bấm nút hoạt động song song,
+   không tranh nhau. Nút bị ẩn ở mobile (CSS) — vuốt tay vẫn hoạt động. ---------- */
+(function () {
+  document.querySelectorAll('.cat-row').forEach(row => {
+    const track   = row.querySelector('.cat-row-track');
+    const prevBtn = row.querySelector('.cat-row-nav--prev');
+    const nextBtn = row.querySelector('.cat-row-nav--next');
+    if (!track) return;
+
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+      track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' });
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+      track.scrollBy({ left: track.clientWidth, behavior: 'smooth' });
     });
   });
 }());

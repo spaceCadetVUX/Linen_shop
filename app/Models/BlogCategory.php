@@ -10,7 +10,6 @@ use App\Traits\HasSitemapEntry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BlogCategory extends Model
@@ -33,7 +32,6 @@ class BlogCategory extends Model
     // ── Mass assignment ───────────────────────────────────────────────────────
 
     protected $fillable = [
-        'parent_id',
         'name',
         'slug',
         'description',
@@ -62,18 +60,6 @@ class BlogCategory extends Model
     }
 
     // ── Relationships ─────────────────────────────────────────────────────────
-
-    /** Parent blog category (self-referencing). */
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(BlogCategory::class, 'parent_id');
-    }
-
-    /** Direct children (self-referencing). */
-    public function children(): HasMany
-    {
-        return $this->hasMany(BlogCategory::class, 'parent_id');
-    }
 
     public function posts(): HasMany
     {

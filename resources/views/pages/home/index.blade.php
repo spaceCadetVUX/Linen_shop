@@ -55,21 +55,30 @@
 </section>
 
 <!-- ==============================  EDITORIAL GRID  ==============================
-     Mobile (≤640px): carousel vuốt ngang 100vh/danh mục, dots do JS build
-     (app.js) từ số lượng .edit-grid-item — xem #editGridDots dưới đây. -->
+     Desktop/tablet: mỗi nhóm tối đa 3 danh mục render thành 1 .edit-grid-row
+     riêng (grid auto-fit) để luôn full-width dù dòng còn lại 1/2/3 mục —
+     auto-fit chỉ collapse track rỗng trong CÙNG 1 grid, gộp chung 1 grid
+     nhiều dòng sẽ để trống ô lẻ ở dòng cuối khi tổng số mục không chia hết 3.
+     Mobile (≤640px): .edit-grid-row {display:contents} để item thoát khỏi
+     wrapper, quay lại thành 1 dải flex carousel liên tục như cũ — dots do
+     JS build (app.js) từ số lượng .edit-grid-item — xem #editGridDots. -->
   <section class="edit-grid" id="editGrid">
-    @foreach($editorialItems as $eg)
-    <a href="{{ $eg['url'] }}" class="edit-grid-item">
-      @if($eg['image_url'])
-        <div class="edit-grid-img" style="background-image:url('{{ $eg['image_url'] }}')"></div>
-      @else
-        <div class="edit-grid-img {{ $eg['fallback_class'] }}"></div>
-      @endif
-      <div class="edit-grid-label">
-        <span class="edit-grid-name">{{ $eg['name'] }}</span>
-        <span class="edit-grid-cta">{{ $eg['cta'] }}</span>
-      </div>
-    </a>
+    @foreach(array_chunk($editorialItems, 3) as $row)
+    <div class="edit-grid-row">
+      @foreach($row as $eg)
+      <a href="{{ $eg['url'] }}" class="edit-grid-item">
+        @if($eg['image_url'])
+          <div class="edit-grid-img" style="background-image:url('{{ $eg['image_url'] }}')"></div>
+        @else
+          <div class="edit-grid-img {{ $eg['fallback_class'] }}"></div>
+        @endif
+        <div class="edit-grid-label">
+          <span class="edit-grid-name">{{ $eg['name'] }}</span>
+          <span class="edit-grid-cta">{{ $eg['cta'] }}</span>
+        </div>
+      </a>
+      @endforeach
+    </div>
     @endforeach
 
     @if(count($editorialItems) > 1)
@@ -161,90 +170,48 @@
 
 
   {{-- ==============================  SHOP GRID  ==============================
-       Sản phẩm mới nhất (8) — bật/tắt + tiêu đề chỉnh trong Landing Page
-       setting (featured_enabled / featured_title). Ẩn hẳn khi tắt hoặc
-       chưa có sản phẩm. --}}
-  @if($featuredEnabled && $featuredProducts->isNotEmpty())
+       Mỗi danh mục có show_on_landing=true (Category tab General) → 1 hàng
+       carousel riêng, thứ tự theo sort_order. Bật/tắt + tiêu đề tổng chỉnh
+       trong Landing Page setting (featured_enabled / featured_title). Ẩn hẳn
+       khi tắt hoặc không có danh mục nào có sản phẩm. --}}
+  @if($featuredEnabled && $featuredCategoryRows->isNotEmpty())
   <section class="shop-section" id="shopSection">
     <div class="shop-header shop-header--featured">
       <h2 class="shop-header-title">{{ $featuredTitle }}</h2>
-      <a href="{{ route($locale . '.product.shop') }}" class="shop-view-all">{{ $locale === 'vi' ? 'Xem tất cả' : 'View all' }} →</a>
     </div>
 
-    <div class="shop-grid">
-      @foreach($featuredProducts as $p)
-        <x-product.card :product="$p" />
-      @endforeach
-    </div>
+    @foreach($featuredCategoryRows as $row)
+      <div class="cat-row" id="catRow{{ $loop->index }}">
+        <div class="cat-row-header">
+          <h3 class="cat-row-title">{{ $row['title'] }}</h3>
+          <a href="{{ $row['url'] }}" class="shop-view-all">{{ $locale === 'vi' ? 'Xem tất cả' : 'View all' }} →</a>
+        </div>
+
+        <div class="cat-row-wrap">
+          @if($row['products']->count() > 1)
+          <button type="button" class="cat-row-nav cat-row-nav--prev" aria-label="{{ $locale === 'vi' ? 'Sản phẩm trước' : 'Previous products' }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          @endif
+
+          <div class="cat-row-track">
+            @foreach($row['products'] as $p)
+              <div class="cat-row-item">
+                <x-product.card :product="$p" />
+              </div>
+            @endforeach
+          </div>
+
+          @if($row['products']->count() > 1)
+          <button type="button" class="cat-row-nav cat-row-nav--next" aria-label="{{ $locale === 'vi' ? 'Sản phẩm tiếp' : 'Next products' }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          @endif
+        </div>
+      </div>
+    @endforeach
   </section>
   @endif
-
-  <!-- ==============================  TIKTOK INSPIRATION  ============================== -->
-  <!--
-    VIDEO INTEGRATION GUIDE (future):
-    • Thay <img class="tiktok-img"> bằng <video class="tiktok-video" muted playsinline preload="metadata" poster="thumbnail.jpg">
-    • JS đã có sẵn syncVideoPlayback() — chỉ video ở data-pos="0" được play()
-    • Dùng IntersectionObserver để auto-play khi section vào viewport, pause khi ra
-  -->
-  <section class="tiktok-section" id="tiktokSection">
-    <div class="tiktok-header">
-      <p class="tiktok-eyebrow">Tik Tok</p>
-      <h2 class="tiktok-title">Inspiration</h2>
-    </div>
-
-    <div class="tiktok-stage">
-      <button class="tiktok-arrow tiktok-arrow--prev" aria-label="Trước">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-
-      <div class="tiktok-track">
-        <div class="tiktok-item" data-pos="-2">
-          <img src="" alt="" class="tiktok-img">
-        </div>
-        <div class="tiktok-item" data-pos="-1">
-          <img src="" alt="" class="tiktok-img">
-        </div>
-        <div class="tiktok-item" data-pos="0">
-          <img src="" alt="" class="tiktok-img">
-          <!-- Video controls — visible only when data-pos="0" via CSS -->
-          <button class="tiktok-ctrl tiktok-ctrl--play" aria-label="Tạm dừng">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-          </button>
-          <button class="tiktok-ctrl tiktok-ctrl--mute" aria-label="Tắt tiếng">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-          </button>
-        </div>
-        <div class="tiktok-item" data-pos="1">
-          <img src="" alt="" class="tiktok-img">
-        </div>
-        <div class="tiktok-item" data-pos="2">
-          <img src="" alt="" class="tiktok-img">
-        </div>
-      </div>
-
-      <button class="tiktok-arrow tiktok-arrow--next" aria-label="Tiếp">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-
-    <div class="tiktok-bottom">
-      <div class="tiktok-product-card">
-        <img src="" alt="" class="tiktok-product-thumb">
-        <div class="tiktok-product-info">
-          <span class="tiktok-product-brand"></span>
-          <span class="tiktok-product-name"></span>
-          <span class="tiktok-product-price"></span>
-        </div>
-      </div>
-      <div class="tiktok-dots">
-        <span class="tiktok-dot"></span>
-        <span class="tiktok-dot"></span>
-        <span class="tiktok-dot"></span>
-        <span class="tiktok-dot"></span>
-        <span class="tiktok-dot"></span>
-      </div>
-    </div>
-  </section>
 
   {{-- ==============================  JOURNAL / BLOG  ==============================
        4 bài viết mới nhất ($latestBlogs — HomeController, khớp 4 cột grid).

@@ -690,26 +690,31 @@ class JsonldService
         $name = (string) ($t?->name ?? $model->getAttribute('name') ?? '');
         $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
 
+        $homeLabel = $locale === 'vi' ? 'Trang chủ' : 'Home';
+
         $items = [
-            ['name' => 'Home',      'url' => $baseUrl],
-            ['name' => $shopLabel,  'url' => $shopUrl],
+            ['name' => $homeLabel, 'url' => $baseUrl],
+            ['name' => $shopLabel, 'url' => $shopUrl],
         ];
 
         // Primary category, plus its full ancestor chain (root → nearest parent → primary).
+        // Skips any ancestor with no translation for this locale — same rule the visible
+        // breadcrumb uses (pages/product/show.blade.php: @continue(!$chainCatT)) — so the
+        // JSON-LD never lists a category the page itself never shows the visitor.
         if (method_exists($model, 'resolvePrimaryCategory')) {
             $primary = $model->resolvePrimaryCategory();
 
             foreach ($primary?->ancestorChain() ?? [] as $ancestor) {
                 $catTr = method_exists($ancestor, 'translation') ? $ancestor->translation($locale) : null;
-                $catName = (string) ($catTr?->name ?? $ancestor->getAttribute('name') ?? '');
-                $catSlug = (string) ($catTr?->slug ?? $ancestor->getAttribute('slug') ?? '');
 
-                if (filled($catSlug)) {
-                    $items[] = [
-                        'name' => $catName,
-                        'url' => LocaleUrl::for('category', $catSlug, $locale),
-                    ];
+                if (! $catTr || blank($catTr->slug)) {
+                    continue;
                 }
+
+                $items[] = [
+                    'name' => $catTr->name,
+                    'url' => LocaleUrl::for('category', $catTr->slug, $locale),
+                ];
             }
         }
 
@@ -733,20 +738,22 @@ class JsonldService
         $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
 
         $items = [
-            ['name' => 'Home', 'url' => $baseUrl],
-            ['name' => 'Blog', 'url' => LocaleUrl::listUrl('blog_post', $locale)],
+            ['name' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => $baseUrl],
+            ['name' => LocaleUrl::listLabel('blog_post', $locale), 'url' => LocaleUrl::listUrl('blog_post', $locale)],
         ];
 
         if (method_exists($model, 'blogCategory')) {
             $model->loadMissing('blogCategory');
             $category = $model->getRelationValue('blogCategory');
+            $catTr = $category?->translation($locale);
 
-            if ($category && filled($category->name)) {
-                $catSlug = (string) ($category->translation($locale)?->slug ?? $category->slug ?? '');
-                $catName = (string) ($category->translation($locale)?->name ?? $category->name);
+            // Skip if untranslated for this locale — same rule the visible
+            // breadcrumb uses, so JSON-LD never lists a category the page
+            // itself never shows the visitor.
+            if ($catTr && filled($catTr->slug)) {
                 $items[] = [
-                    'name' => $catName,
-                    'url' => LocaleUrl::for('blog_category', $catSlug, $locale),
+                    'name' => $catTr->name,
+                    'url' => LocaleUrl::for('blog_category', $catTr->slug, $locale),
                 ];
             }
         }
@@ -784,15 +791,19 @@ class JsonldService
 
         foreach ($chain as $category) {
             $t = method_exists($category, 'translation') ? $category->translation($locale) : null;
-            $name = (string) ($t?->name ?? $category->getAttribute('name') ?? '');
-            $slug = (string) ($t?->slug ?? $category->getAttribute('slug') ?? '');
 
-            if (filled($name)) {
-                $items[] = [
-                    'name' => $name,
-                    'url' => LocaleUrl::for('category', $slug, $locale),
-                ];
+            // Skip ancestors untranslated for this locale — same rule the
+            // visible breadcrumb uses (CategoryController::show() only adds
+            // $parentTranslation when it exists), so JSON-LD never lists a
+            // category the page itself never shows the visitor.
+            if (! $t || blank($t->slug)) {
+                continue;
             }
+
+            $items[] = [
+                'name' => $t->name,
+                'url' => LocaleUrl::for('category', $t->slug, $locale),
+            ];
         }
 
         return $this->buildBreadcrumbSchema($items);
@@ -913,12 +924,20 @@ class JsonldService
                             }
 
                             // Price and availability — use locale-specific translation when available.
+                            // Effective price mirrors Product::toSearchableArray(): sale_price when it
+                            // undercuts price, else price — a plain $t->price here quoted the pre-discount
+                            // amount, disagreeing with the product's own Product/AggregateOffer schema
+                            // (which already discounts) for the same item.
                             $price = $t?->price ?? $product->getAttribute('price');
+                            $salePrice = $t?->sale_price ?? $product->getAttribute('sale_price');
+                            $effectivePrice = (filled($salePrice) && (float) $salePrice < (float) $price)
+                                ? $salePrice
+                                : $price;
                             $currency = $t?->currency ?? $product->getAttribute('currency') ?? config('seo.currency', 'VND');
-                            if (filled($price)) {
+                            if (filled($effectivePrice)) {
                                 $productNode['offers'] = [
                                     '@type' => 'Offer',
-                                    'price' => (float) $price,
+                                    'price' => (float) $effectivePrice,
                                     'priceCurrency' => $currency,
                                     'availability' => ((int) $product->getAttribute('stock_quantity')) > 0
                                         ? 'https://schema.org/InStock'
@@ -1036,10 +1055,7 @@ class JsonldService
 
     /**
      * Build a BreadcrumbList payload for a blog category page.
-     * Structure: Home → Blog → [{Parent category} →] {Category}
-     *
-     * The parent level is included only when a parent_id is assigned.
-     * Falls back to Home → Blog → Category.
+     * Structure: Home → Blog → Category (blog categories are flat, no parent level).
      */
     private function buildBlogCategoryBreadcrumb(Model $model, string $locale = 'vi'): array
     {
@@ -1049,23 +1065,9 @@ class JsonldService
         $slug = (string) ($t?->slug ?? $model->getAttribute('slug') ?? '');
 
         $items = [
-            ['name' => 'Home', 'url' => $baseUrl],
-            ['name' => 'Blog', 'url' => LocaleUrl::listUrl('blog_post', $locale)],
+            ['name' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => $baseUrl],
+            ['name' => LocaleUrl::listLabel('blog_post', $locale), 'url' => LocaleUrl::listUrl('blog_post', $locale)],
         ];
-
-        if (method_exists($model, 'parent')) {
-            $model->loadMissing('parent');
-            $parent = $model->getRelationValue('parent');
-
-            if ($parent && filled($parent->name)) {
-                $parentSlug = (string) ($parent->translation($locale)?->slug ?? $parent->slug ?? '');
-                $parentName = (string) ($parent->translation($locale)?->name ?? $parent->name);
-                $items[] = [
-                    'name' => $parentName,
-                    'url' => LocaleUrl::for('blog_category', $parentSlug, $locale),
-                ];
-            }
-        }
 
         $items[] = ['name' => $name, 'url' => LocaleUrl::for('blog_category', $slug, $locale)];
 
@@ -1136,6 +1138,12 @@ class JsonldService
 
         $pageUrl = $this->resolvePublicUrl($model, $morphAlias, (string) ($model->getAttribute('slug') ?? ''), $locale);
 
+        // mainEntityOfPage must assert the same @type as the page's own primary
+        // schema (Product/BlogPosting/CollectionPage) — hardcoding "WebPage"
+        // here contradicted the page's real @type elsewhere in the same
+        // JSON-LD graph (e.g. a CollectionPage referenced as a WebPage).
+        $primaryType = (self::MODEL_SCHEMA_TYPES[$morphAlias][0] ?? null)?->value ?? 'WebPage';
+
         JsonldSchema::updateOrCreate(
             [
                 'model_type' => $morphAlias,
@@ -1150,7 +1158,7 @@ class JsonldService
                     '@context' => 'https://schema.org',
                     '@type' => 'FAQPage',
                     '@id' => $pageUrl.'#faq',
-                    'mainEntityOfPage' => ['@type' => 'WebPage', '@id' => $pageUrl],
+                    'mainEntityOfPage' => ['@type' => $primaryType, '@id' => $pageUrl],
                     'mainEntity' => $mainEntity,
                 ],
                 'is_active' => true,
@@ -1491,7 +1499,7 @@ class JsonldService
         $slug = (string) ($model->getAttribute('slug') ?? '');
 
         return $this->buildBreadcrumbSchema([
-            ['name' => 'Home',                                            'url' => rtrim((string) (config('seo.app_url') ?: config('app.url')), '/')],
+            ['name' => $locale === 'vi' ? 'Trang chủ' : 'Home',           'url' => rtrim((string) (config('seo.app_url') ?: config('app.url')), '/')],
             ['name' => LocaleUrl::listLabel('manufacturer', $locale),    'url' => LocaleUrl::listUrl('manufacturer', $locale)],
             ['name' => $name,                                             'url' => LocaleUrl::for('manufacturer', $slug, $locale)],
         ]);
@@ -1508,7 +1516,7 @@ class JsonldService
         $slug = (string) ($model->getAttribute('slug') ?? '');
 
         return $this->buildBreadcrumbSchema([
-            ['name' => 'Home',                                       'url' => $baseUrl],
+            ['name' => $locale === 'vi' ? 'Trang chủ' : 'Home',      'url' => $baseUrl],
             ['name' => LocaleUrl::listLabel('brand', $locale),       'url' => LocaleUrl::listUrl('brand', $locale)],
             ['name' => $name,                                        'url' => LocaleUrl::for('brand', $slug, $locale)],
         ]);
@@ -1549,6 +1557,15 @@ class JsonldService
         $morphAlias = $model->getMorphClass();
         $baseUrl = rtrim((string) (config('seo.app_url') ?: config('app.url')), '/');
         $slug = (string) ($model->getAttribute('slug') ?? '');
+
+        // brand/manufacturer/author are read via magic property access below
+        // (Model::__isset/__get) — eager-load first or preventLazyLoading()
+        // throws in non-production (this is a queued job, not a request, so
+        // there's no other eager-loading point upstream to rely on).
+        $model->loadMissing(array_values(array_filter(
+            ['brand', 'manufacturer', 'author'],
+            fn (string $relation) => method_exists($model, $relation)
+        )));
 
         $canonicalUrl = $this->resolvePublicUrl($model, $morphAlias, $slug, $locale);
 

@@ -23,6 +23,23 @@ trait ManagesProductRelations
      */
     protected array $categoryIdsBeforeSave = [];
 
+    /**
+     * Dehydrated `translations` data, captured from mutateFormDataBeforeCreate/
+     * mutateFormDataBeforeSave (which run through $form->getState() and therefore
+     * hold RichEditor content as HTML, not the raw Tiptap JSON array Livewire
+     * keeps in $this->data). saveTranslations() must read from here, never from
+     * $this->data directly — the raw array blows up "Array to string conversion"
+     * once it hits an uncast description column.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $translationsForSave = [];
+
+    protected function captureTranslationsForSave(array $translations): void
+    {
+        $this->translationsForSave = $translations;
+    }
+
     protected function captureCategoryIdsBeforeSave(): void
     {
         $this->categoryIdsBeforeSave = $this->getRecord()
@@ -34,7 +51,7 @@ trait ManagesProductRelations
     protected function saveTranslations(): void
     {
         $record = $this->getRecord();
-        $translationsData = $this->data['translations'] ?? [];
+        $translationsData = $this->translationsForSave;
 
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];

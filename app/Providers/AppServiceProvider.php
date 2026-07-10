@@ -146,6 +146,21 @@ class AppServiceProvider extends ServiceProvider
             // Column 1 slider — admin-curated products (Mega Menu Setting), falls back to 4 newest active.
             $view->with('megaMenuNewProducts', app(\App\Services\Product\ProductService::class)->getLatestForMegaMenu($locale));
         });
+
+        // Footer "Bộ sưu tập" column — real Category data, same rule as the
+        // mega menu above (must reach the shared partial without a query in Blade).
+        View::composer('partials.footer', function ($view) {
+            $locale = app()->getLocale();
+
+            $view->with(
+                'footerCategories',
+                app(\App\Services\Category\CategoryService::class)->getFooterCategories($locale)
+            );
+
+            // Fallback link while no category is active yet — same reasoning as
+            // megaMenuCollectionUrl above.
+            $view->with('footerShopUrl', route("{$locale}.product.shop"));
+        });
     }
 
     // ── Encrypted user provider ───────────────────────────────────────────────

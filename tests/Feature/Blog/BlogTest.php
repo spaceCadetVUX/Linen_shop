@@ -152,17 +152,16 @@ class BlogTest extends TestCase
             ->assertStatus(401);
     }
 
-    // ── 10. Blog categories tree ──────────────────────────────────────────────
+    // ── 10. Blog categories list ──────────────────────────────────────────────
 
     public function test_can_get_blog_categories(): void
     {
-        $parent = BlogCategory::factory()->create();
-        BlogCategory::factory()->create(['parent_id' => $parent->id]);
+        BlogCategory::factory()->count(2)->create();
 
         $this->getJson('/api/v1/blog/categories')
             ->assertStatus(200)
             ->assertJsonStructure([
-                'data' => [['id', 'name', 'slug', 'children']],
+                'data' => [['id', 'name', 'slug']],
             ]);
     }
 

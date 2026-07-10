@@ -14,7 +14,7 @@ class McpBlogCategoryService
 
     public function context(string $slug): array
     {
-        $bc = BlogCategory::with(['translations', 'seoMetas', 'geoProfiles', 'parent.translations', 'children.translations', 'jsonldSchemas'])
+        $bc = BlogCategory::with(['translations', 'seoMetas', 'geoProfiles', 'jsonldSchemas'])
             ->withCount('posts')
             ->where('slug', $slug)
             ->firstOrFail();
@@ -45,11 +45,6 @@ class McpBlogCategoryService
                         'is_active' => false,
                     ]);
 
-                    if (!empty($data['parent_slug'])) {
-                        $parent = BlogCategory::where('slug', $data['parent_slug'])->first();
-                        if ($parent) $bc->parent_id = $parent->id;
-                    }
-
                     $bc->save();
                 }
 
@@ -79,7 +74,7 @@ class McpBlogCategoryService
                     $this->writeGeoProfiles($bc, $data['geo'], $overwrite);
                 }
 
-                $bc->load(['translations', 'seoMetas', 'geoProfiles', 'parent.translations', 'children.translations', 'jsonldSchemas']);
+                $bc->load(['translations', 'seoMetas', 'geoProfiles', 'jsonldSchemas']);
                 $bc->loadCount('posts');
                 $preview = $this->buildContextResponse($bc);
 
@@ -121,7 +116,7 @@ class McpBlogCategoryService
 
         return [
             'data' => $this->buildContextResponse(
-                $bc->fresh(['translations', 'seoMetas', 'geoProfiles', 'parent.translations', 'children.translations', 'jsonldSchemas'])
+                $bc->fresh(['translations', 'seoMetas', 'geoProfiles', 'jsonldSchemas'])
                    ->loadCount('posts'),
             ),
         ];
@@ -363,26 +358,6 @@ class McpBlogCategoryService
             }
         }
 
-        $parent = null;
-        if ($bc->parent) {
-            $parentTr = $bc->parent->translations->firstWhere('locale', 'vi')
-                ?? $bc->parent->translations->first();
-            $parent = [
-                'slug' => $bc->parent->slug,
-                'name' => $parentTr?->name ?? $bc->parent->name,
-            ];
-        }
-
-        $children = $bc->children->map(function (BlogCategory $child) {
-            $childTr = $child->translations->firstWhere('locale', 'vi')
-                ?? $child->translations->first();
-            return [
-                'slug'      => $child->slug,
-                'name'      => $childTr?->name ?? $child->name,
-                'is_active' => $child->is_active,
-            ];
-        })->values()->all();
-
         $jsonldOut = [];
         foreach (($bc->jsonldSchemas ?? collect()) as $schema) {
             $jsonldOut[$schema->locale][] = [
@@ -399,8 +374,6 @@ class McpBlogCategoryService
             'name'           => $bc->name,
             'is_active'      => $bc->is_active,
             'sort_order'     => $bc->sort_order,
-            'parent'         => $parent,
-            'children'       => $children,
             'post_count'     => $bc->posts_count ?? $bc->loadCount('posts')->posts_count,
             'translations'   => $translations,
             'seo'            => $seo,

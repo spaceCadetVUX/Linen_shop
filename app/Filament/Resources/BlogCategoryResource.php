@@ -48,13 +48,6 @@ class BlogCategoryResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Forms\Components\Select::make('parent_id')
-                ->label('Parent Category')
-                ->relationship('parent', 'name')
-                ->searchable()
-                ->preload()
-                ->nullable(),
-
             Forms\Components\TextInput::make('name')
                 ->label('Internal Name')
                 ->hint('Dùng trong admin — không hiển thị cho người dùng')
@@ -857,10 +850,6 @@ class BlogCategoryResource extends Resource
                 Tables\Columns\TextColumn::make('slug')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('parent.name')
-                    ->label('Parent')
-                    ->placeholder('—'),
-
                 Tables\Columns\TextColumn::make('sort_order')
                     ->sortable(),
 
@@ -881,10 +870,6 @@ class BlogCategoryResource extends Resource
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Active'),
-
-                Tables\Filters\SelectFilter::make('parent_id')
-                    ->label('Parent')
-                    ->relationship('parent', 'name'),
             ])
             ->actions([
                 EditAction::make(),

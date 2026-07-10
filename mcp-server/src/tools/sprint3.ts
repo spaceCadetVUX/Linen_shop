@@ -44,6 +44,10 @@ export function registerSprint3Tools(server: McpServer) {
         use_cases:        z.string().optional().describe("Các use case điển hình"),
         target_audience:  z.string().optional().describe("Đối tượng mục tiêu"),
         llm_context_hint: z.string().optional().describe("Hint cho LLM"),
+        key_facts: z.array(z.object({
+          label: z.string().describe("Nhãn thông số"),
+          value: z.string().describe("Giá trị thông số"),
+        })).optional().describe("Các số liệu/thông tin nổi bật — hiển thị box 'key facts' trên trang bài viết"),
         faq: z.array(z.object({
           question: z.string().describe("Câu hỏi"),
           answer:   z.string().describe("Câu trả lời"),
@@ -86,7 +90,6 @@ export function registerSprint3Tools(server: McpServer) {
     {
       slug:               z.string().describe("Blog category slug — dùng làm URL"),
       name:               z.string().optional().describe("Tên nội bộ (dùng trong admin)"),
-      parent_slug:        z.string().optional().describe("Slug của category cha"),
       sort_order:         z.number().optional().describe("Thứ tự sắp xếp"),
       overwrite_existing: z.boolean().default(false).describe("true = ghi đè content đã có"),
       dry_run:            z.boolean().default(false).describe("true = preview, không lưu DB"),

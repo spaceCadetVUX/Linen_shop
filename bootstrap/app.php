@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.sanctum' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'set.locale'   => \App\Http\Middleware\SetLocale::class,
             'mcp.ability'  => \App\Http\Middleware\EnsureMcpTokenAbility::class,
+            'cache.public' => \App\Http\Middleware\CachePublicPage::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

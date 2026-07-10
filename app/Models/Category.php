@@ -48,6 +48,7 @@ class Category extends Model
         'image_path',
         'sort_order',
         'is_active',
+        'show_on_landing',
         'faq_items_vi',
         'faq_items_en',
         'mcp_drafted_at',
@@ -71,6 +72,7 @@ class Category extends Model
     {
         return [
             'is_active'      => 'boolean',
+            'show_on_landing' => 'boolean',
             'deleted_at'     => 'datetime',
             'faq_items_vi'   => 'array',
             'faq_items_en'   => 'array',

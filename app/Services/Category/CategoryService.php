@@ -47,6 +47,23 @@ class CategoryService
     }
 
     /**
+     * Root categories shaped as simple {name, url} pairs — for the footer
+     * "Bộ sưu tập" column. Reuses the cached tree (getTree()), skipping the
+     * products eager-load getMegaMenuData() does since the footer only needs
+     * the label + link.
+     */
+    public function getFooterCategories(string $locale): array
+    {
+        return $this->getTree()
+            ->map(fn (Category $root) => [
+                'name' => $root->translation($locale)?->name ?? $root->name,
+                'url' => LocaleUrl::for('category', $root->translation($locale)?->slug ?? $root->slug, $locale),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Root category + active children → up to 4 newest active products each,
      * shaped for the header mega menu (column 2 groups/links + column 3 hover
      * preview — hovering either a parent or a child swaps column 3).

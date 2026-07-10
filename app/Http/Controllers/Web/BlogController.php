@@ -14,6 +14,7 @@ use App\Services\Seo\SeoService;
 use App\Support\HeadingAnchors;
 use App\Support\ImageDimensions;
 use App\Support\LocaleUrl;
+use App\Support\RichContentHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Tiptap\Editor;
@@ -46,16 +47,9 @@ class BlogController extends Controller
         // Resolve display name for the active category filter label
         $categoryName = null;
         if ($categoryFilter) {
-            foreach ($blogCategories as $root) {
-                if (in_array($root->slug, $categoryFilter)) {
-                    $categoryName = $root->name;
-                    break;
-                }
-                $matched = $root->children->first(fn ($c) => in_array($c->slug, $categoryFilter));
-                if ($matched) {
-                    $categoryName = $matched->name;
-                    break;
-                }
+            $matched = $blogCategories->first(fn ($cat) => in_array($cat->slug, $categoryFilter));
+            if ($matched) {
+                $categoryName = $matched->name;
             }
         }
 
@@ -111,7 +105,7 @@ class BlogController extends Controller
                 '@type' => 'BreadcrumbList',
                 'itemListElement' => [
                     ['@type' => 'ListItem', 'position' => 1, 'name' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'item' => route($locale.'.index')],
-                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Blog'],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => LocaleUrl::listLabel('blog_post', $locale)],
                 ],
             ],
         ];
@@ -173,25 +167,8 @@ class BlogController extends Controller
                                     : null;
         $ogType = 'website';
 
-        // ── Subcategory pills ──────────────────────────────────────────────────
-        $blogCategory->loadMissing([
-            'children' => fn ($q) => $q->active()
-                ->withCount(['posts as blog_count' => fn ($q) => $q->published()])
-                ->with(['translations' => fn ($q) => $q->where('locale', $locale)])
-                ->orderBy('sort_order'),
-        ]);
-        $blogCategory->children->each(function ($child) {
-            $tr = $child->translations->first();
-            $child->name = $tr?->name ?? $child->name;
-            $child->slug = $tr?->slug ?? $child->slug;
-        });
-
-        // ── Posts query (this category + direct children) ──────────────────────
-        $categoryIds = collect([$blogCategory->id])
-            ->merge($blogCategory->children->pluck('id'))
-            ->unique();
-
-        $blogs = $this->blogPostRepository->paginateByCategoryIdsDecorated($locale, $categoryIds->all(), 12);
+        // ── Posts query (this category only — blog categories are flat, no children) ──
+        $blogs = $this->blogPostRepository->paginateByCategoryIdsDecorated($locale, [$blogCategory->id], 12);
 
         // Self-referencing canonical for pagination — same rule as blog index()/PLP.
         $canonicalUrl = $blogs->currentPage() > 1
@@ -203,7 +180,11 @@ class BlogController extends Controller
         // ── Rich content — admin-managed (BlogCategoryResource RichEditor).
         // Stored as plain HTML (rich_content has no 'array' cast, unlike product
         // CategoryTranslation), so no Tiptap JSON→HTML conversion needed here.
-        $richContentHtml = filled($translation->rich_content) ? $translation->rich_content : null;
+        // Page banner already owns the single <h1> — never let admin content
+        // emit a second one (see RichContentHtml docblock).
+        $richContentHtml = filled($translation->rich_content)
+            ? RichContentHtml::capHeadingLevels($translation->rich_content)
+            : null;
 
         $blogCategory->loadMissing('geoProfiles');
         $geoProfile = $blogCategory->geoProfiles->firstWhere('locale', $locale);
@@ -217,15 +198,8 @@ class BlogController extends Controller
         // so the visible trail never disagrees with the BreadcrumbList JSON-LD.
         $breadcrumbItems = [
             ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
-            ['label' => 'Blog', 'url' => route($locale.'.blog.index')],
+            ['label' => LocaleUrl::listLabel('blog_post', $locale), 'url' => route($locale.'.blog.index')],
         ];
-        $parentTranslation = $blogCategory->parent?->translation($locale);
-        if ($parentTranslation) {
-            $breadcrumbItems[] = [
-                'label' => $parentTranslation->name,
-                'url' => LocaleUrl::for('blog_category', $parentTranslation->slug, $locale),
-            ];
-        }
         $breadcrumbItems[] = ['label' => $translation->name, 'url' => null];
 
         view()->share('alternateUrls', $alternateUrls);
@@ -324,6 +298,10 @@ class BlogController extends Controller
             }
         }
 
+        // Post title already owns the single <h1> — never let the body emit a
+        // second one (see RichContentHtml docblock).
+        $bodyHtml = RichContentHtml::capHeadingLevels($bodyHtml);
+
         $readMins = max(1, (int) ceil(str_word_count(strip_tags($bodyHtml)) / 200));
         $bodyHtml = HeadingAnchors::inject($bodyHtml);
 
@@ -331,7 +309,7 @@ class BlogController extends Controller
         // so the visible trail never disagrees with the BreadcrumbList JSON-LD.
         $breadcrumbItems = [
             ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
-            ['label' => 'Blog', 'url' => route($locale.'.blog.index')],
+            ['label' => LocaleUrl::listLabel('blog_post', $locale), 'url' => route($locale.'.blog.index')],
         ];
         if ($post->blogCategory && filled($catTr?->name ?? $post->blogCategory->name)) {
             $breadcrumbItems[] = [

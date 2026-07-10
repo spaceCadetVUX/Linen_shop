@@ -11,6 +11,7 @@ use App\Services\Catalog\ProductSearchService;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\SeoService;
 use App\Support\LocaleUrl;
+use App\Support\RichContentHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -130,9 +131,11 @@ class CategoryController extends Controller
         // Nesting is capped at 2 levels (root → child, enforced in
         // CategoryObserver::saving()), so a single parent lookup covers every
         // case — mirrors the ancestor chain already in the BreadcrumbList
-        // JSON-LD (JsonldService::buildCategoryBreadcrumb()).
+        // JSON-LD (JsonldService::buildCategoryBreadcrumb()), including the
+        // category index level so the visible trail never disagrees with it.
         $breadcrumbItems = [
             ['label' => $locale === 'vi' ? 'Trang chủ' : 'Home', 'url' => route($locale.'.index')],
+            ['label' => LocaleUrl::listLabel('category', $locale), 'url' => LocaleUrl::listUrl('category', $locale)],
         ];
         $parentTranslation = $category->parent?->translation($locale);
         if ($parentTranslation) {
@@ -212,6 +215,9 @@ class CategoryController extends Controller
                     new TableHeader,
                     new TableCell,
                 ]]))->setContent($rawContent)->getHTML();
+                // Page banner already owns the single <h1> — never let admin
+                // content emit a second one (see RichContentHtml docblock).
+                $richContentHtml = RichContentHtml::capHeadingLevels($richContentHtml);
                 // Strip empty paragraphs only
                 if (trim(strip_tags($richContentHtml)) === '') {
                     $richContentHtml = null;

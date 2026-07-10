@@ -84,6 +84,8 @@ class EditProduct extends EditRecord
             $data['stock_quantity'] = 0;
         }
 
+        $this->captureTranslationsForSave($data['translations'] ?? []);
+
         return $data;
     }
 
