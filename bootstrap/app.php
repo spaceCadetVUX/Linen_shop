@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust the reverse-proxy chain (Cloudflare → host nginx → container nginx)
+        // so Request::isSecure() / url()/route() generate https:// instead of http://.
+        $middleware->trustProxies(at: '*');
+
         // Sanctum cookie auth for SPA (stateful domains)
         $middleware->statefulApi();
 
