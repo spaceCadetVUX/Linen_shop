@@ -4,7 +4,7 @@ services:
   nginx:
     image: nginx:1.25-alpine
     ports:
-      - "80:80"
+      - "127.0.0.1:8081:80"
     volumes:
       - .:/backend:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
@@ -40,8 +40,6 @@ services:
   # ─── PostgreSQL ─────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_DB: app
       POSTGRES_USER: app
@@ -58,8 +56,6 @@ services:
   # ─── Redis ──────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -72,8 +68,6 @@ services:
   # ─── Meilisearch ────────────────────────────────────────────────────────────
   meilisearch:
     image: getmeili/meilisearch:v1.7
-    ports:
-      - "7700:7700"
     environment:
       MEILI_NO_ANALYTICS: "true"
     volumes:

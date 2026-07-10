@@ -19,9 +19,10 @@ docker compose down
 ```
 
 **Access:**
-- App: http://localhost
-- Admin: http://localhost/admin
-- Meilisearch: http://localhost:7700
+- App: http://localhost:8081
+- Admin: http://localhost:8081/admin
+
+Meilisearch, Postgres, Redis không còn public ra host (chỉ nội bộ trong docker network) — dùng `docker compose exec <service> ...` hoặc `docker compose port <service> <port>` nếu cần truy cập trực tiếp lúc debug.
 
 **Admin credentials:**
 - Email: `admin@example.com`
@@ -80,15 +81,17 @@ Lý do: `config/scout.php` bật `'queue' => [...]` (truthy) nên mọi lần đ
 
 ## Services
 
-| Service      | Port  | Description          |
-|--------------|-------|----------------------|
-| nginx        | 80    | Web server           |
-| php-fpm      | 9000  | Laravel app          |
-| postgres     | 5432  | Database             |
-| redis        | 6379  | Cache / Queue        |
-| meilisearch  | 7700  | Search engine        |
-| horizon      | —     | Queue worker         |
-| scheduler    | —     | Laravel scheduler    |
+| Service      | Port                  | Description          |
+|--------------|-----------------------|-----------------------|
+| nginx        | 127.0.0.1:8081 → 80   | Web server            |
+| php-fpm      | 9000 (nội bộ)         | Laravel app           |
+| postgres     | 5432 (nội bộ)         | Database              |
+| redis        | 6379 (nội bộ)         | Cache / Queue         |
+| meilisearch  | 7700 (nội bộ)         | Search engine         |
+| horizon      | —                     | Queue worker          |
+| scheduler    | —                     | Laravel scheduler     |
+
+Production (VPS iNET): domain `cacylinen.com` → Nginx hệ thống (SSL Cloudflare Origin) → `127.0.0.1:8081` → container nginx trong stack này.
 
 
 
