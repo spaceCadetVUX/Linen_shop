@@ -13,7 +13,8 @@
       "PowerShell(wsl --shutdown)",
       "Bash(docker pull *)",
       "PowerShell(Get-NetAdapterChecksumOffload -Name \"vEthernet \\(WSL\\)\")",
-      "Read(//c/Users/vusu3/AppData/Roaming/Claude/**)"
+      "Read(//c/Users/vusu3/AppData/Roaming/Claude/**)",
+      "Bash(cat \"/c/Users/vusu3/AppData/Roaming/Claude/claude_desktop_config.json\" 2>&1)"
     ]
   }
 }

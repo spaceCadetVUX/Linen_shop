@@ -12,6 +12,17 @@ class EditCategory extends EditRecord
 {
     protected static string $resource = CategoryResource::class;
 
+    /**
+     * Dehydrated `translations` data, captured here (runs through
+     * $form->getState() and therefore holds RichEditor content as HTML, not
+     * the raw Tiptap JSON array Livewire keeps in $this->data). afterSave()
+     * must read from here, never from $this->data directly — the raw array
+     * blows up "Array to string conversion" on the rich_content column.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $translationsForSave = [];
+
     protected function getHeaderActions(): array
     {
         return [
@@ -42,6 +53,8 @@ class EditCategory extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $this->translationsForSave = $data['translations'] ?? [];
+
         // Internal slug field is ->hidden() — keep categories.slug in sync with
         // the vi translation slug on save (same behaviour as EditProduct).
         $vi = $data['translations']['vi'] ?? [];
@@ -73,13 +86,11 @@ class EditCategory extends EditRecord
 
     protected function afterSave(): void
     {
-        $state = $this->data;
-
         // SEO meta and GEO profile are saved automatically by Filament's
         // saveRelationships() via the Group::relationship() components in the form.
 
         // ── Translations ──────────────────────────────────────────────────────
-        $translationsData = $state['translations'] ?? [];
+        $translationsData = $this->translationsForSave;
 
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];

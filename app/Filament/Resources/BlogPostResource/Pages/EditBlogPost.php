@@ -11,6 +11,24 @@ class EditBlogPost extends EditRecord
 {
     protected static string $resource = BlogPostResource::class;
 
+    /**
+     * Dehydrated `translations` data, captured from mutateFormDataBeforeSave
+     * (runs through $form->getState() and therefore holds RichEditor content
+     * as HTML, not the raw Tiptap JSON array Livewire keeps in $this->data).
+     * saveTranslations() must read from here, never from $this->data directly
+     * — the raw array blows up "Array to string conversion" on the body column.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $translationsForSave = [];
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        $this->translationsForSave = $data['translations'] ?? [];
+
+        return $data;
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $this->record->loadMissing('geoProfiles');
@@ -60,7 +78,7 @@ class EditBlogPost extends EditRecord
     private function saveTranslations(): void
     {
         $record           = $this->getRecord();
-        $translationsData = $this->data['translations'] ?? [];
+        $translationsData = $this->translationsForSave;
 
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];
