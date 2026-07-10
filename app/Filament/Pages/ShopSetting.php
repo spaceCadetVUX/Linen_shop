@@ -96,8 +96,7 @@ class ShopSetting extends Page
                             ->directory('shop/hero')
                             ->imagePreviewHeight('200')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                            ->maxSize(5120)
-                            ->helperText('Hiển thị cột trái banner. Khuyến nghị 800×600px, ≤5MB, WebP. Bỏ trống thì banner chỉ có chữ.')
+                            ->helperText('Hiển thị cột trái banner. Khuyến nghị 800×600px, WebP. Bỏ trống thì banner chỉ có chữ.')
                             ->columnSpanFull(),
 
                         TextInput::make('hero_alt')

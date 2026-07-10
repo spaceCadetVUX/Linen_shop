@@ -146,8 +146,7 @@ class LandingSetup extends Page
                             ->directory('landing/hero')
                             ->imagePreviewHeight('200')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                            ->maxSize(5120)
-                            ->helperText('Khuyến nghị 1920×800px, ≤5MB, WebP.')
+                            ->helperText('Khuyến nghị 1920×800px, WebP.')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
