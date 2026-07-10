@@ -54,14 +54,6 @@
   </div>
 </section>
 
-<!-- ==============================  EDITORIAL GRID  ==============================
-     Desktop/tablet: mỗi nhóm tối đa 3 danh mục render thành 1 .edit-grid-row
-     riêng (grid auto-fit) để luôn full-width dù dòng còn lại 1/2/3 mục —
-     auto-fit chỉ collapse track rỗng trong CÙNG 1 grid, gộp chung 1 grid
-     nhiều dòng sẽ để trống ô lẻ ở dòng cuối khi tổng số mục không chia hết 3.
-     Mobile (≤640px): .edit-grid-row {display:contents} để item thoát khỏi
-     wrapper, quay lại thành 1 dải flex carousel liên tục như cũ — dots do
-     JS build (app.js) từ số lượng .edit-grid-item — xem #editGridDots. -->
   <section class="edit-grid" id="editGrid">
     @foreach(array_chunk($editorialItems, 3) as $row)
     <div class="edit-grid-row">
@@ -156,18 +148,6 @@
     </section>
     @endforeach
   @endif
-
-  <!-- ==============================  BRAND STATEMENT  ============================== -->
-  <!-- <section class="brand-stmt">
-    <div class="brand-stmt-inner">
-      <div class="brand-stmt-text">
-        <p class="brand-stmt-body">Chúng tôi thiết kế những trang phục linen tinh tế, xây dựng phong cách sống bền vững, và mang đến những trải nghiệm mặc đẹp mỗi ngày. Bắt nguồn từ chất liệu tự nhiên và được định hướng bởi sự tối giản, CacyLinen không ngừng phát triển theo cách có chủ đích.</p>
-        <a href="#" class="brand-stmt-cta">Tìm hiểu về CacyLinen</a>
-      </div>
-    </div>
-  </section> -->
-
-
 
   {{-- ==============================  SHOP GRID  ==============================
        Mỗi danh mục có show_on_landing=true (Category tab General) → 1 hàng

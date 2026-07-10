@@ -12,7 +12,8 @@
       "Bash(docker system *)",
       "PowerShell(wsl --shutdown)",
       "Bash(docker pull *)",
-      "PowerShell(Get-NetAdapterChecksumOffload -Name \"vEthernet \\(WSL\\)\")"
+      "PowerShell(Get-NetAdapterChecksumOffload -Name \"vEthernet \\(WSL\\)\")",
+      "Read(//c/Users/vusu3/AppData/Roaming/Claude/**)"
     ]
   }
 }
