@@ -11,8 +11,21 @@ class CreateCategory extends CreateRecord
 {
     protected static string $resource = CategoryResource::class;
 
+    /**
+     * Dehydrated `translations` data, captured here (runs through
+     * $form->getState() and therefore holds RichEditor content as HTML, not
+     * the raw Tiptap JSON array Livewire keeps in $this->data). afterCreate()
+     * must read from here, never from $this->data directly — the raw array
+     * blows up "Array to string conversion" on the rich_content column.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $translationsForSave = [];
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $this->translationsForSave = $data['translations'] ?? [];
+
         // The internal slug field is ->hidden() in the form, so Livewire never
         // dehydrates it — categories.slug is NOT NULL, derive it here
         // (same approach as CreateProduct).
@@ -40,13 +53,11 @@ class CreateCategory extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $state = $this->data;
-
         // SEO meta and GEO profile are saved automatically by Filament's
         // saveRelationships() via the Group::relationship() components in the form.
 
         // ── Translations ──────────────────────────────────────────────────────
-        $translationsData = $state['translations'] ?? [];
+        $translationsData = $this->translationsForSave;
 
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];
