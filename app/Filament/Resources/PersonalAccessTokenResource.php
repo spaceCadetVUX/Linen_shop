@@ -2,12 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\PersonalAccessTokenResource\Pages;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\BulkActionGroup;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -26,6 +27,11 @@ class PersonalAccessTokenResource extends Resource
     protected static ?string $navigationLabel = 'API Tokens (MCP)';
 
     protected static ?int $navigationSort = 20;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->role === UserRole::Admin;
+    }
 
     public static function form(Schema $form): Schema
     {
@@ -50,8 +56,8 @@ class PersonalAccessTokenResource extends Resource
             Forms\Components\CheckboxList::make('abilities')
                 ->label('Abilities')
                 ->options([
-                    'mcp:read'    => 'mcp:read — Đọc context (GET)',
-                    'mcp:write'   => 'mcp:write — Tạo/sửa draft (PUT)',
+                    'mcp:read' => 'mcp:read — Đọc context (GET)',
+                    'mcp:write' => 'mcp:write — Tạo/sửa draft (PUT)',
                     'mcp:publish' => 'mcp:publish — Publish/activate (PATCH)',
                 ])
                 ->columns(1)
@@ -104,7 +110,7 @@ class PersonalAccessTokenResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListPersonalAccessTokens::route('/'),
+            'index' => Pages\ListPersonalAccessTokens::route('/'),
             'create' => Pages\CreatePersonalAccessToken::route('/create'),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\UserRole;
 use App\Filament\Resources\ActivityLogResource\Pages;
 use BackedEnum;
 use Filament\Actions\DeleteBulkAction;
@@ -12,9 +13,9 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Models\Activity;
@@ -30,6 +31,11 @@ class ActivityLogResource extends Resource
     protected static ?int $navigationSort = 30;
 
     protected static ?string $navigationLabel = 'Activity Log';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->role === UserRole::Admin;
+    }
 
     // Read-only resource — no form needed
     public static function form(Schema $schema): Schema
@@ -58,7 +64,7 @@ class ActivityLogResource extends Resource
                         'created' => 'success',
                         'updated' => 'warning',
                         'deleted' => 'danger',
-                        default   => 'gray',
+                        default => 'gray',
                     })
                     ->searchable(),
 
@@ -119,7 +125,7 @@ class ActivityLogResource extends Resource
                                     'created' => 'success',
                                     'updated' => 'warning',
                                     'deleted' => 'danger',
-                                    default   => 'gray',
+                                    default => 'gray',
                                 }),
                             TextEntry::make('subject_type')->label('Subject')
                                 ->formatStateUsing(fn (?string $state): string => $state ? class_basename($state) : '—'),

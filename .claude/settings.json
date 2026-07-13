@@ -18,7 +18,9 @@
       "Bash(curl -s -D - -o /tmp/mcpcheck.html --max-time 10 https://mcp.knxstore.vn/)",
       "Read(//tmp/**)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(curl -s -D - -o /tmp/mcptest.txt --max-time 15 -X POST https://mcp.cacylinen.com/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2025-03-26\",\"capabilities\":{},\"clientInfo\":{\"name\":\"curl\",\"version\":\"0\"}}}')",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/vusu3/AppData/Roaming/Claude/claude_desktop_config.json','utf8'\\)\\); console.log\\('valid JSON'\\)\")"
     ]
   }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\UserRole;
 use App\Models\BusinessProfile;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -17,12 +18,20 @@ use Illuminate\Support\HtmlString;
 
 class AnalyticsSettings extends Page
 {
-    protected static BackedEnum|string|null $navigationIcon  = 'heroicon-o-chart-bar';
-    protected static \UnitEnum|string|null  $navigationGroup = 'Setting';
-    protected static ?string               $navigationLabel = 'Analytics & Search Console';
-    protected static ?int                  $navigationSort  = 30;
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-chart-bar';
+
+    protected static \UnitEnum|string|null $navigationGroup = 'Setting';
+
+    protected static ?string $navigationLabel = 'Analytics & Search Console';
+
+    protected static ?int $navigationSort = 30;
 
     protected string $view = 'filament.pages.analytics-settings';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->role === UserRole::Admin;
+    }
 
     // ── Form state ────────────────────────────────────────────────────────────
 
@@ -35,10 +44,10 @@ class AnalyticsSettings extends Page
         $extra = (array) (BusinessProfile::instance()->extra ?? []);
 
         $this->form->fill([
-            'ga4_id'           => $extra['ga4_id']           ?? null,
-            'gtm_id'           => $extra['gtm_id']           ?? null,
-            'gsc_meta'         => $extra['gsc_meta']         ?? null,
-            'ga4_active'       => (bool) ($extra['ga4_active'] ?? true),
+            'ga4_id' => $extra['ga4_id'] ?? null,
+            'gtm_id' => $extra['gtm_id'] ?? null,
+            'gsc_meta' => $extra['gsc_meta'] ?? null,
+            'ga4_active' => (bool) ($extra['ga4_active'] ?? true),
             'default_og_image' => $extra['og_image'] ?? null,
         ]);
     }
@@ -104,11 +113,12 @@ class AnalyticsSettings extends Page
                             ->label('Thẻ sẽ inject vào <head>')
                             ->content(function (): HtmlString {
                                 $val = $this->data['gsc_meta'] ?? null;
+
                                 return new HtmlString(
                                     filled($val)
                                         ? '<code style="font-size:0.8rem;background:#f1f5f9;padding:6px 10px;border-radius:4px;display:block;">'
-                                          . e('<meta name="google-site-verification" content="' . $val . '">')
-                                          . '</code>'
+                                          .e('<meta name="google-site-verification" content="'.$val.'">')
+                                          .'</code>'
                                         : '<em style="color:#94a3b8;">Chưa có verification code.</em>'
                                 );
                             })
@@ -136,13 +146,13 @@ class AnalyticsSettings extends Page
         $data = $this->form->getState();
 
         $profile = BusinessProfile::instance();
-        $extra   = (array) ($profile->extra ?? []);
+        $extra = (array) ($profile->extra ?? []);
 
-        $extra['ga4_id']           = filled($data['ga4_id'])   ? trim($data['ga4_id'])   : null;
-        $extra['gtm_id']           = filled($data['gtm_id'])   ? trim($data['gtm_id'])   : null;
-        $extra['gsc_meta']         = filled($data['gsc_meta']) ? trim($data['gsc_meta']) : null;
-        $extra['ga4_active']       = (bool) ($data['ga4_active'] ?? true);
-        $extra['og_image']         = $data['default_og_image'] ?? null;
+        $extra['ga4_id'] = filled($data['ga4_id']) ? trim($data['ga4_id']) : null;
+        $extra['gtm_id'] = filled($data['gtm_id']) ? trim($data['gtm_id']) : null;
+        $extra['gsc_meta'] = filled($data['gsc_meta']) ? trim($data['gsc_meta']) : null;
+        $extra['ga4_active'] = (bool) ($data['ga4_active'] ?? true);
+        $extra['og_image'] = $data['default_og_image'] ?? null;
 
         $profile->extra = $extra;
         $profile->saveQuietly();

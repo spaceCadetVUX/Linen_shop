@@ -19,13 +19,13 @@ class UserFactory extends Factory
     {
         return [
             // email passes through the User::email() Attribute mutator → encrypted on save
-            'name'              => fake()->name(),
-            'email'             => fake()->unique()->safeEmail(),
-            'phone'             => null,
-            'role'              => UserRole::Customer,
+            'name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'phone' => null,
+            'role' => UserRole::Customer,
             'email_verified_at' => now(),
-            'password'          => static::$password ??= Hash::make('password'),
-            'remember_token'    => Str::random(10),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
         ];
     }
 
@@ -42,6 +42,14 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => UserRole::Admin,
+        ]);
+    }
+
+    /** State: manager role. */
+    public function manager(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => UserRole::Manager,
         ]);
     }
 }

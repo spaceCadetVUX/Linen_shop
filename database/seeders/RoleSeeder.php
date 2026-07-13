@@ -11,8 +11,9 @@ class RoleSeeder extends Seeder
     {
         // guard_name must be 'web' — Spatie default
         Role::firstOrCreate(['name' => 'admin',    'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'manager',  'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'customer', 'guard_name' => 'web']);
 
-        $this->command->info('Roles seeded: admin, customer');
+        $this->command->info('Roles seeded: admin, manager, customer');
     }
 }

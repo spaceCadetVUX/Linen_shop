@@ -3,16 +3,16 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Notifications\Auth\VerifyEmailNotification;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Notifications\Auth\VerifyEmailNotification;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Crypt;
@@ -23,10 +23,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens;
+
     use HasFactory;
+    use HasRoles;
     use HasUuids;
     use Notifiable;
-    use HasRoles;
     use SoftDeletes;
 
     // ── Mass assignment ───────────────────────────────────────────────────────
@@ -51,10 +52,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'password'         => 'hashed',
+            'password' => 'hashed',
             'email_verified_at' => 'datetime',
-            'deleted_at'       => 'datetime',
-            'role'             => UserRole::class,
+            'deleted_at' => 'datetime',
+            'role' => UserRole::class,
         ];
     }
 
@@ -69,7 +70,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             get: fn (string $value) => Crypt::decryptString($value),
             set: function (string $value): array {
                 return [
-                    'email'      => Crypt::encryptString($value),
+                    'email' => Crypt::encryptString($value),
                     'email_hash' => hash('sha256', strtolower($value)),
                 ];
             },
@@ -122,10 +123,10 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     // ── Filament access control ───────────────────────────────────────────────
 
     /**
-     * Restrict Filament admin panel access to users with role=admin.
+     * Restrict Filament admin panel access to staff roles (admin, manager).
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === UserRole::Admin;
+        return in_array($this->role, [UserRole::Admin, UserRole::Manager], true);
     }
 }
