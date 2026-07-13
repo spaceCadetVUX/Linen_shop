@@ -93,6 +93,22 @@ services:
     env_file:
       - .env
 
+  # ─── MCP Server (Claude tool bridge → /api/v1/mcp/*) ────────────────────────
+  mcp-server:
+    build:
+      context: ./mcp-server
+    ports:
+      - "127.0.0.1:3100:3100"
+    environment:
+      MCP_HTTP: "1"
+      MCP_PORT: "3100"
+      MCP_API_KEY: ${MCP_API_KEY:?MCP_API_KEY is required}
+      KNXSTORE_API_BASE: "http://nginx/api/v1"
+      KNXSTORE_API_TOKEN: ${MCP_SANCTUM_TOKEN:?MCP_SANCTUM_TOKEN is required}
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
   # ─── Scheduler (artisan schedule:run every 60s) ──────────────────────────────
   scheduler:
     build:

@@ -14,7 +14,9 @@
       "Bash(docker pull *)",
       "PowerShell(Get-NetAdapterChecksumOffload -Name \"vEthernet \\(WSL\\)\")",
       "Read(//c/Users/vusu3/AppData/Roaming/Claude/**)",
-      "Bash(cat \"/c/Users/vusu3/AppData/Roaming/Claude/claude_desktop_config.json\" 2>&1)"
+      "Bash(cat \"/c/Users/vusu3/AppData/Roaming/Claude/claude_desktop_config.json\" 2>&1)",
+      "Bash(curl -s -D - -o /tmp/mcpcheck.html --max-time 10 https://mcp.knxstore.vn/)",
+      "Read(//tmp/**)"
     ]
   }
 }
