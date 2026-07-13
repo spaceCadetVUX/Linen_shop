@@ -162,6 +162,7 @@ img    { display: block; }
 }
 .nav-icon-btn:hover { opacity: 0.55; }
 .navbar.filled .nav-icon-btn { color: var(--ink); }
+.nav-account-btn { display: none; }
 
 .nav-cart-btn { position: relative; }
 .nav-cart-count {
