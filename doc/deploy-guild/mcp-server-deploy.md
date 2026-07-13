@@ -189,7 +189,7 @@ chặn theo email trước `mcp.cacylinen.com`, đặc biệt nếu domain này 
 
 - [x] Container `mcp-server` chạy healthy trên VPS, đã verify JSON-RPC `initialize` trả đúng `serverInfo.name: "knxstore-mcp"` (2026-07-13)
 - [ ] Chưa có command/seeder tự động tạo Sanctum token — hiện phải chạy tay qua tinker (mục 1)
-- [ ] Chưa thêm DNS record + nginx cho `mcp.cacylinen.com` (mục 4) — cert dùng lại wildcard `*.cacylinen.com` đã có sẵn, không cần tạo mới
+- [x] DNS + nginx cho `mcp.cacylinen.com` đã lên, verify từ ngoài qua Cloudflare trả `200 OK` + đúng `serverInfo.name` (2026-07-13)
 - [ ] Chưa test thật `mcp-remote` với Claude Desktop trên máy Windows của team — chỉ verify qua doc chính thức, chưa chạy tay end-to-end
 - [ ] Chưa bật Cloudflare Access — endpoint hiện chỉ có 1 lớp bảo vệ (API key)
 - [ ] Package/env var naming (`knxstore-mcp-server`, `KNXSTORE_API_BASE/TOKEN`) không khớp catalog thật (CacyLinen) — chỉ là tên kế thừa lúc scaffold, không đổi vì không ảnh hưởng chức năng, nhưng dễ gây nhầm lẫn sau này
