@@ -16,7 +16,7 @@ class EditUser extends EditRecord
             Actions\DeleteAction::make()
                 ->hidden(fn () => $this->record->id === auth()->id())
                 ->before(fn () => $this->record->tokens()->delete())
-                ->successNotificationTitle('User deleted — all tokens revoked'),
+                ->successNotificationTitle(__('admin.user.notifications.deleted')),
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\SetAdminLocale;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -17,10 +18,12 @@ use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -50,18 +53,19 @@ class AdminPanelProvider extends PanelProvider
                 FilamentInfoWidget::class,
             ])
             ->navigationGroups([
-                NavigationGroup::make('Catalog'),
-                NavigationGroup::make('Commerce'),
-                NavigationGroup::make('Blog'),
-                NavigationGroup::make('Content'),
-                NavigationGroup::make('SEO & GEO'),
-                NavigationGroup::make('Setting'),
-                NavigationGroup::make('System'),
+                NavigationGroup::make(__('admin.nav.catalog')),
+                NavigationGroup::make(__('admin.nav.commerce')),
+                NavigationGroup::make(__('admin.nav.blog')),
+                NavigationGroup::make(__('admin.nav.content')),
+                NavigationGroup::make(__('admin.nav.seo_geo')),
+                NavigationGroup::make(__('admin.nav.setting')),
+                NavigationGroup::make(__('admin.nav.system')),
             ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
+                SetAdminLocale::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,
@@ -72,10 +76,27 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->authenticatedRoutes(function (): void {
+                // Admin locale switcher — remembered in session (no /vi|/en prefix here,
+                // unlike the storefront). See SetAdminLocale + locale-switcher.blade.php.
+                Route::get('locale/{locale}', function (string $locale, Request $request) {
+                    if (in_array($locale, config('app.supported_locales'), true)) {
+                        $request->session()->put('admin_locale', $locale);
+                    }
+
+                    return redirect()->back();
+                })->name('locale.switch');
+            })
             ->renderHook(
                 'panels::head.end',
                 fn (): HtmlString => new HtmlString(
                     view('filament.reorder-styles')->render()
+                ),
+            )
+            ->renderHook(
+                'panels::topbar.end',
+                fn (): HtmlString => new HtmlString(
+                    view('filament.locale-switcher')->render()
                 ),
             );
     }

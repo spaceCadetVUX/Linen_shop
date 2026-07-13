@@ -24,9 +24,22 @@ class UserResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'System';
-
     protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.system');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('admin.user.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('admin.user.plural_label');
+    }
 
     /** Chỉ được xem/sửa/xóa account có level thấp hơn mình — chặn cả cùng cấp lẫn cao hơn qua direct URL. */
     public static function getEloquentQuery(): Builder
@@ -60,23 +73,28 @@ class UserResource extends Resource
             ->all();
     }
 
+    protected static function roleLabel(UserRole $role): string
+    {
+        return __('admin.user.roles.'.$role->value);
+    }
+
     public static function form(Schema $form): Schema
     {
         $isEdit = $form->getOperation() === 'edit';
 
         return $form->schema([
             Forms\Components\TextInput::make('name')
-                ->label('Tên')
+                ->label(__('admin.user.fields.name'))
                 ->required(),
 
             Forms\Components\TextInput::make('email')
-                ->label('Email')
+                ->label(__('admin.user.fields.email'))
                 ->email()
                 ->required()
                 ->unique(ignoreRecord: true),
 
             Forms\Components\Select::make('role')
-                ->label('Role')
+                ->label(__('admin.user.fields.role'))
                 ->options(function () {
                     $currentRole = auth()->user()?->role;
                     $roles = $currentRole === UserRole::Admin
@@ -84,7 +102,7 @@ class UserResource extends Resource
                         : static::manageableRoles($currentRole ?? UserRole::Customer);
 
                     return collect($roles)->mapWithKeys(fn ($r) => [
-                        ($r instanceof UserRole ? $r->value : $r) => ucfirst($r instanceof UserRole ? $r->value : $r),
+                        ($r instanceof UserRole ? $r->value : $r) => static::roleLabel($r instanceof UserRole ? $r : UserRole::from($r)),
                     ]);
                 })
                 // Filament tự validate state submit lên against options() ở trên (in: rule server-side) —
@@ -94,7 +112,7 @@ class UserResource extends Resource
                 ->required(),
 
             Forms\Components\TextInput::make('password')
-                ->label($isEdit ? 'Mật khẩu mới (để trống = giữ nguyên)' : 'Mật khẩu')
+                ->label($isEdit ? __('admin.user.fields.password_edit_hint') : __('admin.user.fields.password'))
                 ->password()
                 ->revealable()
                 ->required(! $isEdit)
@@ -110,16 +128,16 @@ class UserResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Tên')
+                    ->label(__('admin.user.fields.name'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
+                    ->label(__('admin.user.fields.email'))
                     ->copyable()
                     ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('role')
-                    ->label('Role')
+                    ->label(__('admin.user.fields.role'))
                     ->badge()
                     ->color(fn ($state) => match ($state) {
                         UserRole::Admin => 'warning',
@@ -127,16 +145,16 @@ class UserResource extends Resource
                         UserRole::Customer => 'gray',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => $state instanceof UserRole ? ucfirst($state->value) : $state),
+                    ->formatStateUsing(fn ($state) => $state instanceof UserRole ? static::roleLabel($state) : $state),
 
                 Tables\Columns\TextColumn::make('tokens_count')
-                    ->label('Tokens')
+                    ->label(__('admin.user.fields.tokens'))
                     ->getStateUsing(fn ($record) => $record->tokens()->count())
                     ->badge()
                     ->color('info'),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Joined')
+                    ->label(__('admin.user.fields.joined'))
                     ->dateTime(timezone: 'Asia/Ho_Chi_Minh')
                     ->sortable(),
             ])
@@ -144,22 +162,22 @@ class UserResource extends Resource
                 EditAction::make(),
 
                 DeleteAction::make()
-                    ->label('Delete & Revoke tokens')
+                    ->label(__('admin.user.actions.delete_revoke'))
                     ->hidden(fn ($record) => $record->id === auth()->id())
                     ->before(function ($record) {
                         $record->tokens()->delete();
                     })
-                    ->successNotificationTitle('User deleted — all tokens revoked'),
+                    ->successNotificationTitle(__('admin.user.notifications.deleted')),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->label('Delete selected')
+                        ->label(__('admin.user.actions.delete_selected'))
                         ->before(function ($records) {
                             foreach ($records as $record) {
                                 if ($record->id === auth()->id()) {
                                     Notification::make()
-                                        ->title('Không thể xóa tài khoản của chính mình')
+                                        ->title(__('admin.user.notifications.cannot_delete_self'))
                                         ->warning()
                                         ->send();
 

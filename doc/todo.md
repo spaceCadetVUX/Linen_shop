@@ -1,5 +1,31 @@
 # TODO
 
+> Cập nhật: 2026-07-13 — session: thêm role **Manager** cho trang admin (giới hạn quyền trong group System, chặn tab Analytics, không tác động được tài khoản cùng cấp/cao hơn) + bắt đầu rollout **song ngữ VI/EN cho toàn bộ trang admin Filament** (hiện đang mix lẫn tiếng Việt/tiếng Anh).
+
+## ✅ Role Manager — đã code, đã deploy production, đã verify
+
+- 3 role: `admin` (full quyền), `manager` (giới hạn), `customer` (không vào được admin). Logic dùng `UserRole::level()` (Admin=20, Manager=10, Customer=0, bước nhảy 10 để dễ chèn role mới sau này) — `UserResource::manageableRoles()` chặn manager xem/sửa/xóa account cùng cấp hoặc cao hơn (chỉ thấy `customer`).
+- Migration đổi enum Postgres ban đầu bị lỗi cú pháp (`Schema::table()->enum()->change()` sinh SQL `alter column type ... check(...)` không hợp lệ trên Postgres) → làm **php-fpm crash loop trên production** một lúc. Đã fix bằng raw SQL (drop/add check constraint riêng), redeploy lại, site đã ổn định (`curl -I` trả 301 bình thường).
+- Deploy qua `git push` → SSH VPS (`ssh root@103.166.183.176 -p 24700`, `/opt/cacylinen`) → `git pull` → `docker compose restart php-fpm horizon scheduler nginx`.
+
+## 🟠 Rollout song ngữ (VI/EN) admin panel — pilot xong, còn lại phần lớn
+
+**Đã dựng xong cơ chế (tái dùng, không cần làm lại):**
+- `app/Http/Middleware/SetAdminLocale.php` — locale lưu session `admin_locale` (độc lập với `SetLocale` của storefront dùng prefix URL `/vi`, `/en`)
+- Route `GET /admin/locale/{locale}` (đăng ký qua `->authenticatedRoutes()` trong `AdminPanelProvider`) + nút chuyển VI/EN ở topbar (`resources/views/filament/locale-switcher.blade.php`)
+- Lang file mẫu: `lang/vi/admin.php` + `lang/en/admin.php` (key lồng nhau theo resource, 2 file phải luôn khớp key 1-1)
+- 7 navigation group (Catalog, Commerce, Blog, Content, SEO & GEO, Setting, System) đã dịch trong `AdminPanelProvider`
+- `UserResource` (+ `ListUsers`, `EditUser`) đã convert 100% sang `__('admin.user.xxx')` — dùng làm mẫu tham chiếu cho các resource sau.
+
+**Audit số lượng còn lại (grep toàn bộ `app/Filament`, 105 file, 2026-07-13):** tổng **~1.241 chỗ hard-code** trải trên ít nhất 41 file — `->label()` 639 (121 có dấu VN, 50 rỗng không cần đổi), `->placeholder()` 259 (87 VN, 29 chỉ ký hiệu `—`/`-`), `->helperText()` 122, `Section/Tab/Step/Fieldset::make()` 121, `->title()/->body()` notification 40, `->description()` 36, `->navigationLabel()` 22. **File nặng nhất, làm sau cùng nếu chia nhỏ:** `ProductResource.php`, `BlogPostResource.php`, `BlogCategoryResource.php`, `CategoryResource.php`, `BusinessProfileResource.php` (mỗi file 30-70+ chỗ).
+
+**Lưu ý khi convert tiếp:**
+- Field dạng "Tiêu đề (vi)" / "Title (en)" hoặc "... Tiếng Việt"/"... English" **không phải** label UI bị lẫn ngôn ngữ — đó là tên field mô tả nội dung song ngữ của storefront (ô nhập bản VI/bản EN). Chỉ dịch phần chữ mô tả, giữ nguyên tag `(vi)`/`(en)`.
+- `navigationGroup`/`modelLabel`/`pluralModelLabel` phải override bằng **method** (`getNavigationGroup()`...), không dùng static property — PHP không cho gọi `__()` trong property initializer (không phải constant expression).
+- Chưa test bằng tay trên trình duyệt thật (máy dev không kết nối được `postgres` để chạy `php artisan serve` đầy đủ) — cần bạn tự bật server, bấm thử nút VI/EN ở trang Users trước khi quyết định convert tiếp toàn bộ.
+
+---
+
 > Cập nhật: 2026-07-09 (tiếp 3) — **Docker/Postgres đã kết nối được, verify runtime thật lần đầu.** Chạy hết 6 migration đang chờ + restart Horizon, test bằng tay toàn bộ checklist "Cần test lại bằng tay" của session trước (Category SEO, deactivate-parent, alt-locale redirect, Cart IDOR, Cart variant-bypass, Wishlist double-click + is_active, Order Inquiry end-to-end) qua curl + tinker trực tiếp trên container. Kết quả: **tất cả fix của session trước đều đúng**. Phát hiện thêm + fix ngay 3 bug mới (ngoài phạm vi các session trước):
 
 ## 🔴 3 bug mới phát hiện trong lúc verify — đã fix
