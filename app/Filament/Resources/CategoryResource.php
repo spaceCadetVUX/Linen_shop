@@ -22,6 +22,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Forms;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\RichEditor;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Group;
@@ -62,12 +63,12 @@ class CategoryResource extends Resource
                 ->tabs([
 
                     // ── General ───────────────────────────────────────────────────
-                    Tab::make('General')
+                    Tab::make(__('admin.category.tabs.general'))
                         ->icon('heroicon-o-cog-6-tooth')
                         ->schema([
                             Forms\Components\Select::make('parent_id')
-                                ->label('Parent Category')
-                                ->helperText('Tối đa 2 cấp — chỉ danh mục gốc (chưa có parent) mới được chọn làm parent.')
+                                ->label(__('admin.category.fields.parent_category'))
+                                ->helperText(__('admin.category.fields.parent_category_help'))
                                 ->options(function (?Category $record): array {
                                     // Only root categories (no parent of their own) can be picked as
                                     // parent — enforces a hard 2-level max. Also exclude self + all
@@ -88,29 +89,29 @@ class CategoryResource extends Resource
                                 ->nullable(),
 
                             Forms\Components\TextInput::make('name')
-                                ->label('Internal Name')
-                                ->hint('Dùng trong admin — không hiển thị cho người dùng')
+                                ->label(__('admin.category.fields.internal_name'))
+                                ->hint(__('admin.category.fields.internal_name_hint'))
                                 ->hintIcon('heroicon-o-information-circle')
                                 ->hintColor('warning')
-                                ->helperText('Tên ngắn gọn để nhận biết danh mục trong hệ thống.')
+                                ->helperText(__('admin.category.fields.internal_name_help'))
                                 ->required()
                                 ->live(debounce: 500)
                                 ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                                 ),
 
                             Forms\Components\TextInput::make('slug')
-                                ->label('Internal Slug')
-                                ->hint('Dùng trong JSON-LD và API nội bộ — không phải URL công khai')
+                                ->label(__('admin.category.fields.internal_slug'))
+                                ->hint(__('admin.category.fields.internal_slug_hint'))
                                 ->hintIcon('heroicon-o-information-circle')
                                 ->hintColor('warning')
-                                ->helperText('URL công khai dùng slug từ tab Content.')
+                                ->helperText(__('admin.category.fields.internal_slug_help'))
                                 ->required()
                                 ->unique(table: Category::class, column: 'slug', ignoreRecord: true)
                                 ->hidden(),
 
                             Forms\Components\Textarea::make('description')
-                                ->label('Internal Description')
-                                ->hint('Không hiển thị trực tiếp — dùng làm gợi ý nội dung')
+                                ->label(__('admin.category.fields.internal_description'))
+                                ->hint(__('admin.category.fields.internal_description_hint'))
                                 ->hintIcon('heroicon-o-information-circle')
                                 ->hintColor('warning')
                                 ->nullable()
@@ -119,7 +120,7 @@ class CategoryResource extends Resource
                                 ->hidden(),
 
                             MediaFileUpload::make('image_path')
-                                ->label('Category Image')
+                                ->label(__('admin.category.fields.category_image'))
                                 ->image()
                                 ->nullable()
                                 ->columnSpanFull(),
@@ -132,23 +133,23 @@ class CategoryResource extends Resource
                                 ->default(true),
 
                             Forms\Components\Toggle::make('show_on_landing')
-                                ->label('Hiện trên trang chủ (Sản phẩm nổi bật)')
-                                ->helperText('Bật để danh mục này có 1 hàng sản phẩm riêng trên landing page. Thứ tự các hàng theo Sort Order.')
+                                ->label(__('admin.category.fields.show_on_landing'))
+                                ->helperText(__('admin.category.fields.show_on_landing_help'))
                                 ->default(false),
                         ])
                         ->columns(2),
 
                     // ── Content ───────────────────────────────────────────────────
-                    Tab::make('Content')
+                    Tab::make(__('admin.category.tabs.content'))
                         ->icon('heroicon-o-language')
                         ->schema([
                             Tabs::make('ContentLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt (vi)')
+                                    Tab::make(__('admin.category.tabs.locale_vi_full'))
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.vi.name')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Tên hiển thị (vi)</span>'))
-                                                ->hint('Hiển thị trên trang web cho người dùng Việt Nam')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.display_name_vi').'</span>'))
+                                                ->hint(__('admin.category.fields.display_name_vi_hint'))
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
@@ -156,11 +157,11 @@ class CategoryResource extends Resource
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">URL Slug (vi)</span>'))
-                                                ->hint('Tạo URL: /vi/categories/{slug}')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.url_slug_vi').'</span>'))
+                                                ->hint(__('admin.category.fields.url_slug_vi_hint'))
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
-                                                ->helperText('Tự động tạo từ tên. Phải unique theo từng ngôn ngữ.')
+                                                ->helperText(__('admin.category.fields.slug_auto_help'))
                                                 ->unique(
                                                     table: 'category_translations',
                                                     column: 'slug',
@@ -174,31 +175,31 @@ class CategoryResource extends Resource
                                                         return $rule;
                                                     },
                                                 )
-                                                ->validationMessages(['unique' => 'Slug (vi) này đã được dùng bởi danh mục khác.'])
+                                                ->validationMessages(['unique' => __('admin.category.validation.slug_vi_unique')])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.description')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Mô tả (vi)</span>'))
-                                                ->hint('Hiển thị trên trang danh mục — Google đọc để hiểu nội dung')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.description_vi').'</span>'))
+                                                ->hint(__('admin.category.fields.description_vi_hint'))
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->rows(3)
                                                 ->columnSpanFull(),
 
                                             RichEditor::make('translations.vi.rich_content')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Nội dung phong phú (vi)</span>'))
-                                                ->hint('Nội dung dài, có thể chèn ảnh — hiển thị ở phần dưới trang danh mục')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.rich_content_vi').'</span>'))
+                                                ->hint(__('admin.category.fields.rich_content_vi_hint'))
                                                 ->hintIcon('heroicon-o-document-text')
                                                 ->hintColor('success')
                                                 ->plugins([MediaRichEditorPlugin::make()])
                                                 ->columnSpanFull(),
                                         ]),
 
-                                    Tab::make('🇬🇧 English (en)')
+                                    Tab::make(__('admin.category.tabs.locale_en_full'))
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.en.name')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Display Name (en)</span>'))
-                                                ->hint('Shown on the website to English-speaking visitors')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.display_name_en').'</span>'))
+                                                ->hint(__('admin.category.fields.display_name_en_hint'))
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
@@ -206,11 +207,11 @@ class CategoryResource extends Resource
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">URL Slug (en)</span>'))
-                                                ->hint('Creates URL: /en/categories/{slug}')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.url_slug_en').'</span>'))
+                                                ->hint(__('admin.category.fields.url_slug_en_hint'))
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
-                                                ->helperText('Auto-generated from name. Must be unique per locale.')
+                                                ->helperText(__('admin.category.fields.slug_auto_help'))
                                                 ->unique(
                                                     table: 'category_translations',
                                                     column: 'slug',
@@ -224,20 +225,20 @@ class CategoryResource extends Resource
                                                         return $rule;
                                                     },
                                                 )
-                                                ->validationMessages(['unique' => 'This slug (en) is already used by another category.'])
+                                                ->validationMessages(['unique' => __('admin.category.validation.slug_en_unique')])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.description')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Description (en)</span>'))
-                                                ->hint('Shown on the category page — Google reads this to understand content')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.description_en').'</span>'))
+                                                ->hint(__('admin.category.fields.description_en_hint'))
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->rows(3)
                                                 ->columnSpanFull(),
 
                                             RichEditor::make('translations.en.rich_content')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Rich Content (en)</span>'))
-                                                ->hint('Long-form content with images — displayed at the bottom of the category page')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.rich_content_en').'</span>'))
+                                                ->hint(__('admin.category.fields.rich_content_en_hint'))
                                                 ->hintIcon('heroicon-o-document-text')
                                                 ->hintColor('success')
                                                 ->plugins([MediaRichEditorPlugin::make()])
@@ -248,12 +249,12 @@ class CategoryResource extends Resource
                         ]),
 
                     // ── SEO ───────────────────────────────────────────────────────
-                    Tab::make('SEO')
+                    Tab::make(__('admin.category.tabs.seo'))
                         ->icon('heroicon-o-magnifying-glass')
                         ->schema([
                             Tabs::make('SeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.category.tabs.locale_vi'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('seoMetaVi')
@@ -261,15 +262,15 @@ class CategoryResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('vi'),
 
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.category.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.meta_title_vi').'</span>'))
                                                                 ->live(debounce: 400)
-                                                                ->placeholder('Tự điền từ tên danh mục')
+                                                                ->placeholder(__('admin.category.fields.meta_title_placeholder'))
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 50, 70))
-                                                                ->helperText('Tối ưu: 50–70 ký tự.')
+                                                                ->helperText(__('admin.category.fields.meta_title_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $name = $livewire->record?->translation('vi')?->name ?? $livewire->record?->name;
@@ -281,12 +282,12 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.meta_description_vi').'</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 120, 160))
-                                                                ->helperText('Tối ưu: 120–160 ký tự.')
+                                                                ->helperText(__('admin.category.fields.meta_description_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $desc = $livewire->record?->translation('vi')?->description;
@@ -298,15 +299,15 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Keywords (vi)</span>'))
-                                                                ->helperText('Phân cách bằng dấu phẩy')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.meta_keywords_vi').'</span>'))
+                                                                ->helperText(__('admin.category.fields.meta_keywords_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label('Canonical URL (vi)')
+                                                                ->label(__('admin.category.fields.canonical_url_vi'))
                                                                 ->url()
-                                                                ->placeholder('Tự tạo từ slug (vi)')
-                                                                ->hint('Tự tạo từ slug (vi)')
+                                                                ->placeholder(__('admin.category.fields.canonical_url_vi_auto'))
+                                                                ->hint(__('admin.category.fields.canonical_url_vi_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -320,7 +321,7 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label('Robots')
+                                                                ->label(__('admin.category.fields.robots'))
                                                                 ->options([
                                                                     'index,follow' => 'index, follow (default)',
                                                                     'noindex,follow' => 'noindex,follow',
@@ -332,12 +333,12 @@ class CategoryResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (vi)')
+                                                    Section::make(__('admin.category.sections.og_vi'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Title (vi)</span>'))
-                                                                ->placeholder('Tự điền từ Meta Title (vi)')
-                                                                ->hint('Tự điền từ Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.og_title_vi').'</span>'))
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_title_vi'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_title_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -350,10 +351,10 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.og_description_vi').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Tự điền từ Meta Description (vi)')
-                                                                ->hint('Tự điền từ Meta Description (vi)')
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_description_vi'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_description_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -364,13 +365,13 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label('OG Image URL')
+                                                                ->label(__('admin.category.fields.og_image'))
                                                                 ->url()
-                                                                ->placeholder('Tự điền từ ảnh danh mục')
-                                                                ->hint('Tự điền từ ảnh danh mục')
+                                                                ->placeholder(__('admin.category.fields.og_image_auto'))
+                                                                ->hint(__('admin.category.fields.og_image_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
-                                                                ->helperText('Khuyến nghị: 1200×630px.')
+                                                                ->helperText(__('admin.category.fields.og_image_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->image_path) {
                                                                         $set('og_image', Storage::disk('public')->url($livewire->record->image_path));
@@ -379,7 +380,7 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label('OG Type')
+                                                                ->label(__('admin.category.fields.og_type'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -389,10 +390,10 @@ class CategoryResource extends Resource
                                                         ->columns(2)
                                                         ->collapsed(),
 
-                                                    Section::make('Twitter Card (vi)')
+                                                    Section::make(__('admin.category.sections.twitter_vi'))
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label('Card Type')
+                                                                ->label(__('admin.category.fields.twitter_card_type'))
                                                                 ->options([
                                                                     'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
@@ -401,9 +402,9 @@ class CategoryResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Title (vi)</span>'))
-                                                                ->placeholder('Tự điền từ Meta Title (vi)')
-                                                                ->hint('Tự điền từ Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.twitter_title_vi').'</span>'))
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_title_vi'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_title_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -415,10 +416,10 @@ class CategoryResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.twitter_description_vi').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Tự điền từ Meta Description (vi)')
-                                                                ->hint('Tự điền từ Meta Description (vi)')
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_description_vi'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_description_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -433,7 +434,7 @@ class CategoryResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.category.tabs.locale_en'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('seoMetaEn')
@@ -441,15 +442,15 @@ class CategoryResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('en'),
 
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.category.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Title (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.meta_title_en').'</span>'))
                                                                 ->live(debounce: 400)
-                                                                ->placeholder('Auto-filled from category name')
+                                                                ->placeholder(__('admin.category.fields.meta_title_placeholder'))
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 50, 70))
-                                                                ->helperText('Optimal: 50–70 chars.')
+                                                                ->helperText(__('admin.category.fields.meta_title_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $name = $livewire->record?->translation('en')?->name ?? $livewire->record?->name;
@@ -461,12 +462,12 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.meta_description_en').'</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 120, 160))
-                                                                ->helperText('Optimal: 120–160 chars.')
+                                                                ->helperText(__('admin.category.fields.meta_description_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $desc = $livewire->record?->translation('en')?->description;
@@ -478,15 +479,15 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Keywords (en)</span>'))
-                                                                ->helperText('Comma-separated')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.meta_keywords_en').'</span>'))
+                                                                ->helperText(__('admin.category.fields.meta_keywords_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label('Canonical URL (en)')
+                                                                ->label(__('admin.category.fields.canonical_url_en'))
                                                                 ->url()
-                                                                ->placeholder('Auto-generated from slug (en)')
-                                                                ->hint('Auto-generated from slug (en)')
+                                                                ->placeholder(__('admin.category.fields.canonical_url_en_auto'))
+                                                                ->hint(__('admin.category.fields.canonical_url_en_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -500,7 +501,7 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label('Robots')
+                                                                ->label(__('admin.category.fields.robots'))
                                                                 ->options([
                                                                     'index,follow' => 'index, follow (default)',
                                                                     'noindex,follow' => 'noindex,follow',
@@ -512,12 +513,12 @@ class CategoryResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (en)')
+                                                    Section::make(__('admin.category.sections.og_en'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Title (en)</span>'))
-                                                                ->placeholder('Auto-filled from Meta Title (en)')
-                                                                ->hint('Auto-filled from Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.og_title_en').'</span>'))
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_title_en'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_title_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -530,10 +531,10 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.og_description_en').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Auto-filled from Meta Description (en)')
-                                                                ->hint('Auto-filled from Meta Description (en)')
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_description_en'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_description_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -544,13 +545,13 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label('OG Image URL')
+                                                                ->label(__('admin.category.fields.og_image'))
                                                                 ->url()
-                                                                ->placeholder('Auto-filled from category image')
-                                                                ->hint('Auto-filled from category image')
+                                                                ->placeholder(__('admin.category.fields.og_image_auto'))
+                                                                ->hint(__('admin.category.fields.og_image_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
-                                                                ->helperText('Recommended: 1200×630px.')
+                                                                ->helperText(__('admin.category.fields.og_image_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->image_path) {
                                                                         $set('og_image', Storage::disk('public')->url($livewire->record->image_path));
@@ -559,7 +560,7 @@ class CategoryResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label('OG Type')
+                                                                ->label(__('admin.category.fields.og_type'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -569,10 +570,10 @@ class CategoryResource extends Resource
                                                         ->columns(2)
                                                         ->collapsed(),
 
-                                                    Section::make('Twitter Card (en)')
+                                                    Section::make(__('admin.category.sections.twitter_en'))
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label('Card Type')
+                                                                ->label(__('admin.category.fields.twitter_card_type'))
                                                                 ->options([
                                                                     'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
@@ -581,9 +582,9 @@ class CategoryResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Title (en)</span>'))
-                                                                ->placeholder('Auto-filled from Meta Title (en)')
-                                                                ->hint('Auto-filled from Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.twitter_title_en').'</span>'))
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_title_en'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_title_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -595,10 +596,10 @@ class CategoryResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.twitter_description_en').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Auto-filled from Meta Description (en)')
-                                                                ->hint('Auto-filled from Meta Description (en)')
+                                                                ->placeholder(__('admin.category.fields.auto_from_meta_description_en'))
+                                                                ->hint(__('admin.category.fields.auto_from_meta_description_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -616,12 +617,12 @@ class CategoryResource extends Resource
                         ]),
 
                     // ── GEO / AI ──────────────────────────────────────────────────
-                    Tab::make('GEO / AI')
+                    Tab::make(__('admin.category.tabs.geo_ai'))
                         ->icon('heroicon-o-cpu-chip')
                         ->schema([
                             Tabs::make('GeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.category.tabs.locale_vi'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileVi')
@@ -629,51 +630,51 @@ class CategoryResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('vi'),
 
-                                                    Section::make('AI Context')
+                                                    Section::make(__('admin.category.fields.ai_context'))
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">AI Summary (vi)</span>'))
-                                                                ->hint('Đoạn tóm tắt ngắn cho AI / chatbot hiểu danh mục này')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.ai_summary_vi').'</span>'))
+                                                                ->hint(__('admin.category.fields.ai_summary_hint'))
                                                                 ->rows(4)
-                                                                ->placeholder('Mô tả 2–4 câu về danh mục: sản phẩm nào có trong đó, đối tượng khách hàng, điểm nổi bật...')
+                                                                ->placeholder(__('admin.category.fields.ai_summary_vi_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Use Cases (vi)</span>'))
-                                                                ->hint('Ứng dụng thực tế — AI dùng để trả lời "danh mục này phù hợp cho ai / dùng ở đâu"')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.use_cases_vi').'</span>'))
+                                                                ->hint(__('admin.category.fields.use_cases_hint'))
                                                                 ->rows(3)
-                                                                ->placeholder('VD: Phù hợp cho nhà ở, văn phòng, công trình thương mại...')
+                                                                ->placeholder(__('admin.category.fields.use_cases_vi_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Target Audience (vi)</span>'))
-                                                                ->hint('Đối tượng mục tiêu — AI dùng để phân loại và gợi ý')
-                                                                ->placeholder('VD: Kỹ sư điện, nhà thầu, hộ gia đình...')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.target_audience_vi').'</span>'))
+                                                                ->hint(__('admin.category.fields.target_audience_hint'))
+                                                                ->placeholder(__('admin.category.fields.target_audience_vi_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">LLM Context Hint (vi)</span>'))
-                                                                ->hint('Gợi ý thêm cho LLM khi sinh nội dung về danh mục')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.llm_context_hint_vi').'</span>'))
+                                                                ->hint(__('admin.category.fields.llm_context_help'))
                                                                 ->rows(2)
                                                                 ->columnSpanFull(),
                                                         ]),
 
-                                                    Section::make('Key Facts (vi)')
+                                                    Section::make(__('admin.category.sections.key_facts_vi'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Nhãn</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.key_fact_label').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: Số sản phẩm'),
+                                                                        ->placeholder(__('admin.category.fields.key_fact_label_placeholder_vi')),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá trị</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.key_fact_value').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: 120+'),
+                                                                        ->placeholder(__('admin.category.fields.key_fact_value_placeholder_vi')),
                                                                 ])
                                                                 ->columns(2)
-                                                                ->addActionLabel('Thêm fact')
+                                                                ->addActionLabel(__('admin.category.actions.add_key_fact'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->defaultItems(0)
@@ -681,24 +682,24 @@ class CategoryResource extends Resource
                                                         ])
                                                         ->collapsible(),
 
-                                                    Section::make('FAQ (vi)')
+                                                    Section::make(__('admin.category.sections.faq_vi'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('faq')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('question')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.faq_question').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: Danh mục này có những sản phẩm gì?')
+                                                                        ->placeholder(__('admin.category.fields.faq_question_vi_placeholder'))
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.category.fields.faq_answer').'</span>'))
                                                                         ->required()
                                                                         ->rows(3)
-                                                                        ->placeholder('Câu trả lời ngắn gọn, rõ ràng...')
+                                                                        ->placeholder(__('admin.category.fields.faq_answer_vi_placeholder'))
                                                                         ->columnSpanFull(),
                                                                 ])
-                                                                ->addActionLabel('Thêm câu hỏi')
+                                                                ->addActionLabel(__('admin.category.actions.add_faq'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -709,7 +710,7 @@ class CategoryResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.category.tabs.locale_en'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileEn')
@@ -717,51 +718,51 @@ class CategoryResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('en'),
 
-                                                    Section::make('AI Context')
+                                                    Section::make(__('admin.category.fields.ai_context'))
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">AI Summary (en)</span>'))
-                                                                ->hint('Short summary for AI / chatbot understanding of this category')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.ai_summary_en').'</span>'))
+                                                                ->hint(__('admin.category.fields.ai_summary_hint'))
                                                                 ->rows(4)
-                                                                ->placeholder('Describe the category in 2–4 sentences: what products, who it\'s for, key highlights...')
+                                                                ->placeholder(__('admin.category.fields.ai_summary_en_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Use Cases (en)</span>'))
-                                                                ->hint('Practical applications — AI uses this to answer "who is this for / where is it used"')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.use_cases_en').'</span>'))
+                                                                ->hint(__('admin.category.fields.use_cases_hint'))
                                                                 ->rows(3)
-                                                                ->placeholder('E.g. Suitable for residential, commercial, and industrial projects...')
+                                                                ->placeholder(__('admin.category.fields.use_cases_en_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Target Audience (en)</span>'))
-                                                                ->hint('Target demographic — AI uses this for classification and recommendations')
-                                                                ->placeholder('E.g. Electricians, contractors, homeowners...')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.target_audience_en').'</span>'))
+                                                                ->hint(__('admin.category.fields.target_audience_hint'))
+                                                                ->placeholder(__('admin.category.fields.target_audience_en_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">LLM Context Hint (en)</span>'))
-                                                                ->hint('Additional context hint for LLMs when generating content about this category')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.llm_context_hint_en').'</span>'))
+                                                                ->hint(__('admin.category.fields.llm_context_help'))
                                                                 ->rows(2)
                                                                 ->columnSpanFull(),
                                                         ]),
 
-                                                    Section::make('Key Facts (en)')
+                                                    Section::make(__('admin.category.sections.key_facts_en'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Label</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.key_fact_label').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. Products count'),
+                                                                        ->placeholder(__('admin.category.fields.key_fact_label_placeholder_en')),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Value</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.key_fact_value').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. 120+'),
+                                                                        ->placeholder(__('admin.category.fields.key_fact_value_placeholder_en')),
                                                                 ])
                                                                 ->columns(2)
-                                                                ->addActionLabel('Add fact')
+                                                                ->addActionLabel(__('admin.category.actions.add_key_fact'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->defaultItems(0)
@@ -769,24 +770,24 @@ class CategoryResource extends Resource
                                                         ])
                                                         ->collapsible(),
 
-                                                    Section::make('FAQ (en)')
+                                                    Section::make(__('admin.category.sections.faq_en'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('faq')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('question')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.faq_question').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. What products does this category include?')
+                                                                        ->placeholder(__('admin.category.fields.faq_question_en_placeholder'))
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.category.fields.faq_answer').'</span>'))
                                                                         ->required()
                                                                         ->rows(3)
-                                                                        ->placeholder('Short, clear answer...')
+                                                                        ->placeholder(__('admin.category.fields.faq_answer_en_placeholder'))
                                                                         ->columnSpanFull(),
                                                                 ])
-                                                                ->addActionLabel('Add FAQ')
+                                                                ->addActionLabel(__('admin.category.actions.add_faq'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -800,10 +801,10 @@ class CategoryResource extends Resource
                         ]),
 
                     // ── JSON-LD ───────────────────────────────────────────────────
-                    Tab::make('JSON-LD')
+                    Tab::make(__('admin.category.tabs.jsonld'))
                         ->icon('heroicon-o-code-bracket')
                         ->schema([
-                            Section::make('Schemas hoạt động như thế nào?')
+                            Section::make(__('admin.category.sections.jsonld_how_it_works'))
                                 ->schema([
                                     Placeholder::make('jsonld_info')
                                         ->label('')
@@ -822,11 +823,11 @@ class CategoryResource extends Resource
 
                             Tabs::make('JsonldLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.category.tabs.locale_vi'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasVi')
                                                 ->relationship()
-                                                ->label('Schemas (vi)')
+                                                ->label(__('admin.category.fields.jsonld_schemas_vi'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -851,7 +852,7 @@ class CategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Placeholder::make('payload_preview')
-                                                        ->label('Payload (Google reads this)')
+                                                        ->label(__('admin.category.fields.jsonld_payload_preview'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">Chưa có payload — lưu danh mục để tạo.</em>');
@@ -867,11 +868,11 @@ class CategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Active (inject vào <head> trang)')
+                                                        ->label(__('admin.category.fields.jsonld_active'))
                                                         ->inline(false),
 
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label('Cập nhật lần cuối')
+                                                        ->label(__('admin.category.fields.last_updated'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
@@ -890,29 +891,29 @@ class CategoryResource extends Resource
 
                                             Actions::make([
                                                 Action::make('regenerate_jsonld_vi')
-                                                    ->label('Regenerate vi')
+                                                    ->label(__('admin.category.actions.regenerate_jsonld_vi'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate JSON-LD (vi)')
-                                                    ->modalDescription('Re-generate all Auto schemas for the Vietnamese locale. Manual schemas will not be affected.')
+                                                    ->modalHeading(__('admin.category.actions.regenerate_jsonld_vi_modal_heading'))
+                                                    ->modalDescription(__('admin.category.actions.regenerate_jsonld_vi_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $category = $livewire->record;
                                                         if (! $category?->exists) {
                                                             return;
                                                         }
                                                         app(JsonldService::class)->syncForModel($category, 'vi');
-                                                        Notification::make()->title('JSON-LD (vi) đã được regenerate')->success()->send();
+                                                        Notification::make()->title(__('admin.category.notifications.jsonld_regenerated_vi'))->success()->send();
                                                         redirect(CategoryResource::getUrl('edit', ['record' => $category]));
                                                     }),
                                             ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.category.tabs.locale_en'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasEn')
                                                 ->relationship()
-                                                ->label('Schemas (en)')
+                                                ->label(__('admin.category.fields.jsonld_schemas_en'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -937,7 +938,7 @@ class CategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Placeholder::make('payload_preview')
-                                                        ->label('Payload (Google reads this)')
+                                                        ->label(__('admin.category.fields.jsonld_payload_preview'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the category to generate.</em>');
@@ -953,11 +954,11 @@ class CategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Active (inject into <head>)')
+                                                        ->label(__('admin.category.fields.jsonld_active'))
                                                         ->inline(false),
 
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label('Last updated')
+                                                        ->label(__('admin.category.fields.last_updated'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
@@ -976,19 +977,19 @@ class CategoryResource extends Resource
 
                                             Actions::make([
                                                 Action::make('regenerate_jsonld_en')
-                                                    ->label('Regenerate en')
+                                                    ->label(__('admin.category.actions.regenerate_jsonld_en'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate JSON-LD (en)')
-                                                    ->modalDescription('Re-generate all Auto schemas for the English locale. Manual schemas will not be affected.')
+                                                    ->modalHeading(__('admin.category.actions.regenerate_jsonld_en_modal_heading'))
+                                                    ->modalDescription(__('admin.category.actions.regenerate_jsonld_en_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $category = $livewire->record;
                                                         if (! $category?->exists) {
                                                             return;
                                                         }
                                                         app(JsonldService::class)->syncForModel($category, 'en');
-                                                        Notification::make()->title('JSON-LD (en) regenerated')->success()->send();
+                                                        Notification::make()->title(__('admin.category.notifications.jsonld_regenerated_en'))->success()->send();
                                                         redirect(CategoryResource::getUrl('edit', ['record' => $category]));
                                                     }),
                                             ]),
@@ -1010,8 +1011,8 @@ class CategoryResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('parent.name')
-                    ->label('Parent')
-                    ->placeholder('—'),
+                    ->label(__('admin.category.fields.parent'))
+                    ->placeholder(__('admin.category.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('sort_order')
                     ->sortable(),
@@ -1022,7 +1023,7 @@ class CategoryResource extends Resource
                     ->falseColor('danger'),
 
                 Tables\Columns\TextColumn::make('products_count')
-                    ->label('Products')
+                    ->label(__('admin.category.fields.products_count'))
                     ->numeric()
                     ->sortable(),
 
@@ -1032,10 +1033,10 @@ class CategoryResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.category.fields.active')),
 
                 Tables\Filters\SelectFilter::make('parent_id')
-                    ->label('Parent')
+                    ->label(__('admin.category.fields.parent'))
                     ->relationship('parent', 'name'),
 
                 TrashedFilter::make(),
