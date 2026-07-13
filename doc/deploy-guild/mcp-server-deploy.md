@@ -14,7 +14,7 @@
 Claude Desktop/Code  ──(mcp-remote, Streamable HTTP + X-Api-Key)──▶  mcp.knxstore.vn
                                                                             │
                                                                     nginx hệ thống (VPS)
-                                                                            │ proxy_pass 127.0.0.1:3100
+                                                                            │ proxy_pass 127.0.0.1:3101
                                                                             ▼
                                                                   container mcp-server (Node)
                                                                             │ HTTP fetch, Bearer Sanctum token
@@ -65,12 +65,12 @@ cd /opt/cacylinen
 git pull origin master
 docker compose up -d --build mcp-server
 docker compose ps mcp-server        # phải Up
-docker compose logs --tail=30 mcp-server   # phải thấy "MCP Streamable HTTP listening on :3100"
+docker compose logs --tail=30 mcp-server   # phải thấy "MCP Streamable HTTP listening on :3101"
 ```
 
 Test nội bộ trên VPS (chưa qua nginx hệ thống):
 ```bash
-curl -s -X POST http://127.0.0.1:3100/mcp \
+curl -s -X POST http://127.0.0.1:3101/mcp \
   -H "X-Api-Key: $MCP_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
@@ -105,7 +105,7 @@ server {
     error_log  /var/log/nginx/mcp-knxstore-error.log warn;
 
     location / {
-        proxy_pass http://127.0.0.1:3100;
+        proxy_pass http://127.0.0.1:3101;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

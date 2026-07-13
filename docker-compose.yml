@@ -98,10 +98,10 @@ services:
     build:
       context: ./mcp-server
     ports:
-      - "127.0.0.1:3100:3100"
+      - "127.0.0.1:3101:3101"
     environment:
       MCP_HTTP: "1"
-      MCP_PORT: "3100"
+      MCP_PORT: "3101"
       MCP_API_KEY: ${MCP_API_KEY:?MCP_API_KEY is required}
       KNXSTORE_API_BASE: "http://nginx/api/v1"
       KNXSTORE_API_TOKEN: ${MCP_SANCTUM_TOKEN:?MCP_SANCTUM_TOKEN is required}
