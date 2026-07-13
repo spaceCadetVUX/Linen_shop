@@ -11,7 +11,7 @@
 ## Kiến trúc
 
 ```
-Claude Desktop/Code  ──(mcp-remote, Streamable HTTP + X-Api-Key)──▶  mcp.knxstore.vn
+Claude Desktop/Code  ──(mcp-remote, Streamable HTTP + X-Api-Key)──▶  mcp.cacylinen.com
                                                                             │
                                                                     nginx hệ thống (VPS)
                                                                             │ proxy_pass 127.0.0.1:3101
@@ -79,30 +79,44 @@ Kỳ vọng: JSON-RPC response có `result.serverInfo.name = "knxstore-mcp"`, kh
 
 ---
 
-## 4. Sửa nginx hệ thống cho `mcp.knxstore.vn`
+## 4. DNS + nginx cho `mcp.cacylinen.com`
 
-Domain này **đã tồn tại** trên VPS nhưng hiện chỉ redirect placeholder về `knxstore.vn` — sửa lại file
-`/etc/nginx/sites-available/mcp.knxstore.vn.conf` (tên file thật tùy theo cách đặt hiện tại, kiểm tra bằng
-`ls /etc/nginx/sites-available/ | grep mcp` trước khi sửa) thành:
+Đây là subdomain **mới hoàn toàn** (khác với giả định ban đầu là `mcp.knxstore.vn` — domain đó thuộc
+zone Cloudflare khác, không liên quan tới catalog CacyLinen mà tool này thực sự quản lý, xem thảo luận
+đã chốt lại dùng domain của chính cacylinen.com).
+
+### 4.1 Thêm DNS record
+Cloudflare dashboard → zone `cacylinen.com` → DNS → thêm record `A`, **Proxied** (☁️ cam):
+```
+mcp  →  103.166.183.176
+```
+
+### 4.2 Cert — KHÔNG cần tạo mới
+Cert Cloudflare Origin hiện có cho `cacylinen.com` đã được tạo với hostname `cacylinen.com` **và**
+`*.cacylinen.com` (xem mục 2 của `cacylinen-vps-deploy.md`) → dùng lại đúng file cert/key đang có sẵn
+tại `/etc/ssl/cloudflare/cacylinen.com.pem` + `.key`, không phải tạo gì thêm.
+
+### 4.3 Tạo file nginx mới
+`/etc/nginx/sites-available/mcp.cacylinen.com.conf` (file mới, chưa tồn tại):
 
 ```nginx
 server {
     listen 80;
-    server_name mcp.knxstore.vn;
+    server_name mcp.cacylinen.com;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name mcp.knxstore.vn;
+    server_name mcp.cacylinen.com;
 
-    ssl_certificate     /etc/ssl/cloudflare/knxstore.vn.pem;   # đổi đúng path cert hiện có cho knxstore.vn
-    ssl_certificate_key /etc/ssl/cloudflare/knxstore.vn.key;
+    ssl_certificate     /etc/ssl/cloudflare/cacylinen.com.pem;
+    ssl_certificate_key /etc/ssl/cloudflare/cacylinen.com.key;
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
-    access_log /var/log/nginx/mcp-knxstore-access.log;
-    error_log  /var/log/nginx/mcp-knxstore-error.log warn;
+    access_log /var/log/nginx/mcp-cacylinen-access.log;
+    error_log  /var/log/nginx/mcp-cacylinen-error.log warn;
 
     location / {
         proxy_pass http://127.0.0.1:3101;
@@ -120,20 +134,17 @@ server {
 ```
 
 ```bash
+ln -s /etc/nginx/sites-available/mcp.cacylinen.com.conf /etc/nginx/sites-enabled/
 nginx -t
 systemctl reload nginx
 ```
-
-⚠️ Nếu `knxstore.vn` chưa có Cloudflare Origin Cert lưu trên VPS này (mới chỉ có cert cho `cacylinen.com` —
-xem mục 2 của `cacylinen-vps-deploy.md`), phải tạo cert mới cho `knxstore.vn` / `*.knxstore.vn` trước
-(Cloudflare dashboard → SSL/TLS → Origin Server → Create Certificate), theo đúng quy trình đã làm cho cacylinen.com.
 
 ---
 
 ## 5. Test từ ngoài
 
 ```bash
-curl -sI https://mcp.knxstore.vn/mcp -X POST -H "X-Api-Key: <sai key>"   # kỳ vọng 401
+curl -sI https://mcp.cacylinen.com/mcp -X POST -H "X-Api-Key: <sai key>"   # kỳ vọng 401
 ```
 
 ---
@@ -150,7 +161,7 @@ qua `claude_desktop_config.json`:
       "command": "npx",
       "args": [
         "mcp-remote",
-        "https://mcp.knxstore.vn/mcp",
+        "https://mcp.cacylinen.com/mcp",
         "--transport", "http-only",
         "--header", "X-Api-Key:${MCP_API_KEY}"
       ],
@@ -170,13 +181,15 @@ Restart Claude Desktop sau khi sửa file.
 
 31 tool có quyền `mcp:write`/`mcp:publish` — ghi/publish thẳng vào catalog production. Chỉ dựa vào
 `MCP_API_KEY` tĩnh là hơi mỏng cho 1 endpoint public. Nên cân nhắc thêm **Cloudflare Access** (Zero Trust)
-chặn theo email trước `mcp.knxstore.vn`, đặc biệt nếu domain này lộ ra ngoài phạm vi đội ngũ 5 người.
+chặn theo email trước `mcp.cacylinen.com`, đặc biệt nếu domain này lộ ra ngoài phạm vi đội ngũ 5 người.
 
 ---
 
 ## Việc còn thiếu / rủi ro đã biết
 
+- [x] Container `mcp-server` chạy healthy trên VPS, đã verify JSON-RPC `initialize` trả đúng `serverInfo.name: "knxstore-mcp"` (2026-07-13)
 - [ ] Chưa có command/seeder tự động tạo Sanctum token — hiện phải chạy tay qua tinker (mục 1)
-- [ ] Chưa xác nhận `knxstore.vn` đã có Cloudflare Origin Cert trên VPS này chưa (mục 4)
+- [ ] Chưa thêm DNS record + nginx cho `mcp.cacylinen.com` (mục 4) — cert dùng lại wildcard `*.cacylinen.com` đã có sẵn, không cần tạo mới
 - [ ] Chưa test thật `mcp-remote` với Claude Desktop trên máy Windows của team — chỉ verify qua doc chính thức, chưa chạy tay end-to-end
 - [ ] Chưa bật Cloudflare Access — endpoint hiện chỉ có 1 lớp bảo vệ (API key)
+- [ ] Package/env var naming (`knxstore-mcp-server`, `KNXSTORE_API_BASE/TOKEN`) không khớp catalog thật (CacyLinen) — chỉ là tên kế thừa lúc scaffold, không đổi vì không ảnh hưởng chức năng, nhưng dễ gây nhầm lẫn sau này
