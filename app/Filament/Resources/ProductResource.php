@@ -67,10 +67,10 @@ class ProductResource extends Resource
                 ->tabs([
 
                     // ── Tab 1: General ────────────────────────────────────────
-                    Tab::make('General')
+                    Tab::make(__('admin.product.tabs.general'))
                         ->schema([
                             Forms\Components\Select::make('categories')
-                                ->label('Categories')
+                                ->label(__('admin.product.fields.categories'))
                                 ->relationship('categories', 'name')
                                 ->multiple()
                                 ->searchable()
@@ -86,8 +86,8 @@ class ProductResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Select::make('primary_category_id')
-                                ->label('Primary Category')
-                                ->helperText('Dùng cho breadcrumb JSON-LD. Chọn sau khi đã chọn Categories.')
+                                ->label(__('admin.product.fields.primary_category'))
+                                ->helperText(__('admin.product.fields.primary_category_help'))
                                 ->options(function (Get $get): array {
                                     $ids = $get('categories');
                                     if (empty($ids)) {
@@ -104,7 +104,7 @@ class ProductResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Select::make('brand_id')
-                                ->label('Brand')
+                                ->label(__('admin.product.fields.brand'))
                                 ->relationship('brand', 'name')
                                 ->searchable()
                                 ->preload()
@@ -112,7 +112,7 @@ class ProductResource extends Resource
                                 ->native(false),
 
                             Forms\Components\Select::make('manufacturer_id')
-                                ->label('Manufacturer')
+                                ->label(__('admin.product.fields.manufacturer'))
                                 ->relationship('manufacturer', 'name')
                                 ->searchable()
                                 ->preload()
@@ -120,7 +120,7 @@ class ProductResource extends Resource
                                 ->native(false),
 
                             Forms\Components\Select::make('size_guide_id')
-                                ->label('Hướng dẫn size')
+                                ->label(__('admin.product.fields.size_guide'))
                                 ->relationship(
                                     'sizeGuide',
                                     'key',
@@ -129,14 +129,14 @@ class ProductResource extends Resource
                                 ->getOptionLabelFromRecordUsing(
                                     fn ($record) => $record->translationVi?->name ?: $record->key
                                 )
-                                ->helperText('Hiện link "Hướng dẫn chọn size" + modal trên trang sản phẩm. Quản lý tại Content → Size Guides.')
+                                ->helperText(__('admin.product.fields.size_guide_help'))
                                 ->searchable()
                                 ->preload()
                                 ->nullable()
                                 ->native(false),
 
                             Forms\Components\TextInput::make('sku')
-                                ->label('SKU')
+                                ->label(__('admin.product.fields.sku'))
                                 ->required(fn (Get $get): bool => (bool) $get('is_active'))
                                 ->unique(table: Product::class, column: 'sku', ignoreRecord: true),
 
@@ -144,22 +144,22 @@ class ProductResource extends Resource
                                 ->default(true),
 
                             Forms\Components\Toggle::make('show_price')
-                                ->label('Hiển thị giá trên website')
-                                ->helperText('Tắt → ẩn toàn bộ giá, hiện nút "Liên hệ báo giá".')
+                                ->label(__('admin.product.fields.show_price'))
+                                ->helperText(__('admin.product.fields.show_price_help'))
                                 ->default(true),
                         ])
                         ->columns(2),
 
                     // ── Tab 2: Content ────────────────────────────────────────
-                    Tab::make('Content')
+                    Tab::make(__('admin.product.tabs.content'))
                         ->icon('heroicon-o-language')
                         ->schema([
                             Tabs::make('LocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt (vi)')
+                                    Tab::make(__('admin.product.tabs.locale_vi_full'))
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.vi.name')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Tên sản phẩm (vi)</span>'))
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.name_vi').'</span>'))
                                                 ->required()
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(function ($state, Set $set) {
@@ -170,11 +170,11 @@ class ProductResource extends Resource
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Slug (vi)</span>'))
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.slug_vi').'</span>'))
                                                 ->required()
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) => $set('slug', $state))
-                                                ->helperText('Auto-generated from name. Must be unique per locale.')
+                                                ->helperText(__('admin.product.fields.slug_auto_help'))
                                                 ->rules([
                                                     fn (?Product $record) => self::uniqueTranslationSlugRule('vi', $record),
                                                     fn (?Product $record) => self::uniqueProductSlugRule($record),
@@ -182,50 +182,50 @@ class ProductResource extends Resource
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.short_description')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Mô tả ngắn (vi)</span>'))
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.short_description_vi').'</span>'))
                                                 ->rows(3)
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) => $set('short_description', $state))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\RichEditor::make('translations.vi.description')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Mô tả đầy đủ (vi)</span>'))
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.description_vi').'</span>'))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Repeater::make('translations.vi.info_sections')
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Thông tin chi tiết bổ sung (vi)</span>'))
-                                                ->helperText('Mỗi mục hiện thành 1 accordion riêng trên trang sản phẩm — vd: Chất liệu & Thành phần, Hướng dẫn bảo quản, Giao hàng & Đổi trả.')
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.info_sections_vi').'</span>'))
+                                                ->helperText(__('admin.product.fields.info_sections_help'))
                                                 ->schema([
                                                     Forms\Components\TextInput::make('title')
-                                                        ->label('Tiêu đề')
+                                                        ->label(__('admin.product.fields.info_section_title'))
                                                         ->required()
                                                         ->columnSpanFull(),
                                                     Forms\Components\RichEditor::make('content')
-                                                        ->label('Nội dung')
+                                                        ->label(__('admin.product.fields.info_section_content'))
                                                         ->required()
                                                         ->columnSpanFull(),
                                                 ])
                                                 ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
-                                                ->addActionLabel('+ Thêm mục')
+                                                ->addActionLabel(__('admin.product.actions.add_info_section'))
                                                 ->collapsed()
                                                 ->reorderable()
                                                 ->reorderableWithDragAndDrop()
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            Section::make('FAQ (vi)')
-                                                ->description('Câu hỏi thường gặp — đưa vào JSON-LD FAQPage và llms.txt.')
+                                            Section::make(__('admin.product.sections.faq_vi'))
+                                                ->description(__('admin.product.sections.faq_description'))
                                                 ->schema([
                                                     Forms\Components\Repeater::make('faq_items_vi')
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('question')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.faq_question').'</span>'))
                                                                 ->required()
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('answer')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.faq_answer').'</span>'))
                                                                 ->rows(2)
                                                                 ->required()
                                                                 ->columnSpanFull(),
@@ -235,7 +235,7 @@ class ProductResource extends Resource
                                                         })
                                                         ->maxItems(10)
                                                         ->defaultItems(0)
-                                                        ->addActionLabel('+ Thêm Q&A')
+                                                        ->addActionLabel(__('admin.product.actions.add_faq'))
                                                         ->columnSpanFull(),
                                                 ])
                                                 ->collapsed()
@@ -243,17 +243,17 @@ class ProductResource extends Resource
                                         ])
                                         ->columns(2),
 
-                                    Tab::make('🇬🇧 English (en)')
+                                    Tab::make(__('admin.product.tabs.locale_en_full'))
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.en.name')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Product name (en)</span>'))
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.name_en').'</span>'))
                                                 ->live(onBlur: true)
                                                 ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Slug (en)</span>'))
-                                                ->helperText('Auto-generated from name. Must be unique per locale.')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.slug_en').'</span>'))
+                                                ->helperText(__('admin.product.fields.slug_auto_help'))
                                                 ->requiredWith('translations.en.name')
                                                 ->rules([
                                                     fn (?Product $record) => self::uniqueTranslationSlugRule('en', $record),
@@ -261,48 +261,48 @@ class ProductResource extends Resource
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.short_description')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Short description (en)</span>'))
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.short_description_en').'</span>'))
                                                 ->rows(3)
                                                 ->columnSpanFull(),
 
                                             Forms\Components\RichEditor::make('translations.en.description')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Description (en)</span>'))
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.description_en').'</span>'))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Repeater::make('translations.en.info_sections')
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Additional detail sections (en)</span>'))
-                                                ->helperText('Each item renders as its own accordion on the product page — e.g. Material & Composition, Care instructions, Shipping & Returns.')
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.info_sections_en').'</span>'))
+                                                ->helperText(__('admin.product.fields.info_sections_help'))
                                                 ->schema([
                                                     Forms\Components\TextInput::make('title')
-                                                        ->label('Title')
+                                                        ->label(__('admin.product.fields.info_section_title'))
                                                         ->required()
                                                         ->columnSpanFull(),
                                                     Forms\Components\RichEditor::make('content')
-                                                        ->label('Content')
+                                                        ->label(__('admin.product.fields.info_section_content'))
                                                         ->required()
                                                         ->columnSpanFull(),
                                                 ])
                                                 ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
-                                                ->addActionLabel('+ Add section')
+                                                ->addActionLabel(__('admin.product.actions.add_info_section'))
                                                 ->collapsed()
                                                 ->reorderable()
                                                 ->reorderableWithDragAndDrop()
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            Section::make('FAQ (en)')
-                                                ->description('Frequently asked questions — injected into JSON-LD FAQPage schema and llms.txt.')
+                                            Section::make(__('admin.product.sections.faq_en'))
+                                                ->description(__('admin.product.sections.faq_description'))
                                                 ->schema([
                                                     Forms\Components\Repeater::make('faq_items_en')
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('question')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.faq_question').'</span>'))
                                                                 ->required()
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('answer')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.faq_answer').'</span>'))
                                                                 ->rows(2)
                                                                 ->required()
                                                                 ->columnSpanFull(),
@@ -312,7 +312,7 @@ class ProductResource extends Resource
                                                         })
                                                         ->maxItems(10)
                                                         ->defaultItems(0)
-                                                        ->addActionLabel('+ Add Q&A')
+                                                        ->addActionLabel(__('admin.product.actions.add_faq'))
                                                         ->columnSpanFull(),
                                                 ])
                                                 ->collapsed()
@@ -324,13 +324,13 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 3: Pricing & Stock ────────────────────────────────
-                    Tab::make('Pricing & Stock')
+                    Tab::make(__('admin.product.tabs.pricing_stock'))
                         ->schema([
 
-                            Section::make('🇻🇳 Giá Việt Nam')
+                            Section::make(__('admin.product.sections.pricing_vn'))
                                 ->schema([
                                     Forms\Components\Select::make('translations.vi.currency')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Đơn vị tiền (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.currency_vi').'</span>'))
                                         ->options([
                                             'VND' => '🇻🇳 VND — Vietnamese Đồng',
                                             'USD' => '🇺🇸 USD — US Dollar',
@@ -344,14 +344,14 @@ class ProductResource extends Resource
                                         ->default('VND')
                                         ->native(false)
                                         ->live()
-                                        ->hint('Dùng trong JSON-LD schema (priceCurrency)')
+                                        ->hint(__('admin.product.fields.currency_vi_hint'))
                                         ->hintIcon('heroicon-o-code-bracket')
                                         ->hintColor('info')
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('currency', $state))
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.vi.price')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.price_vi').'</span>'))
                                         ->numeric()
                                         ->live(onBlur: true)
                                         ->prefix(fn ($get) => match ($get('translations.vi.currency')) {
@@ -364,7 +364,7 @@ class ProductResource extends Resource
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('price', $state)),
 
                                     Forms\Components\TextInput::make('translations.vi.sale_price')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá khuyến mãi (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.sale_price_vi').'</span>'))
                                         ->numeric()
                                         ->live(onBlur: true)
                                         ->prefix(fn ($get) => match ($get('translations.vi.currency')) {
@@ -376,18 +376,18 @@ class ProductResource extends Resource
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('sale_price', $state)),
 
                                     Forms\Components\Toggle::make('show_original_price')
-                                        ->label('Hiển thị giá gốc bị gạch')
-                                        ->helperText('Bật → hiện giá cũ gạch ngang bên cạnh giá khuyến mãi. Tắt → chỉ hiện giá KM.')
+                                        ->label(__('admin.product.fields.show_original_price'))
+                                        ->helperText(__('admin.product.fields.show_original_price_help'))
                                         ->default(true)
                                         ->inline(false)
                                         ->columnSpanFull(),
                                 ])
                                 ->columns(2),
 
-                            Section::make('🇬🇧 English Pricing')
+                            Section::make(__('admin.product.sections.pricing_en'))
                                 ->schema([
                                     Forms\Components\Select::make('translations.en.currency')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Currency (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.currency_en').'</span>'))
                                         ->options([
                                             'VND' => '🇻🇳 VND — Vietnamese Đồng',
                                             'USD' => '🇺🇸 USD — US Dollar',
@@ -404,7 +404,7 @@ class ProductResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.en.price')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Price (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.price_en').'</span>'))
                                         ->numeric()
                                         ->prefix(fn ($get) => match ($get('translations.en.currency')) {
                                             'EUR' => '€',
@@ -415,7 +415,7 @@ class ProductResource extends Resource
                                         }),
 
                                     Forms\Components\TextInput::make('translations.en.sale_price')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Sale Price (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.sale_price_en').'</span>'))
                                         ->numeric()
                                         ->prefix(fn ($get) => match ($get('translations.en.currency')) {
                                             'EUR' => '€',
@@ -427,10 +427,10 @@ class ProductResource extends Resource
                                 ])
                                 ->columns(2),
 
-                            Section::make('Stock')
+                            Section::make(__('admin.product.sections.stock'))
                                 ->schema([
                                     Forms\Components\TextInput::make('stock_quantity')
-                                        ->label('Stock Quantity')
+                                        ->label(__('admin.product.fields.stock_quantity'))
                                         ->numeric()
                                         ->default(0)
                                         ->required(fn (Get $get): bool => (bool) $get('is_active'))
@@ -440,13 +440,13 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 3: Images ─────────────────────────────────────────
-                    Tab::make('Images')
+                    Tab::make(__('admin.product.tabs.images'))
                         ->schema([
                             Forms\Components\Repeater::make('images')
                                 ->relationship()
                                 ->schema([
                                     Forms\Components\FileUpload::make('path')
-                                        ->label('Image')
+                                        ->label(__('admin.product.fields.image'))
                                         ->disk('public')
                                         ->visibility('public')
                                         ->directory(fn () => 'products/'.now()->format('Y/m'))
@@ -472,7 +472,7 @@ class ProductResource extends Resource
 
                                             return $filename;
                                         })
-                                        ->hint('Filenames are auto-converted to accent-free Latin; duplicates get a numeric suffix (e.g., quan-tay-1.jpg).')
+                                        ->hint(__('admin.product.fields.image_filename_hint'))
                                         ->hintIcon('heroicon-o-information-circle')
                                         ->hintColor('success')
                                         ->image()
@@ -482,12 +482,12 @@ class ProductResource extends Resource
                                         ->columnSpan(1),
 
                                     Forms\Components\TextInput::make('alt_text')
-                                        ->label('Alt Text')
+                                        ->label(__('admin.product.fields.alt_text'))
                                         ->columnSpan(1),
 
                                     Forms\Components\Checkbox::make('is_card_priority')
-                                        ->label('Ưu tiên hiển thị trên Product Card')
-                                        ->helperText('Chọn tối đa 2 ảnh. Ảnh có thứ tự (index) nhỏ hơn sẽ là ảnh chính, ảnh còn lại là ảnh hover.')
+                                        ->label(__('admin.product.fields.card_priority'))
+                                        ->helperText(__('admin.product.fields.card_priority_help'))
                                         ->live()
                                         ->afterStateUpdated(function (bool $state, Set $set, ?Forms\Components\Checkbox $component) {
                                             if (! $state || ! $component) {
@@ -503,7 +503,7 @@ class ProductResource extends Resource
                                                 $set('is_card_priority', false);
 
                                                 Notification::make()
-                                                    ->title('Chỉ được chọn tối đa 2 ảnh ưu tiên')
+                                                    ->title(__('admin.product.notifications.card_priority_limit_title'))
                                                     ->warning()
                                                     ->send();
                                             }
@@ -521,7 +521,7 @@ class ProductResource extends Resource
                     // ── Tab 5: Videos ─────────────────────────────────────────
                     // Temporarily locked — see Placeholder below. Original fields
                     // kept commented so the feature can be restored without rework.
-                    Tab::make('Videos')
+                    Tab::make(__('admin.product.tabs.videos'))
                         ->schema([
                             Placeholder::make('videos_locked_notice')
                                 ->label('')
@@ -582,7 +582,7 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 6: Attributes ─────────────────────────────────────
-                    Tab::make('Attributes')
+                    Tab::make(__('admin.product.tabs.attributes'))
                         ->icon('heroicon-o-list-bullet')
                         ->hidden()
                         ->schema([
@@ -591,26 +591,26 @@ class ProductResource extends Resource
                                 ->label('')
                                 ->schema([
                                     Forms\Components\TextInput::make('name')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Thuộc tính</span>'))
-                                        ->placeholder('vd: Vật liệu, Khối lượng, Điện áp')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.attribute_name_vi').'</span>'))
+                                        ->placeholder(__('admin.product.fields.attribute_name_vi_placeholder'))
                                         ->required()
                                         ->live(debounce: 300)
                                         ->columnSpan(1),
 
                                     Forms\Components\TextInput::make('name_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Attribute</span>'))
-                                        ->placeholder('e.g. Material, Weight, Voltage')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.attribute_name_en').'</span>'))
+                                        ->placeholder(__('admin.product.fields.attribute_name_en_placeholder'))
                                         ->columnSpan(1),
 
                                     Forms\Components\TextInput::make('value')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Giá trị</span>'))
-                                        ->placeholder('vd: Nhôm, 500g, 220V')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.attribute_value_vi').'</span>'))
+                                        ->placeholder(__('admin.product.fields.attribute_value_vi_placeholder'))
                                         ->required()
                                         ->columnSpan(1),
 
                                     Forms\Components\TextInput::make('value_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Value</span>'))
-                                        ->placeholder('e.g. Aluminum, 500g, 220V')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.attribute_value_en').'</span>'))
+                                        ->placeholder(__('admin.product.fields.attribute_value_en_placeholder'))
                                         ->columnSpan(1),
                                 ])
                                 ->itemLabel(fn (array $state): ?string => filled($state['name'] ?? '')
@@ -619,20 +619,20 @@ class ProductResource extends Resource
                                 )
                                 ->collapsed()
                                 ->cloneable()
-                                ->hint('Used in Product JSON-LD as additionalProperty (PropertyValue). Helps Google understand product specs.')
+                                ->hint(__('admin.product.fields.attributes_hint'))
                                 ->hintIcon('heroicon-o-magnifying-glass')
                                 ->hintColor('info')
                                 ->orderColumn('sort_order')
                                 ->reorderable()
                                 ->reorderableWithDragAndDrop()
-                                ->addActionLabel('+ Add attribute')
+                                ->addActionLabel(__('admin.product.actions.add_attribute'))
                                 ->defaultItems(0)
                                 ->columns(2)
                                 ->columnSpanFull(),
                         ]),
 
                     // ── Tab 7: Filters ────────────────────────────────────────
-                    Tab::make('Filters')
+                    Tab::make(__('admin.product.tabs.filters'))
                         ->icon('heroicon-o-funnel')
                         ->schema(function () {
                             $groups = FilterGroup::active()
@@ -683,13 +683,13 @@ class ProductResource extends Resource
                         }),
 
                     // ── Tab 8: Variants ───────────────────────────────────────
-                    Tab::make('Variants')
+                    Tab::make(__('admin.product.tabs.variants'))
                         ->icon('heroicon-o-squares-2x2')
                         ->schema([
 
                             // ── Step 1: Summary of variant-dimension values ───
-                            Section::make('Step 1 — Variant Dimensions')
-                                ->description('Chọn giá trị ở tab Filters. Chỉ nhóm có bật "Dùng làm biến thể" (Catalog → Filter Groups) mới xuất hiện ở đây.')
+                            Section::make(__('admin.product.sections.variant_step1'))
+                                ->description(__('admin.product.sections.variant_step1_desc'))
                                 ->icon('heroicon-o-tag')
                                 ->schema([
                                     Placeholder::make('variant_dimensions_summary')
@@ -726,20 +726,20 @@ class ProductResource extends Resource
                             // ── Generate button ───────────────────────────────
                             Actions::make([
                                 Action::make('generate_variants')
-                                    ->label('Generate Combinations')
+                                    ->label(__('admin.product.actions.generate_variants'))
                                     // ->icon('heroicon-o-bolt')
                                     ->color('primary')
                                     ->requiresConfirmation()
-                                    ->modalHeading('Generate Variant Combinations')
-                                    ->modalDescription('This will create all missing combinations from your selected variant-dimension filter values. Existing variants are never modified or deleted.')
-                                    ->modalSubmitActionLabel('Generate')
+                                    ->modalHeading(__('admin.product.actions.generate_variants_modal_heading'))
+                                    ->modalDescription(__('admin.product.actions.generate_variants_modal_description'))
+                                    ->modalSubmitActionLabel(__('admin.product.actions.generate_variants_submit'))
                                     ->action(function ($livewire): void {
                                         $product = $livewire->record;
 
                                         if (! $product?->exists) {
                                             Notification::make()
-                                                ->title('Save the product first')
-                                                ->body('Please save the product before generating variant combinations.')
+                                                ->title(__('admin.product.notifications.save_product_first_title'))
+                                                ->body(__('admin.product.notifications.save_product_first_body'))
                                                 ->warning()
                                                 ->send();
 
@@ -751,7 +751,7 @@ class ProductResource extends Resource
 
                                         if ($result['error']) {
                                             Notification::make()
-                                                ->title('Cannot generate')
+                                                ->title(__('admin.product.notifications.cannot_generate_title'))
                                                 ->body($result['error'])
                                                 ->danger()
                                                 ->send();
@@ -768,7 +768,7 @@ class ProductResource extends Resource
                                         }
 
                                         Notification::make()
-                                            ->title('Variants generated')
+                                            ->title(__('admin.product.notifications.variants_generated_title'))
                                             ->body($body)
                                             ->success()
                                             ->send();
@@ -779,12 +779,12 @@ class ProductResource extends Resource
                             ]),
 
                             // ── Step 2: Edit generated variants ───────────────
-                            Section::make('Step 2 — Manage Variants')
-                                ->description('Fill in SKU, price and stock for each generated combination. Stock = 0 → "OutOfStock" on Google.')
+                            Section::make(__('admin.product.sections.variant_step2'))
+                                ->description(__('admin.product.sections.variant_step2_desc'))
                                 ->icon('heroicon-o-rectangle-stack')
                                 ->schema([
                                     Forms\Components\Select::make('bulk_availability_status')
-                                        ->label('Đặt trạng thái cho tất cả biến thể')
+                                        ->label(__('admin.product.fields.bulk_availability_status'))
                                         ->options([
                                             VariantAvailability::Auto->value => 'Tự động (theo Stock)',
                                             VariantAvailability::OutOfStock->value => 'Hết hàng (ép)',
@@ -792,10 +792,10 @@ class ProductResource extends Resource
                                         ])
                                         ->native(false)
                                         ->dehydrated(false)
-                                        ->helperText('Ghi đè trạng thái của tất cả biến thể trong danh sách bên dưới. Vẫn sửa lại riêng từng biến thể được sau khi áp dụng.')
+                                        ->helperText(__('admin.product.fields.bulk_availability_status_help'))
                                         ->suffixAction(
                                             Action::make('apply_bulk_availability')
-                                                ->label('Áp dụng')
+                                                ->label(__('admin.product.actions.apply_bulk_availability'))
                                                 ->icon('heroicon-o-check')
                                                 ->action(function (Get $get, Set $set) {
                                                     $value = $get('bulk_availability_status');
@@ -822,7 +822,7 @@ class ProductResource extends Resource
                                         ->schema([
                                             // ── Combination badge ──────────────
                                             Placeholder::make('combination_label')
-                                                ->label('Combination')
+                                                ->label(__('admin.product.fields.combination_label'))
                                                 ->content(function ($record): HtmlString {
                                                     if (! $record?->exists) {
                                                         return new HtmlString(
@@ -866,7 +866,7 @@ class ProductResource extends Resource
                                             // "+ Add variant manually" (no combination without this)
                                             // and to fix a wrong combination on an existing variant.
                                             Forms\Components\Select::make('optionValues')
-                                                ->label('Combination (Color / Size / ...)')
+                                                ->label(__('admin.product.fields.variant_combination'))
                                                 ->relationship('optionValues', 'name')
                                                 ->multiple()
                                                 ->options(function (Get $get): array {
@@ -900,19 +900,19 @@ class ProductResource extends Resource
                                                 ->required()
                                                 ->preload()
                                                 ->native(false)
-                                                ->helperText('Chọn đúng 1 giá trị cho mỗi nhóm — ví dụ 1 Color + 1 Size. Bắt buộc cho variant thêm bằng "+ Add variant manually".')
+                                                ->helperText(__('admin.product.fields.variant_combination_help'))
                                                 ->columnSpanFull(),
 
                                             // ── SKU ───────────────────────────
                                             Forms\Components\TextInput::make('sku')
-                                                ->label('SKU')
+                                                ->label(__('admin.product.fields.sku'))
                                                 ->required()
                                                 ->unique(table: 'product_variants', column: 'sku', ignoreRecord: true)
                                                 ->columnSpan(1),
 
                                             // ── Image ─────────────────────────
                                             Forms\Components\Select::make('image_id')
-                                                ->label('Variant Image')
+                                                ->label(__('admin.product.fields.variant_image'))
                                                 ->options(function (Get $get) {
                                                     $productId = $get('../../id') ?? $get('product_id');
                                                     if (! $productId) {
@@ -930,33 +930,33 @@ class ProductResource extends Resource
                                                 })
                                                 ->nullable()
                                                 ->native(false)
-                                                ->placeholder('— same as product —')
+                                                ->placeholder(__('admin.product.fields.variant_image_placeholder'))
                                                 ->columnSpan(1),
 
                                             // ── Pricing ───────────────────────
                                             Forms\Components\TextInput::make('price')
-                                                ->label('Price')
+                                                ->label(__('admin.product.fields.price'))
                                                 ->numeric()
                                                 ->prefix('₫')
                                                 ->required()
                                                 ->columnSpan(1),
 
                                             Forms\Components\TextInput::make('sale_price')
-                                                ->label('Sale Price')
+                                                ->label(__('admin.product.fields.sale_price'))
                                                 ->numeric()
                                                 ->prefix('₫')
                                                 ->nullable()
                                                 ->columnSpan(1),
 
                                             Forms\Components\TextInput::make('price_usd')
-                                                ->label('Price (USD)')
+                                                ->label(__('admin.product.fields.price_usd'))
                                                 ->numeric()
                                                 ->prefix('$')
                                                 ->nullable()
                                                 ->columnSpan(1),
 
                                             Forms\Components\TextInput::make('sale_price_usd')
-                                                ->label('Sale Price (USD)')
+                                                ->label(__('admin.product.fields.sale_price_usd'))
                                                 ->numeric()
                                                 ->prefix('$')
                                                 ->nullable()
@@ -964,7 +964,7 @@ class ProductResource extends Resource
 
                                             // ── Stock & Status ─────────────────
                                             Forms\Components\TextInput::make('stock_quantity')
-                                                ->label('Stock')
+                                                ->label(__('admin.product.fields.stock'))
                                                 ->numeric()
                                                 ->default(0)
                                                 ->required()
@@ -986,7 +986,7 @@ class ProductResource extends Resource
                                                 ->columnSpan(1),
 
                                             Forms\Components\Select::make('availability_status')
-                                                ->label('Trạng thái')
+                                                ->label(__('admin.product.fields.availability_status'))
                                                 ->options([
                                                     VariantAvailability::Auto->value => 'Tự động (theo Stock)',
                                                     VariantAvailability::OutOfStock->value => 'Hết hàng (ép)',
@@ -995,16 +995,16 @@ class ProductResource extends Resource
                                                 ->default(VariantAvailability::Auto->value)
                                                 ->native(false)
                                                 ->live()
-                                                ->helperText('Tự động: Stock=0 → Hết hàng, Stock>0 → Có sẵn. 2 lựa chọn còn lại ép cứng, bỏ qua Stock.')
+                                                ->helperText(__('admin.product.fields.availability_status_help'))
                                                 ->columnSpan(1),
 
                                             Forms\Components\Toggle::make('is_active')
-                                                ->label('Active')
+                                                ->label(__('admin.product.fields.active'))
                                                 ->default(true)
                                                 ->inline(false)
                                                 ->columnSpan(1),
                                         ])
-                                        ->hint('Each variant = one Offer in Product JSON-LD. Stock = 0 → OutOfStock on Google.')
+                                        ->hint(__('admin.product.fields.variants_repeater_hint'))
                                         ->hintIcon('heroicon-o-magnifying-glass')
                                         ->hintColor('info')
                                         ->itemLabel(function (array $state): ?string {
@@ -1015,7 +1015,7 @@ class ProductResource extends Resource
                                         ->orderColumn('sort_order')
                                         ->reorderable()
                                         ->reorderableWithDragAndDrop()
-                                        ->addActionLabel('+ Add variant manually')
+                                        ->addActionLabel(__('admin.product.actions.add_variant'))
                                         ->defaultItems(0)
                                         ->columns(2)
                                         ->columnSpanFull()
@@ -1024,12 +1024,12 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 8: SEO ────────────────────────────────────────────
-                    Tab::make('SEO')
+                    Tab::make(__('admin.product.tabs.seo'))
                         ->icon('heroicon-o-magnifying-glass')
                         ->schema([
                             Tabs::make('SeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.product.tabs.locale_vi'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('seoMetaVi')
@@ -1037,15 +1037,15 @@ class ProductResource extends Resource
                                                     fn (array $data) => ['locale' => 'vi', ...$data]
                                                 )
                                                 ->schema([
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.product.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.meta_title_vi').'</span>'))
                                                                 ->live(debounce: 400)
-                                                                ->placeholder('Tự điền từ tên sản phẩm')
+                                                                ->placeholder(__('admin.product.fields.meta_title_placeholder'))
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 50, 70))
-                                                                ->helperText('Tối ưu: 50–70 ký tự.')
+                                                                ->helperText(__('admin.product.fields.meta_title_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->name) {
                                                                         $set('meta_title', $livewire->record->name);
@@ -1054,12 +1054,12 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.meta_description_vi').'</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 120, 160))
-                                                                ->helperText('Tối ưu: 120–160 ký tự.')
+                                                                ->helperText(__('admin.product.fields.meta_description_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $short = $livewire->record?->translation('vi')?->short_description;
@@ -1071,15 +1071,15 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Keywords (vi)</span>'))
-                                                                ->helperText('Phân cách bằng dấu phẩy')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.meta_keywords_vi').'</span>'))
+                                                                ->helperText(__('admin.product.fields.meta_keywords_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Canonical URL (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.canonical_url_vi').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Tự tạo từ slug (vi)')
-                                                                ->hint('Tự tạo từ slug (vi)')
+                                                                ->placeholder(__('admin.product.fields.canonical_url_vi_auto'))
+                                                                ->hint(__('admin.product.fields.canonical_url_vi_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -1093,7 +1093,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Robots</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.robots').'</span>'))
                                                                 ->options([
                                                                     'index,follow' => 'index, follow (default)',
                                                                     'noindex,follow' => 'noindex,follow',
@@ -1105,12 +1105,12 @@ class ProductResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (vi)')
+                                                    Section::make(__('admin.product.sections.og_vi'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Title (vi)</span>'))
-                                                                ->placeholder('Tự điền từ Meta Title (vi)')
-                                                                ->hint('Tự điền từ Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.og_title_vi').'</span>'))
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_title_vi'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_title_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -1123,10 +1123,10 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.og_description_vi').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Tự điền từ Meta Description (vi)')
-                                                                ->hint('Tự điền từ Meta Description (vi)')
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_description_vi'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_description_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -1137,13 +1137,13 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Image URL</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.og_image').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Tự điền từ ảnh đầu tiên')
-                                                                ->hint('Tự điền từ ảnh đầu tiên')
+                                                                ->placeholder(__('admin.product.fields.og_image_auto'))
+                                                                ->hint(__('admin.product.fields.og_image_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
-                                                                ->helperText('Khuyến nghị: 1200×630px.')
+                                                                ->helperText(__('admin.product.fields.og_image_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $firstImage = $livewire->record?->images()->orderBy('sort_order')->first();
@@ -1155,7 +1155,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.og_type').'</span>'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -1165,10 +1165,10 @@ class ProductResource extends Resource
                                                         ->columns(2)
                                                         ->collapsed(),
 
-                                                    Section::make('Twitter Card (vi)')
+                                                    Section::make(__('admin.product.sections.twitter_vi'))
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Card Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.twitter_card_type').'</span>'))
                                                                 ->options([
                                                                     'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
@@ -1177,9 +1177,9 @@ class ProductResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Title (vi)</span>'))
-                                                                ->placeholder('Tự điền từ Meta Title (vi)')
-                                                                ->hint('Tự điền từ Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.twitter_title_vi').'</span>'))
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_title_vi'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_title_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -1191,10 +1191,10 @@ class ProductResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.twitter_description_vi').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Tự điền từ Meta Description (vi)')
-                                                                ->hint('Tự điền từ Meta Description (vi)')
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_description_vi'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_description_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -1209,7 +1209,7 @@ class ProductResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.product.tabs.locale_en'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('seoMetaEn')
@@ -1217,15 +1217,15 @@ class ProductResource extends Resource
                                                     fn (array $data) => ['locale' => 'en', ...$data]
                                                 )
                                                 ->schema([
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.product.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Title (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.meta_title_en').'</span>'))
                                                                 ->live(debounce: 400)
-                                                                ->placeholder('Auto-filled from product name')
+                                                                ->placeholder(__('admin.product.fields.meta_title_placeholder'))
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 50, 70))
-                                                                ->helperText('Optimal: 50–70 chars.')
+                                                                ->helperText(__('admin.product.fields.meta_title_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $name = $livewire->record?->translation('en')?->name ?? $livewire->record?->name;
@@ -1237,12 +1237,12 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.meta_description_en').'</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 120, 160))
-                                                                ->helperText('Optimal: 120–160 chars.')
+                                                                ->helperText(__('admin.product.fields.meta_description_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $short = $livewire->record?->translation('en')?->short_description;
@@ -1254,15 +1254,15 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Keywords (en)</span>'))
-                                                                ->helperText('Comma separated')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.meta_keywords_en').'</span>'))
+                                                                ->helperText(__('admin.product.fields.meta_keywords_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Canonical URL (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.canonical_url_en').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Auto-generated from slug')
-                                                                ->hint('Auto-generated from slug')
+                                                                ->placeholder(__('admin.product.fields.canonical_url_en_auto'))
+                                                                ->hint(__('admin.product.fields.canonical_url_en_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -1276,7 +1276,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Robots</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.robots').'</span>'))
                                                                 ->options([
                                                                     'index,follow' => 'index, follow (default)',
                                                                     'noindex,follow' => 'noindex,follow',
@@ -1288,12 +1288,12 @@ class ProductResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (en)')
+                                                    Section::make(__('admin.product.sections.og_en'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Title (en)</span>'))
-                                                                ->placeholder('Auto-filled from Meta Title (en)')
-                                                                ->hint('Auto-filled from Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.og_title_en').'</span>'))
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_title_en'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_title_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -1306,10 +1306,10 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.og_description_en').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Auto-filled from Meta Description (en)')
-                                                                ->hint('Auto-filled from Meta Description (en)')
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_description_en'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_description_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -1320,13 +1320,13 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Image URL</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.og_image').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Auto-filled from first product image')
-                                                                ->hint('Auto-filled from first product image')
+                                                                ->placeholder(__('admin.product.fields.og_image_auto'))
+                                                                ->hint(__('admin.product.fields.og_image_auto'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
-                                                                ->helperText('Recommended: 1200×630px.')
+                                                                ->helperText(__('admin.product.fields.og_image_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state)) {
                                                                         $firstImage = $livewire->record?->images()->orderBy('sort_order')->first();
@@ -1338,7 +1338,7 @@ class ProductResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.og_type').'</span>'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -1348,10 +1348,10 @@ class ProductResource extends Resource
                                                         ->columns(2)
                                                         ->collapsed(),
 
-                                                    Section::make('Twitter Card (en)')
+                                                    Section::make(__('admin.product.sections.twitter_en'))
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Card Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.twitter_card_type').'</span>'))
                                                                 ->options([
                                                                     'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
@@ -1360,9 +1360,9 @@ class ProductResource extends Resource
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Title (en)</span>'))
-                                                                ->placeholder('Auto-filled from Meta Title (en)')
-                                                                ->hint('Auto-filled from Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.twitter_title_en').'</span>'))
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_title_en'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_title_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -1374,10 +1374,10 @@ class ProductResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.twitter_description_en').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Auto-filled from Meta Description (en)')
-                                                                ->hint('Auto-filled from Meta Description (en)')
+                                                                ->placeholder(__('admin.product.fields.auto_from_meta_description_en'))
+                                                                ->hint(__('admin.product.fields.auto_from_meta_description_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -1396,12 +1396,12 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 7: GEO / AI ───────────────────────────────────────
-                    Tab::make('GEO / AI')
+                    Tab::make(__('admin.product.tabs.geo_ai'))
                         ->icon('heroicon-o-cpu-chip')
                         ->schema([
                             Tabs::make('GeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.product.tabs.locale_vi'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileVi')
@@ -1409,50 +1409,50 @@ class ProductResource extends Resource
                                                     fn (array $data) => ['locale' => 'vi', ...$data]
                                                 )
                                                 ->schema([
-                                                    Section::make('AI Context (vi)')
-                                                        ->description('Dùng bởi ChatGPT, Gemini, Perplexity khi trả lời về sản phẩm này.')
+                                                    Section::make(__('admin.product.sections.ai_context_vi'))
+                                                        ->description(__('admin.product.sections.ai_context_desc'))
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">AI Summary (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.ai_summary_vi').'</span>'))
                                                                 ->rows(4)
-                                                                ->helperText('2–4 câu mô tả sản phẩm cho AI. Hiển thị đầu tiên trong llms.txt.')
+                                                                ->helperText(__('admin.product.fields.ai_summary_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Use Cases (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.use_cases_vi').'</span>'))
                                                                 ->rows(3)
-                                                                ->placeholder('vd: Chiếu sáng nội thất, trưng bày bảo tàng, kệ bán lẻ'),
+                                                                ->placeholder(__('admin.product.fields.use_cases_vi_placeholder')),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Target Audience (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.target_audience_vi').'</span>'))
                                                                 ->maxLength(255)
-                                                                ->placeholder('vd: Nhà thiết kế chiếu sáng, nhà thầu điện'),
+                                                                ->placeholder(__('admin.product.fields.target_audience_vi_placeholder')),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">LLM Context Hint (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.llm_context_hint_vi').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('vd: Cạnh tranh với Philips Hue, đạt CE/RoHS, không chống nước')
+                                                                ->placeholder(__('admin.product.fields.llm_context_hint_vi_placeholder'))
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Key Facts (vi)')
-                                                        ->description('Thông tin cấu trúc cho AI — chứng nhận, tiêu chuẩn, điểm bán hàng.')
+                                                    Section::make(__('admin.product.sections.key_facts_vi'))
+                                                        ->description(__('admin.product.sections.key_facts_desc'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label('Thông tin')
-                                                                        ->placeholder('vd: Chứng nhận')
+                                                                        ->label(__('admin.product.fields.key_fact_label'))
+                                                                        ->placeholder(__('admin.product.fields.key_fact_label_placeholder_vi'))
                                                                         ->required(),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label('Giá trị')
-                                                                        ->placeholder('vd: CE / RoHS')
+                                                                        ->label(__('admin.product.fields.key_fact_value'))
+                                                                        ->placeholder(__('admin.product.fields.key_fact_value_placeholder_vi'))
                                                                         ->required(),
                                                                 ])
                                                                 ->columns(2)
-                                                                ->addActionLabel('+ Thêm thông tin')
+                                                                ->addActionLabel(__('admin.product.actions.add_key_fact'))
                                                                 ->defaultItems(0)
                                                                 ->reorderable()
                                                                 ->collapsible()
@@ -1463,7 +1463,7 @@ class ProductResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.product.tabs.locale_en'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileEn')
@@ -1471,50 +1471,50 @@ class ProductResource extends Resource
                                                     fn (array $data) => ['locale' => 'en', ...$data]
                                                 )
                                                 ->schema([
-                                                    Section::make('AI Context (en)')
-                                                        ->description('Used by ChatGPT, Gemini, Perplexity when answering questions about this product.')
+                                                    Section::make(__('admin.product.sections.ai_context_en'))
+                                                        ->description(__('admin.product.sections.ai_context_desc'))
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">AI Summary (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.ai_summary_en').'</span>'))
                                                                 ->rows(4)
-                                                                ->helperText('2–4 sentences describing this product for AI engines. Shown first in llms.txt.')
+                                                                ->helperText(__('admin.product.fields.ai_summary_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Use Cases (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.use_cases_en').'</span>'))
                                                                 ->rows(3)
-                                                                ->placeholder('e.g. Indoor accent lighting, museum displays, retail shelving'),
+                                                                ->placeholder(__('admin.product.fields.use_cases_en_placeholder')),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Target Audience (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.target_audience_en').'</span>'))
                                                                 ->maxLength(255)
-                                                                ->placeholder('e.g. Lighting designers, electrical contractors'),
+                                                                ->placeholder(__('admin.product.fields.target_audience_en_placeholder')),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">LLM Context Hint (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.llm_context_hint_en').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('e.g. Competes with Philips Hue, CE/RoHS certified, not waterproof')
+                                                                ->placeholder(__('admin.product.fields.llm_context_hint_en_placeholder'))
                                                                 ->columnSpanFull(),
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Key Facts (en)')
-                                                        ->description('Structured facts for AI engines — certifications, compliance, key selling points.')
+                                                    Section::make(__('admin.product.sections.key_facts_en'))
+                                                        ->description(__('admin.product.sections.key_facts_desc'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label('Fact')
-                                                                        ->placeholder('e.g. Certification')
+                                                                        ->label(__('admin.product.fields.key_fact_label'))
+                                                                        ->placeholder(__('admin.product.fields.key_fact_label_placeholder_en'))
                                                                         ->required(),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label('Value')
-                                                                        ->placeholder('e.g. CE / RoHS')
+                                                                        ->label(__('admin.product.fields.key_fact_value'))
+                                                                        ->placeholder(__('admin.product.fields.key_fact_value_placeholder_en'))
                                                                         ->required(),
                                                                 ])
                                                                 ->columns(2)
-                                                                ->addActionLabel('+ Add fact')
+                                                                ->addActionLabel(__('admin.product.actions.add_key_fact'))
                                                                 ->defaultItems(0)
                                                                 ->reorderable()
                                                                 ->collapsible()
@@ -1529,11 +1529,11 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 8: LLMs ───────────────────────────────────────────
-                    Tab::make('LLMs')
+                    Tab::make(__('admin.product.tabs.llms'))
                         ->icon('heroicon-o-document-text')
                         ->schema([
 
-                            Section::make('How LLMs entries work')
+                            Section::make(__('admin.product.sections.llms_how_it_works'))
                                 ->schema([
                                     Placeholder::make('llms_source_hint')
                                         ->label('')
@@ -1552,14 +1552,14 @@ class ProductResource extends Resource
 
                             Tabs::make('LlmsLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.product.tabs.locale_vi'))
                                         ->schema([
                                             Forms\Components\Repeater::make('llmsEntriesVi')
                                                 ->relationship()
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Entries (vi)</span>'))
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.llms_entries_vi').'</span>'))
                                                 ->schema([
                                                     Placeholder::make('llms_preview')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Preview (llms.txt output)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.llms_preview').'</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record) {
                                                                 return new HtmlString('<em class="text-gray-400">Not generated yet — save the product to trigger sync.</em>');
@@ -1586,11 +1586,11 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Published to llms.txt</span>'))
-                                                        ->helperText('Toggle off to exclude this entry from the AI document.')
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.llms_published').'</span>'))
+                                                        ->helperText(__('admin.product.fields.llms_published_help'))
                                                         ->inline(false),
                                                     Placeholder::make('updated_at')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Last synced</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.last_synced').'</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
@@ -1604,32 +1604,32 @@ class ProductResource extends Resource
 
                                             Actions::make([
                                                 Action::make('regenerate_llms_vi')
-                                                    ->label('Regenerate vi')
+                                                    ->label(__('admin.product.actions.regenerate_llms_vi'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate LLMs Entry (vi)')
-                                                    ->modalDescription('This will re-pull data from GEO/AI (vi) tab and overwrite the current entry. Proceed?')
+                                                    ->modalHeading(__('admin.product.actions.regenerate_llms_vi_modal_heading'))
+                                                    ->modalDescription(__('admin.product.actions.regenerate_llms_vi_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
                                                         if (! $product?->exists) {
                                                             return;
                                                         }
                                                         app(LlmsGeneratorService::class)->upsertEntry($product, null, 'vi');
-                                                        Notification::make()->title('LLMs entry (vi) regenerated')->success()->send();
+                                                        Notification::make()->title(__('admin.product.notifications.llms_regenerated_vi'))->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
                                             ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.product.tabs.locale_en'))
                                         ->schema([
                                             Forms\Components\Repeater::make('llmsEntriesEn')
                                                 ->relationship()
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Entries (en)</span>'))
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.llms_entries_en').'</span>'))
                                                 ->schema([
                                                     Placeholder::make('llms_preview')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Preview (llms.txt output)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.llms_preview').'</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record) {
                                                                 return new HtmlString('<em class="text-gray-400">Not generated yet — save the product to trigger sync.</em>');
@@ -1656,11 +1656,11 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Published to llms.txt</span>'))
-                                                        ->helperText('Toggle off to exclude this entry from the AI document.')
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.llms_published').'</span>'))
+                                                        ->helperText(__('admin.product.fields.llms_published_help'))
                                                         ->inline(false),
                                                     Placeholder::make('updated_at')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Last synced</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.last_synced').'</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
@@ -1674,19 +1674,19 @@ class ProductResource extends Resource
 
                                             Actions::make([
                                                 Action::make('regenerate_llms_en')
-                                                    ->label('Regenerate en')
+                                                    ->label(__('admin.product.actions.regenerate_llms_en'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate LLMs Entry (en)')
-                                                    ->modalDescription('This will re-pull data from GEO/AI (en) tab and overwrite the current entry. Proceed?')
+                                                    ->modalHeading(__('admin.product.actions.regenerate_llms_en_modal_heading'))
+                                                    ->modalDescription(__('admin.product.actions.regenerate_llms_en_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
                                                         if (! $product?->exists) {
                                                             return;
                                                         }
                                                         app(LlmsGeneratorService::class)->upsertEntry($product, null, 'en');
-                                                        Notification::make()->title('LLMs entry (en) regenerated')->success()->send();
+                                                        Notification::make()->title(__('admin.product.notifications.llms_regenerated_en'))->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
                                             ]),
@@ -1696,11 +1696,11 @@ class ProductResource extends Resource
                         ]),
 
                     // ── Tab 9: JSON-LD ────────────────────────────────────────
-                    Tab::make('JSON-LD')
+                    Tab::make(__('admin.product.tabs.jsonld'))
                         ->icon('heroicon-o-code-bracket')
                         ->schema([
 
-                            Section::make('How JSON-LD schemas work')
+                            Section::make(__('admin.product.sections.jsonld_how_it_works'))
                                 ->schema([
                                     Placeholder::make('jsonld_info')
                                         ->label('')
@@ -1718,11 +1718,11 @@ class ProductResource extends Resource
 
                             Tabs::make('JsonldLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.product.tabs.locale_vi'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasVi')
                                                 ->relationship()
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Schemas (vi)</span>'))
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.jsonld_schemas_vi').'</span>'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -1740,7 +1740,7 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Payload (what Google reads)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.jsonld_payload_preview').'</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the product to generate.</em>');
@@ -1751,10 +1751,10 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Active (inject into page &lt;head&gt;)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.jsonld_active').'</span>'))
                                                         ->inline(false),
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Last generated</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.jsonld_last_generated').'</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
@@ -1773,29 +1773,29 @@ class ProductResource extends Resource
 
                                             Actions::make([
                                                 Action::make('regenerate_jsonld_vi')
-                                                    ->label('Regenerate vi')
+                                                    ->label(__('admin.product.actions.regenerate_jsonld_vi'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate JSON-LD (vi)')
-                                                    ->modalDescription('Re-generate all Auto schemas for the Vietnamese locale. Manual schemas will not be affected.')
+                                                    ->modalHeading(__('admin.product.actions.regenerate_jsonld_vi_modal_heading'))
+                                                    ->modalDescription(__('admin.product.actions.regenerate_jsonld_vi_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
                                                         if (! $product?->exists) {
                                                             return;
                                                         }
                                                         app(JsonldService::class)->syncForModel($product, 'vi');
-                                                        Notification::make()->title('JSON-LD (vi) regenerated')->success()->send();
+                                                        Notification::make()->title(__('admin.product.notifications.jsonld_regenerated_vi'))->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
                                             ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.product.tabs.locale_en'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasEn')
                                                 ->relationship()
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Schemas (en)</span>'))
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.jsonld_schemas_en').'</span>'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -1813,7 +1813,7 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Payload (what Google reads)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.jsonld_payload_preview').'</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the product to generate.</em>');
@@ -1824,10 +1824,10 @@ class ProductResource extends Resource
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Active (inject into page &lt;head&gt;)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.jsonld_active').'</span>'))
                                                         ->inline(false),
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Last generated</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.jsonld_last_generated').'</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
                                                             ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
@@ -1846,19 +1846,19 @@ class ProductResource extends Resource
 
                                             Actions::make([
                                                 Action::make('regenerate_jsonld_en')
-                                                    ->label('Regenerate en')
+                                                    ->label(__('admin.product.actions.regenerate_jsonld_en'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate JSON-LD (en)')
-                                                    ->modalDescription('Re-generate all Auto schemas for the English locale. Manual schemas will not be affected.')
+                                                    ->modalHeading(__('admin.product.actions.regenerate_jsonld_en_modal_heading'))
+                                                    ->modalDescription(__('admin.product.actions.regenerate_jsonld_en_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $product = $livewire->record;
                                                         if (! $product?->exists) {
                                                             return;
                                                         }
                                                         app(JsonldService::class)->syncForModel($product, 'en');
-                                                        Notification::make()->title('JSON-LD (en) regenerated')->success()->send();
+                                                        Notification::make()->title(__('admin.product.notifications.jsonld_regenerated_en'))->success()->send();
                                                         redirect(ProductResource::getUrl('edit', ['record' => $product]));
                                                     }),
                                             ]),
@@ -1880,7 +1880,7 @@ class ProductResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\ImageColumn::make('thumbnail.path')
-                    ->label('Thumbnail')
+                    ->label(__('admin.product.fields.thumbnail'))
                     ->disk('public'),
 
                 Tables\Columns\TextColumn::make('name')
@@ -1888,11 +1888,11 @@ class ProductResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('sku')
-                    ->label('SKU')
+                    ->label(__('admin.product.fields.sku'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('categories.name')
-                    ->label('Categories')
+                    ->label(__('admin.product.fields.categories'))
                     ->badge()
                     ->separator(','),
 
@@ -1902,10 +1902,10 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('sale_price')
                     ->money('VND')
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.product.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('stock_quantity')
-                    ->label('Stock')
+                    ->label(__('admin.product.fields.stock'))
                     ->numeric()
                     ->sortable(),
 
@@ -1920,10 +1920,10 @@ class ProductResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.product.fields.active')),
 
                 Tables\Filters\SelectFilter::make('categories')
-                    ->label('Category')
+                    ->label(__('admin.product.fields.category'))
                     ->relationship('categories', 'name')
                     ->multiple(),
 
@@ -1932,13 +1932,13 @@ class ProductResource extends Resource
             ->actions([
                 EditAction::make(),
                 Action::make('toggleActive')
-                    ->label(fn (Product $record) => $record->is_active ? 'Hide' : 'Show')
+                    ->label(fn (Product $record) => $record->is_active ? __('admin.product.actions.hide') : __('admin.product.actions.show'))
                     ->icon(fn (Product $record) => $record->is_active ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
                     ->color(fn (Product $record) => $record->is_active ? 'warning' : 'success')
                     ->action(fn (Product $record) => $record->update(['is_active' => ! $record->is_active])),
 
                 Action::make('audit')
-                    ->label('Audit')
+                    ->label(__('admin.product.actions.audit'))
                     ->icon('heroicon-o-clipboard-document-check')
                     ->color('info')
                     ->action(function (Product $record): StreamedResponse {
