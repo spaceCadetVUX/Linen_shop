@@ -2686,8 +2686,6 @@ img    { display: block; }
 .footer-col--left,
 .footer-col--right { text-align: center; }
 
-.footer-col--right .footer-col-title { text-align: center; }
-
 .footer-nav {
   display: flex;
   flex-direction: column;
@@ -2856,12 +2854,11 @@ img    { display: block; }
     padding: 48px 24px 36px;
     gap: 24px 16px;
   }
-  /* left col bám lề trái */
-  .footer-col--left { text-align: left; }
-  .footer-col--left .footer-nav { align-items: flex-start; }
-  /* right col bám lề phải */
-  .footer-col--right { text-align: right; }
-  .footer-col--right .footer-nav { align-items: flex-end; }
+  /* cả 2 cột bám lề trái, đồng nhất với nhau */
+  .footer-col--left,
+  .footer-col--right { text-align: left; }
+  .footer-col--left .footer-nav,
+  .footer-col--right .footer-nav { align-items: flex-start; }
   .footer-social { padding: 0 24px 36px; justify-content: flex-start; gap: 20px; }
   .footer-shipping { padding: 0 24px 24px; justify-content: flex-start; gap: 16px; }
   .footer-bottom { flex-direction: column; align-items: flex-start; padding: 20px 24px; }
