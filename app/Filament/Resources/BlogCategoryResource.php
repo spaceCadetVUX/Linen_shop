@@ -49,11 +49,11 @@ class BlogCategoryResource extends Resource
     {
         return $schema->schema([
             Forms\Components\TextInput::make('name')
-                ->label('Internal Name')
-                ->hint('Dùng trong admin — không hiển thị cho người dùng')
+                ->label(__('admin.blog_category.fields.internal_name'))
+                ->hint(__('admin.blog_category.fields.internal_name_hint'))
                 ->hintIcon('heroicon-o-information-circle')
                 ->hintColor('warning')
-                ->helperText('Tên ngắn gọn để nhận biết danh mục trong hệ thống.')
+                ->helperText(__('admin.blog_category.fields.internal_name_help'))
                 ->required()
                 ->live(debounce: 500)
                 ->afterStateUpdated(fn (Set $set, ?string $state) =>
@@ -61,17 +61,17 @@ class BlogCategoryResource extends Resource
                 ),
 
             Forms\Components\TextInput::make('slug')
-                ->label('Internal Slug')
-                ->hint('Dùng trong JSON-LD và API nội bộ — không phải URL công khai')
+                ->label(__('admin.blog_category.fields.internal_slug'))
+                ->hint(__('admin.blog_category.fields.internal_slug_hint'))
                 ->hintIcon('heroicon-o-information-circle')
                 ->hintColor('warning')
-                ->helperText('URL công khai dùng slug từ phần Translations.')
+                ->helperText(__('admin.blog_category.fields.internal_slug_help'))
                 ->required()
                 ->unique(table: BlogCategory::class, column: 'slug', ignoreRecord: true),
 
             Forms\Components\Textarea::make('description')
-                ->label('Internal Description')
-                ->hint('Không hiển thị trực tiếp — dùng làm gợi ý nội dung')
+                ->label(__('admin.blog_category.fields.internal_description'))
+                ->hint(__('admin.blog_category.fields.internal_description_hint'))
                 ->hintIcon('heroicon-o-information-circle')
                 ->hintColor('warning')
                 ->rows(3)
@@ -86,16 +86,16 @@ class BlogCategoryResource extends Resource
                 ->default(true),
 
             // ── Translations ──────────────────────────────────────────────────
-            Section::make('Translations')
+            Section::make(__('admin.blog_category.sections.translations'))
                 ->icon('heroicon-o-language')
                 ->schema([
                     Tabs::make('LocaleTabs')
                         ->tabs([
-                            Tab::make('🇻🇳 Tiếng Việt (vi)')
+                            Tab::make(__('admin.blog_category.tabs.locale_vi_full'))
                                 ->schema([
                                     Forms\Components\TextInput::make('translations.vi.name')
-                                        ->label('Tên hiển thị (vi)')
-                                        ->hint('Hiển thị trên trang web cho người dùng Việt Nam')
+                                        ->label(__('admin.blog_category.fields.display_name_vi'))
+                                        ->hint(__('admin.blog_category.fields.display_name_vi_hint'))
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->live(onBlur: true)
@@ -104,35 +104,35 @@ class BlogCategoryResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.vi.slug')
-                                        ->label('URL Slug (vi)')
-                                        ->hint('Tạo URL: /vi/blog/{slug}')
+                                        ->label(__('admin.blog_category.fields.url_slug_vi'))
+                                        ->hint(__('admin.blog_category.fields.url_slug_vi_hint'))
                                         ->hintIcon('heroicon-o-link')
                                         ->hintColor('success')
-                                        ->helperText('Tự động tạo từ tên. Phải unique theo từng ngôn ngữ.')
+                                        ->helperText(__('admin.blog_category.fields.slug_auto_help'))
                                         ->columnSpanFull(),
 
                                     Forms\Components\Textarea::make('translations.vi.description')
-                                        ->label('Mô tả (vi)')
-                                        ->hint('Hiển thị trên trang blog category — Google đọc để hiểu nội dung')
+                                        ->label(__('admin.blog_category.fields.description_vi'))
+                                        ->hint(__('admin.blog_category.fields.description_vi_hint'))
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->rows(3)
                                         ->columnSpanFull(),
 
                                     RichEditor::make('translations.vi.rich_content')
-                                        ->label('Nội dung phong phú (vi)')
-                                        ->hint('Nội dung dài — hiển thị ở phần dưới trang blog category')
+                                        ->label(__('admin.blog_category.fields.rich_content_vi'))
+                                        ->hint(__('admin.blog_category.fields.rich_content_vi_hint'))
                                         ->hintIcon('heroicon-o-document-text')
                                         ->hintColor('success')
                                         ->plugins([MediaRichEditorPlugin::make()])
                                         ->columnSpanFull(),
                                 ]),
 
-                            Tab::make('🇬🇧 English (en)')
+                            Tab::make(__('admin.blog_category.tabs.locale_en_full'))
                                 ->schema([
                                     Forms\Components\TextInput::make('translations.en.name')
-                                        ->label('Display Name (en)')
-                                        ->hint('Shown on the website to English-speaking visitors')
+                                        ->label(__('admin.blog_category.fields.display_name_en'))
+                                        ->hint(__('admin.blog_category.fields.display_name_en_hint'))
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->live(onBlur: true)
@@ -141,24 +141,24 @@ class BlogCategoryResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.en.slug')
-                                        ->label('URL Slug (en)')
-                                        ->hint('Creates URL: /en/blog/{slug}')
+                                        ->label(__('admin.blog_category.fields.url_slug_en'))
+                                        ->hint(__('admin.blog_category.fields.url_slug_en_hint'))
                                         ->hintIcon('heroicon-o-link')
                                         ->hintColor('success')
-                                        ->helperText('Auto-generated from name. Must be unique per locale.')
+                                        ->helperText(__('admin.blog_category.fields.slug_auto_help'))
                                         ->columnSpanFull(),
 
                                     Forms\Components\Textarea::make('translations.en.description')
-                                        ->label('Description (en)')
-                                        ->hint('Shown on the category page — Google reads this to understand content')
+                                        ->label(__('admin.blog_category.fields.description_en'))
+                                        ->hint(__('admin.blog_category.fields.description_en_hint'))
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->rows(3)
                                         ->columnSpanFull(),
 
                                     RichEditor::make('translations.en.rich_content')
-                                        ->label('Rich Content (en)')
-                                        ->hint('Long-form content — displayed at the bottom of the blog category page')
+                                        ->label(__('admin.blog_category.fields.rich_content_en'))
+                                        ->hint(__('admin.blog_category.fields.rich_content_en_hint'))
                                         ->hintIcon('heroicon-o-document-text')
                                         ->hintColor('success')
                                         ->plugins([MediaRichEditorPlugin::make()])
@@ -171,63 +171,63 @@ class BlogCategoryResource extends Resource
                 ->columnSpanFull(),
 
             // ── GEO / AI ─────────────────────────────────────────────────────
-            Section::make('GEO / AI')
+            Section::make(__('admin.blog_category.sections.geo_ai'))
                 ->icon('heroicon-o-cpu-chip')
                 ->schema([
                     Tabs::make('GeoLocaleTabs')
                         ->tabs([
-                            Tab::make('🇻🇳 Tiếng Việt')
+                            Tab::make(__('admin.blog_category.tabs.locale_vi'))
                                 ->schema([
                                     Group::make()
                                         ->relationship('geoProfileVi')
                                         ->schema([
                                             Forms\Components\Hidden::make('locale')->default('vi'),
 
-                                            Section::make('AI Context')
+                                            Section::make(__('admin.blog_category.fields.ai_context'))
                                                 ->schema([
                                                     Forms\Components\Textarea::make('ai_summary')
-                                                        ->label('AI Summary (vi)')
-                                                        ->hint('Đoạn tóm tắt ngắn cho AI / chatbot hiểu danh mục blog này')
+                                                        ->label(__('admin.blog_category.fields.ai_summary_vi'))
+                                                        ->hint(__('admin.blog_category.fields.ai_summary_hint'))
                                                         ->rows(4)
-                                                        ->placeholder('Mô tả 2–4 câu: danh mục viết về chủ đề gì, đối tượng độc giả, điểm nổi bật...')
+                                                        ->placeholder(__('admin.blog_category.fields.ai_summary_vi_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('use_cases')
-                                                        ->label('Use Cases (vi)')
-                                                        ->hint('Chủ đề / ứng dụng — AI dùng để trả lời "danh mục này phù hợp cho ai"')
+                                                        ->label(__('admin.blog_category.fields.use_cases_vi'))
+                                                        ->hint(__('admin.blog_category.fields.use_cases_hint'))
                                                         ->rows(3)
-                                                        ->placeholder('VD: Tài liệu kỹ thuật KNX cho kỹ sư, hướng dẫn tích hợp DALI-2...')
+                                                        ->placeholder(__('admin.blog_category.fields.use_cases_vi_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('target_audience')
-                                                        ->label('Target Audience (vi)')
-                                                        ->hint('Đối tượng độc giả mục tiêu')
-                                                        ->placeholder('VD: Kỹ sư tự động hóa, System Integrator, nhà thầu ME...')
+                                                        ->label(__('admin.blog_category.fields.target_audience_vi'))
+                                                        ->hint(__('admin.blog_category.fields.target_audience_hint'))
+                                                        ->placeholder(__('admin.blog_category.fields.target_audience_vi_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('llm_context_hint')
-                                                        ->label('LLM Context Hint (vi)')
-                                                        ->hint('Gợi ý thêm cho LLM khi sinh nội dung về danh mục blog này')
+                                                        ->label(__('admin.blog_category.fields.llm_context_hint_vi'))
+                                                        ->hint(__('admin.blog_category.fields.llm_context_help'))
                                                         ->rows(2)
                                                         ->columnSpanFull(),
                                                 ]),
 
-                                            Section::make('Key Facts (vi)')
+                                            Section::make(__('admin.blog_category.sections.key_facts_vi'))
                                                 ->schema([
                                                     Forms\Components\Repeater::make('key_facts')
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('label')
-                                                                ->label('Nhãn')
+                                                                ->label(__('admin.blog_category.fields.key_fact_label'))
                                                                 ->required()
-                                                                ->placeholder('VD: Số bài viết'),
+                                                                ->placeholder(__('admin.blog_category.fields.key_fact_label_placeholder_vi')),
                                                             Forms\Components\TextInput::make('value')
-                                                                ->label('Giá trị')
+                                                                ->label(__('admin.blog_category.fields.key_fact_value'))
                                                                 ->required()
-                                                                ->placeholder('VD: 50+'),
+                                                                ->placeholder(__('admin.blog_category.fields.key_fact_value_placeholder_vi')),
                                                         ])
                                                         ->columns(2)
-                                                        ->addActionLabel('Thêm fact')
+                                                        ->addActionLabel(__('admin.blog_category.actions.add_key_fact'))
                                                         ->reorderable()
                                                         ->collapsible()
                                                         ->defaultItems(0)
@@ -235,24 +235,24 @@ class BlogCategoryResource extends Resource
                                                 ])
                                                 ->collapsible(),
 
-                                            Section::make('FAQ (vi)')
+                                            Section::make(__('admin.blog_category.sections.faq_vi'))
                                                 ->schema([
                                                     Forms\Components\Repeater::make('faq')
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('question')
-                                                                ->label('Câu hỏi')
+                                                                ->label(__('admin.blog_category.fields.faq_question'))
                                                                 ->required()
-                                                                ->placeholder('VD: Danh mục này viết về chủ đề gì?')
+                                                                ->placeholder(__('admin.blog_category.fields.faq_question_vi_placeholder'))
                                                                 ->columnSpanFull(),
                                                             Forms\Components\Textarea::make('answer')
-                                                                ->label('Trả lời')
+                                                                ->label(__('admin.blog_category.fields.faq_answer'))
                                                                 ->required()
                                                                 ->rows(3)
-                                                                ->placeholder('Câu trả lời ngắn gọn, rõ ràng...')
+                                                                ->placeholder(__('admin.blog_category.fields.faq_answer_vi_placeholder'))
                                                                 ->columnSpanFull(),
                                                         ])
-                                                        ->addActionLabel('Thêm câu hỏi')
+                                                        ->addActionLabel(__('admin.blog_category.actions.add_faq'))
                                                         ->reorderable()
                                                         ->collapsible()
                                                         ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -263,58 +263,58 @@ class BlogCategoryResource extends Resource
                                         ]),
                                 ]),
 
-                            Tab::make('🇬🇧 English')
+                            Tab::make(__('admin.blog_category.tabs.locale_en'))
                                 ->schema([
                                     Group::make()
                                         ->relationship('geoProfileEn')
                                         ->schema([
                                             Forms\Components\Hidden::make('locale')->default('en'),
 
-                                            Section::make('AI Context')
+                                            Section::make(__('admin.blog_category.fields.ai_context'))
                                                 ->schema([
                                                     Forms\Components\Textarea::make('ai_summary')
-                                                        ->label('AI Summary (en)')
-                                                        ->hint('Short summary for AI / chatbot understanding of this blog category')
+                                                        ->label(__('admin.blog_category.fields.ai_summary_en'))
+                                                        ->hint(__('admin.blog_category.fields.ai_summary_hint'))
                                                         ->rows(4)
-                                                        ->placeholder('Describe the category in 2–4 sentences: topics covered, target audience, key highlights...')
+                                                        ->placeholder(__('admin.blog_category.fields.ai_summary_en_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('use_cases')
-                                                        ->label('Use Cases (en)')
-                                                        ->hint('Topics / applications — AI uses this to answer "who is this for"')
+                                                        ->label(__('admin.blog_category.fields.use_cases_en'))
+                                                        ->hint(__('admin.blog_category.fields.use_cases_hint'))
                                                         ->rows(3)
-                                                        ->placeholder('E.g. Technical KNX documentation for engineers, DALI-2 integration guides...')
+                                                        ->placeholder(__('admin.blog_category.fields.use_cases_en_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('target_audience')
-                                                        ->label('Target Audience (en)')
-                                                        ->hint('Target reader demographic')
-                                                        ->placeholder('E.g. Automation engineers, System Integrators, ME contractors...')
+                                                        ->label(__('admin.blog_category.fields.target_audience_en'))
+                                                        ->hint(__('admin.blog_category.fields.target_audience_hint'))
+                                                        ->placeholder(__('admin.blog_category.fields.target_audience_en_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('llm_context_hint')
-                                                        ->label('LLM Context Hint (en)')
-                                                        ->hint('Additional context hint for LLMs when generating content about this blog category')
+                                                        ->label(__('admin.blog_category.fields.llm_context_hint_en'))
+                                                        ->hint(__('admin.blog_category.fields.llm_context_help'))
                                                         ->rows(2)
                                                         ->columnSpanFull(),
                                                 ]),
 
-                                            Section::make('Key Facts (en)')
+                                            Section::make(__('admin.blog_category.sections.key_facts_en'))
                                                 ->schema([
                                                     Forms\Components\Repeater::make('key_facts')
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('label')
-                                                                ->label('Label')
+                                                                ->label(__('admin.blog_category.fields.key_fact_label'))
                                                                 ->required()
-                                                                ->placeholder('E.g. Articles count'),
+                                                                ->placeholder(__('admin.blog_category.fields.key_fact_label_placeholder_en')),
                                                             Forms\Components\TextInput::make('value')
-                                                                ->label('Value')
+                                                                ->label(__('admin.blog_category.fields.key_fact_value'))
                                                                 ->required()
-                                                                ->placeholder('E.g. 50+'),
+                                                                ->placeholder(__('admin.blog_category.fields.key_fact_value_placeholder_en')),
                                                         ])
                                                         ->columns(2)
-                                                        ->addActionLabel('Add fact')
+                                                        ->addActionLabel(__('admin.blog_category.actions.add_key_fact'))
                                                         ->reorderable()
                                                         ->collapsible()
                                                         ->defaultItems(0)
@@ -322,24 +322,24 @@ class BlogCategoryResource extends Resource
                                                 ])
                                                 ->collapsible(),
 
-                                            Section::make('FAQ (en)')
+                                            Section::make(__('admin.blog_category.sections.faq_en'))
                                                 ->schema([
                                                     Forms\Components\Repeater::make('faq')
                                                         ->label('')
                                                         ->schema([
                                                             Forms\Components\TextInput::make('question')
-                                                                ->label('Question')
+                                                                ->label(__('admin.blog_category.fields.faq_question'))
                                                                 ->required()
-                                                                ->placeholder('E.g. What topics does this category cover?')
+                                                                ->placeholder(__('admin.blog_category.fields.faq_question_en_placeholder'))
                                                                 ->columnSpanFull(),
                                                             Forms\Components\Textarea::make('answer')
-                                                                ->label('Answer')
+                                                                ->label(__('admin.blog_category.fields.faq_answer'))
                                                                 ->required()
                                                                 ->rows(3)
-                                                                ->placeholder('Short, clear answer...')
+                                                                ->placeholder(__('admin.blog_category.fields.faq_answer_en_placeholder'))
                                                                 ->columnSpanFull(),
                                                         ])
-                                                        ->addActionLabel('Add FAQ')
+                                                        ->addActionLabel(__('admin.blog_category.actions.add_faq'))
                                                         ->reorderable()
                                                         ->collapsible()
                                                         ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -356,12 +356,12 @@ class BlogCategoryResource extends Resource
                 ->columnSpanFull(),
 
             // ── SEO ───────────────────────────────────────────────────────────
-            Section::make('SEO')
+            Section::make(__('admin.blog_category.sections.seo'))
                 ->icon('heroicon-o-magnifying-glass')
                 ->schema([
                     Tabs::make('SeoLocaleTabs')
                         ->tabs([
-                            Tabs\Tab::make('🇻🇳 Tiếng Việt')
+                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_vi'))
                                 ->schema([
                                     Group::make()
                                         ->relationship('seoMetaVi')
@@ -369,21 +369,21 @@ class BlogCategoryResource extends Resource
                                             fn (array $data) => ['locale' => 'vi', ...$data]
                                         )
                                         ->schema([
-                                            Section::make('Meta Tags')
+                                            Section::make(__('admin.blog_category.sections.meta_tags'))
                                                 ->schema([
                                                     Forms\Components\TextInput::make('meta_title')
-                                                        ->label('Meta Title (vi)')
-                                                        ->placeholder('Tự điền từ tên danh mục')
-                                                        ->helperText('Tối ưu: 50–60 ký tự.')
+                                                        ->label(__('admin.blog_category.fields.meta_title_vi'))
+                                                        ->placeholder(__('admin.blog_category.fields.meta_title_placeholder'))
+                                                        ->helperText(__('admin.blog_category.fields.meta_title_help'))
                                                         ->live(debounce: 500)
                                                         ->hint(fn ($state): string => mb_strlen($state ?? '') . '/60')
                                                         ->hintColor(fn ($state): string => static::charCounterColor($state, 50, 60))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('meta_description')
-                                                        ->label('Meta Description (vi)')
-                                                        ->placeholder('Mô tả ngắn hiển thị trên Google')
-                                                        ->helperText('Tối ưu: 120–155 ký tự.')
+                                                        ->label(__('admin.blog_category.fields.meta_description_vi'))
+                                                        ->placeholder(__('admin.blog_category.fields.meta_description_placeholder'))
+                                                        ->helperText(__('admin.blog_category.fields.meta_description_help'))
                                                         ->rows(3)
                                                         ->live(debounce: 500)
                                                         ->hint(fn ($state): string => mb_strlen($state ?? '') . '/155')
@@ -391,15 +391,15 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('meta_keywords')
-                                                        ->label('Meta Keywords (vi)')
-                                                        ->helperText('Phân cách bằng dấu phẩy')
+                                                        ->label(__('admin.blog_category.fields.meta_keywords_vi'))
+                                                        ->helperText(__('admin.blog_category.fields.meta_keywords_help'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('canonical_url')
-                                                        ->label('Canonical URL (vi)')
+                                                        ->label(__('admin.blog_category.fields.canonical_url_vi'))
                                                         ->url()
-                                                        ->placeholder('Tự tạo từ slug (vi)')
-                                                        ->hint('Tự tạo từ slug (vi)')
+                                                        ->placeholder(__('admin.blog_category.fields.canonical_url_vi_auto'))
+                                                        ->hint(__('admin.blog_category.fields.canonical_url_vi_auto'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -413,7 +413,7 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Select::make('robots')
-                                                        ->label('Robots (vi)')
+                                                        ->label(__('admin.blog_category.fields.robots_vi'))
                                                         ->options([
                                                             'index,follow'     => 'index, follow — Default',
                                                             'noindex,follow'   => 'noindex, follow — Exclude from index',
@@ -424,12 +424,12 @@ class BlogCategoryResource extends Resource
                                                 ])
                                                 ->columns(2),
 
-                                            Section::make('Open Graph (vi)')
+                                            Section::make(__('admin.blog_category.sections.og_vi'))
                                                 ->schema([
                                                     Forms\Components\TextInput::make('og_title')
-                                                        ->label('OG Title (vi)')
-                                                        ->placeholder('Tự điền từ Meta Title (vi)')
-                                                        ->hint('Tự điền từ Meta Title (vi)')
+                                                        ->label(__('admin.blog_category.fields.og_title_vi'))
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_title_vi'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_title_vi'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -442,10 +442,10 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('og_description')
-                                                        ->label('OG Description (vi)')
+                                                        ->label(__('admin.blog_category.fields.og_description_vi'))
                                                         ->rows(2)
-                                                        ->placeholder('Tự điền từ Meta Description (vi)')
-                                                        ->hint('Tự điền từ Meta Description (vi)')
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_description_vi'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_description_vi'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record): void {
@@ -456,14 +456,14 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     MediaFileUpload::make('og_image')
-                                                        ->label('OG Image (vi)')
-                                                        ->helperText('Facebook, Zalo. Recommended: 1200×630px.')
+                                                        ->label(__('admin.blog_category.fields.og_image_vi'))
+                                                        ->helperText(__('admin.blog_category.fields.og_image_help'))
                                                         ->image()
                                                         ->nullable()
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Select::make('og_type')
-                                                        ->label('OG Type')
+                                                        ->label(__('admin.blog_category.fields.og_type'))
                                                         ->options(collect(OgType::cases())->mapWithKeys(
                                                             fn (OgType $case) => [$case->value => $case->value]
                                                         ))
@@ -473,10 +473,10 @@ class BlogCategoryResource extends Resource
                                                 ->columns(2)
                                                 ->collapsed(),
 
-                                            Section::make('Twitter Card (vi)')
+                                            Section::make(__('admin.blog_category.sections.twitter_vi'))
                                                 ->schema([
                                                     Forms\Components\Select::make('twitter_card')
-                                                        ->label('Card Type')
+                                                        ->label(__('admin.blog_category.fields.twitter_card_type'))
                                                         ->options([
                                                             'summary'             => 'Summary',
                                                             'summary_large_image' => 'Summary Large Image',
@@ -485,9 +485,9 @@ class BlogCategoryResource extends Resource
                                                         ->native(false),
 
                                                     Forms\Components\TextInput::make('twitter_title')
-                                                        ->label('Twitter Title (vi)')
-                                                        ->placeholder('Tự điền từ Meta Title (vi)')
-                                                        ->hint('Tự điền từ Meta Title (vi)')
+                                                        ->label(__('admin.blog_category.fields.twitter_title_vi'))
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_title_vi'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_title_vi'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -499,10 +499,10 @@ class BlogCategoryResource extends Resource
                                                         }),
 
                                                     Forms\Components\Textarea::make('twitter_description')
-                                                        ->label('Twitter Description (vi)')
+                                                        ->label(__('admin.blog_category.fields.twitter_description_vi'))
                                                         ->rows(2)
-                                                        ->placeholder('Tự điền từ Meta Description (vi)')
-                                                        ->hint('Tự điền từ Meta Description (vi)')
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_description_vi'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_description_vi'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record): void {
@@ -517,7 +517,7 @@ class BlogCategoryResource extends Resource
                                         ]),
                                 ]),
 
-                            Tabs\Tab::make('🇬🇧 English')
+                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_en'))
                                 ->schema([
                                     Group::make()
                                         ->relationship('seoMetaEn')
@@ -525,21 +525,21 @@ class BlogCategoryResource extends Resource
                                             fn (array $data) => ['locale' => 'en', ...$data]
                                         )
                                         ->schema([
-                                            Section::make('Meta Tags')
+                                            Section::make(__('admin.blog_category.sections.meta_tags'))
                                                 ->schema([
                                                     Forms\Components\TextInput::make('meta_title')
-                                                        ->label('Meta Title (en)')
-                                                        ->placeholder('Auto-filled from category name')
-                                                        ->helperText('Optimal: 50–60 characters.')
+                                                        ->label(__('admin.blog_category.fields.meta_title_en'))
+                                                        ->placeholder(__('admin.blog_category.fields.meta_title_placeholder'))
+                                                        ->helperText(__('admin.blog_category.fields.meta_title_help'))
                                                         ->live(debounce: 500)
                                                         ->hint(fn ($state): string => mb_strlen($state ?? '') . '/60')
                                                         ->hintColor(fn ($state): string => static::charCounterColor($state, 50, 60))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('meta_description')
-                                                        ->label('Meta Description (en)')
-                                                        ->placeholder('Short description shown in Google results')
-                                                        ->helperText('Optimal: 120–155 characters.')
+                                                        ->label(__('admin.blog_category.fields.meta_description_en'))
+                                                        ->placeholder(__('admin.blog_category.fields.meta_description_placeholder'))
+                                                        ->helperText(__('admin.blog_category.fields.meta_description_help'))
                                                         ->rows(3)
                                                         ->live(debounce: 500)
                                                         ->hint(fn ($state): string => mb_strlen($state ?? '') . '/155')
@@ -547,15 +547,15 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('meta_keywords')
-                                                        ->label('Meta Keywords (en)')
-                                                        ->helperText('Comma-separated')
+                                                        ->label(__('admin.blog_category.fields.meta_keywords_en'))
+                                                        ->helperText(__('admin.blog_category.fields.meta_keywords_help'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('canonical_url')
-                                                        ->label('Canonical URL (en)')
+                                                        ->label(__('admin.blog_category.fields.canonical_url_en'))
                                                         ->url()
-                                                        ->placeholder('Auto-generated from slug (en)')
-                                                        ->hint('Auto-generated from slug (en)')
+                                                        ->placeholder(__('admin.blog_category.fields.canonical_url_en_auto'))
+                                                        ->hint(__('admin.blog_category.fields.canonical_url_en_auto'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -569,7 +569,7 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Select::make('robots')
-                                                        ->label('Robots (en)')
+                                                        ->label(__('admin.blog_category.fields.robots_en'))
                                                         ->options([
                                                             'index,follow'     => 'index, follow — Default',
                                                             'noindex,follow'   => 'noindex, follow — Exclude from index',
@@ -580,12 +580,12 @@ class BlogCategoryResource extends Resource
                                                 ])
                                                 ->columns(2),
 
-                                            Section::make('Open Graph (en)')
+                                            Section::make(__('admin.blog_category.sections.og_en'))
                                                 ->schema([
                                                     Forms\Components\TextInput::make('og_title')
-                                                        ->label('OG Title (en)')
-                                                        ->placeholder('Auto-filled from Meta Title (en)')
-                                                        ->hint('Auto-filled from Meta Title (en)')
+                                                        ->label(__('admin.blog_category.fields.og_title_en'))
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_title_en'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_title_en'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -598,10 +598,10 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('og_description')
-                                                        ->label('OG Description (en)')
+                                                        ->label(__('admin.blog_category.fields.og_description_en'))
                                                         ->rows(2)
-                                                        ->placeholder('Auto-filled from Meta Description (en)')
-                                                        ->hint('Auto-filled from Meta Description (en)')
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_description_en'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_description_en'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record): void {
@@ -612,14 +612,14 @@ class BlogCategoryResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     MediaFileUpload::make('og_image')
-                                                        ->label('OG Image (en)')
-                                                        ->helperText('Facebook, Zalo. Recommended: 1200×630px.')
+                                                        ->label(__('admin.blog_category.fields.og_image_en'))
+                                                        ->helperText(__('admin.blog_category.fields.og_image_help'))
                                                         ->image()
                                                         ->nullable()
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Select::make('og_type')
-                                                        ->label('OG Type')
+                                                        ->label(__('admin.blog_category.fields.og_type'))
                                                         ->options(collect(OgType::cases())->mapWithKeys(
                                                             fn (OgType $case) => [$case->value => $case->value]
                                                         ))
@@ -629,10 +629,10 @@ class BlogCategoryResource extends Resource
                                                 ->columns(2)
                                                 ->collapsed(),
 
-                                            Section::make('Twitter Card (en)')
+                                            Section::make(__('admin.blog_category.sections.twitter_en'))
                                                 ->schema([
                                                     Forms\Components\Select::make('twitter_card')
-                                                        ->label('Card Type')
+                                                        ->label(__('admin.blog_category.fields.twitter_card_type'))
                                                         ->options([
                                                             'summary'             => 'Summary',
                                                             'summary_large_image' => 'Summary Large Image',
@@ -641,9 +641,9 @@ class BlogCategoryResource extends Resource
                                                         ->native(false),
 
                                                     Forms\Components\TextInput::make('twitter_title')
-                                                        ->label('Twitter Title (en)')
-                                                        ->placeholder('Auto-filled from Meta Title (en)')
-                                                        ->hint('Auto-filled from Meta Title (en)')
+                                                        ->label(__('admin.blog_category.fields.twitter_title_en'))
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_title_en'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_title_en'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -655,10 +655,10 @@ class BlogCategoryResource extends Resource
                                                         }),
 
                                                     Forms\Components\Textarea::make('twitter_description')
-                                                        ->label('Twitter Description (en)')
+                                                        ->label(__('admin.blog_category.fields.twitter_description_en'))
                                                         ->rows(2)
-                                                        ->placeholder('Auto-filled from Meta Description (en)')
-                                                        ->hint('Auto-filled from Meta Description (en)')
+                                                        ->placeholder(__('admin.blog_category.fields.auto_from_meta_description_en'))
+                                                        ->hint(__('admin.blog_category.fields.auto_from_meta_description_en'))
                                                         ->hintIcon('heroicon-o-sparkles')
                                                         ->hintColor('info')
                                                         ->afterStateHydrated(function ($state, $set, $record): void {
@@ -678,7 +678,7 @@ class BlogCategoryResource extends Resource
                 ->columnSpanFull(),
 
             // ── JSON-LD ───────────────────────────────────────────────────────
-            Section::make('JSON-LD')
+            Section::make(__('admin.blog_category.sections.jsonld'))
                 ->icon('heroicon-o-code-bracket')
                 ->schema([
                     Placeholder::make('jsonld_info')
@@ -693,11 +693,11 @@ class BlogCategoryResource extends Resource
 
                     Tabs::make('JsonldLocaleTabs')
                         ->tabs([
-                            Tabs\Tab::make('🇻🇳 Tiếng Việt')
+                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_vi'))
                                 ->schema([
                                     Forms\Components\Repeater::make('jsonldSchemasVi')
                                         ->relationship()
-                                        ->label('Schemas (vi)')
+                                        ->label(__('admin.blog_category.fields.jsonld_schemas_vi'))
                                         ->schema([
                                             Placeholder::make('schema_header')
                                                 ->label('')
@@ -712,7 +712,7 @@ class BlogCategoryResource extends Resource
                                                 })
                                                 ->columnSpanFull(),
                                             Placeholder::make('payload_preview')
-                                                ->label('Payload (what Google reads)')
+                                                ->label(__('admin.blog_category.fields.jsonld_payload_preview'))
                                                 ->content(function ($record): HtmlString {
                                                     if (! $record || empty($record->payload)) {
                                                         return new HtmlString('<em class="text-gray-400">No payload yet — save to generate.</em>');
@@ -722,10 +722,10 @@ class BlogCategoryResource extends Resource
                                                 })
                                                 ->columnSpanFull(),
                                             Forms\Components\Toggle::make('is_active')
-                                                ->label('Active (inject into page <head>)')
+                                                ->label(__('admin.blog_category.fields.jsonld_active'))
                                                 ->inline(false),
                                             Placeholder::make('schema_updated_at')
-                                                ->label('Last generated')
+                                                ->label(__('admin.blog_category.fields.jsonld_last_generated'))
                                                 ->content(fn ($record) => $record?->updated_at
                                                     ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
                                                     : '—'
@@ -745,27 +745,27 @@ class BlogCategoryResource extends Resource
 
                                     \Filament\Schemas\Components\Actions::make([
                                         \Filament\Actions\Action::make('regenerate_jsonld_vi')
-                                            ->label('Regenerate vi')
+                                            ->label(__('admin.blog_category.actions.regenerate_jsonld_vi'))
                                             ->icon('heroicon-o-arrow-path')
                                             ->color('gray')
                                             ->requiresConfirmation()
-                                            ->modalHeading('Regenerate JSON-LD (vi)')
-                                            ->modalDescription('Re-generate all Auto schemas for the Vietnamese locale.')
+                                            ->modalHeading(__('admin.blog_category.actions.regenerate_jsonld_vi_modal_heading'))
+                                            ->modalDescription(__('admin.blog_category.actions.regenerate_jsonld_vi_modal_description'))
                                             ->action(function ($livewire): void {
                                                 $category = $livewire->record;
                                                 if (! $category?->exists) { return; }
                                                 app(\App\Services\Seo\JsonldService::class)->syncForModel($category, 'vi');
-                                                Notification::make()->title('JSON-LD (vi) regenerated')->success()->send();
+                                                Notification::make()->title(__('admin.blog_category.notifications.jsonld_regenerated_vi'))->success()->send();
                                                 redirect(BlogCategoryResource::getUrl('edit', ['record' => $category]));
                                             }),
                                     ]),
                                 ]),
 
-                            Tabs\Tab::make('🇬🇧 English')
+                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_en'))
                                 ->schema([
                                     Forms\Components\Repeater::make('jsonldSchemasEn')
                                         ->relationship()
-                                        ->label('Schemas (en)')
+                                        ->label(__('admin.blog_category.fields.jsonld_schemas_en'))
                                         ->schema([
                                             Placeholder::make('schema_header')
                                                 ->label('')
@@ -780,7 +780,7 @@ class BlogCategoryResource extends Resource
                                                 })
                                                 ->columnSpanFull(),
                                             Placeholder::make('payload_preview')
-                                                ->label('Payload (what Google reads)')
+                                                ->label(__('admin.blog_category.fields.jsonld_payload_preview'))
                                                 ->content(function ($record): HtmlString {
                                                     if (! $record || empty($record->payload)) {
                                                         return new HtmlString('<em class="text-gray-400">No payload yet — save to generate.</em>');
@@ -790,10 +790,10 @@ class BlogCategoryResource extends Resource
                                                 })
                                                 ->columnSpanFull(),
                                             Forms\Components\Toggle::make('is_active')
-                                                ->label('Active (inject into page <head>)')
+                                                ->label(__('admin.blog_category.fields.jsonld_active'))
                                                 ->inline(false),
                                             Placeholder::make('schema_updated_at')
-                                                ->label('Last generated')
+                                                ->label(__('admin.blog_category.fields.jsonld_last_generated'))
                                                 ->content(fn ($record) => $record?->updated_at
                                                     ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
                                                     : '—'
@@ -813,17 +813,17 @@ class BlogCategoryResource extends Resource
 
                                     \Filament\Schemas\Components\Actions::make([
                                         \Filament\Actions\Action::make('regenerate_jsonld_en')
-                                            ->label('Regenerate en')
+                                            ->label(__('admin.blog_category.actions.regenerate_jsonld_en'))
                                             ->icon('heroicon-o-arrow-path')
                                             ->color('gray')
                                             ->requiresConfirmation()
-                                            ->modalHeading('Regenerate JSON-LD (en)')
-                                            ->modalDescription('Re-generate all Auto schemas for the English locale.')
+                                            ->modalHeading(__('admin.blog_category.actions.regenerate_jsonld_en_modal_heading'))
+                                            ->modalDescription(__('admin.blog_category.actions.regenerate_jsonld_en_modal_description'))
                                             ->action(function ($livewire): void {
                                                 $category = $livewire->record;
                                                 if (! $category?->exists) { return; }
                                                 app(\App\Services\Seo\JsonldService::class)->syncForModel($category, 'en');
-                                                Notification::make()->title('JSON-LD (en) regenerated')->success()->send();
+                                                Notification::make()->title(__('admin.blog_category.notifications.jsonld_regenerated_en'))->success()->send();
                                                 redirect(BlogCategoryResource::getUrl('edit', ['record' => $category]));
                                             }),
                                     ]),
@@ -859,7 +859,7 @@ class BlogCategoryResource extends Resource
                     ->falseColor('danger'),
 
                 Tables\Columns\TextColumn::make('posts_count')
-                    ->label('Posts')
+                    ->label(__('admin.blog_category.fields.posts_count'))
                     ->numeric()
                     ->sortable(),
 
@@ -869,7 +869,7 @@ class BlogCategoryResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.blog_category.fields.active')),
             ])
             ->actions([
                 EditAction::make(),

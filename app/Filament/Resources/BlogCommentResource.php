@@ -40,13 +40,13 @@ class BlogCommentResource extends Resource
     {
         return $schema->schema([
             Forms\Components\Textarea::make('body')
-                ->label('Comment')
+                ->label(__('admin.blog_comment.fields.comment'))
                 ->disabled()
                 ->rows(5)
                 ->columnSpanFull(),
 
             Forms\Components\Toggle::make('is_approved')
-                ->label('Approved')
+                ->label(__('admin.blog_comment.fields.approved'))
                 ->default(false),
         ]);
     }
@@ -57,20 +57,20 @@ class BlogCommentResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('post.title')
-                    ->label('Post')
+                    ->label(__('admin.blog_comment.fields.post'))
                     ->searchable()
                     ->limit(40),
 
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('User')
-                    ->placeholder('—'),
+                    ->label(__('admin.blog_comment.fields.user'))
+                    ->placeholder(__('admin.blog_comment.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('body')
-                    ->label('Comment')
+                    ->label(__('admin.blog_comment.fields.comment'))
                     ->limit(80),
 
                 Tables\Columns\IconColumn::make('is_approved')
-                    ->label('Approved')
+                    ->label(__('admin.blog_comment.fields.approved'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('warning'),
@@ -81,7 +81,7 @@ class BlogCommentResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_approved')
-                    ->label('Approved'),
+                    ->label(__('admin.blog_comment.fields.approved')),
             ])
             ->actions([
                 EditAction::make(),
@@ -90,7 +90,7 @@ class BlogCommentResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('approve')
-                        ->label('Approve selected')
+                        ->label(__('admin.blog_comment.actions.approve_selected'))
                         ->icon('heroicon-o-check')
                         ->color('success')
                         ->action(fn ($records) => $records->each->update(['is_approved' => true]))

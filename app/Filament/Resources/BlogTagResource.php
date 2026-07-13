@@ -62,7 +62,7 @@ class BlogTagResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('posts_count')
-                    ->label('Posts')
+                    ->label(__('admin.blog_tag.fields.posts'))
                     ->numeric()
                     ->sortable(),
 
