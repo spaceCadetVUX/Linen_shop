@@ -47,15 +47,15 @@ class GeoEntityProfileResource extends Resource
                 ->tabs([
 
                     // ── Tab 1: Entity ─────────────────────────────────────────
-                    Tab::make('Entity & Context')
+                    Tab::make(__('admin.geo_entity_profile.tabs.entity_context'))
                         ->schema([
                             Forms\Components\TextInput::make('model_type')
-                                ->label('Model Type')
+                                ->label(__('admin.geo_entity_profile.fields.model_type'))
                                 ->disabled()
                                 ->dehydrated(false),
 
                             Forms\Components\TextInput::make('model_display_name')
-                                ->label('Name')
+                                ->label(__('admin.geo_entity_profile.fields.name'))
                                 ->disabled()
                                 ->dehydrated(false)
                                 ->afterStateHydrated(function ($component, GeoEntityProfile $record) {
@@ -67,41 +67,41 @@ class GeoEntityProfileResource extends Resource
                                 }),
 
                             Forms\Components\Textarea::make('ai_summary')
-                                ->label('AI Summary')
+                                ->label(__('admin.geo_entity_profile.fields.ai_summary'))
                                 ->rows(4)
-                                ->helperText('2-3 sentences, plain text, no marketing language.')
+                                ->helperText(__('admin.geo_entity_profile.fields.ai_summary_help'))
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('target_audience')
-                                ->label('Target Audience')
-                                ->placeholder('e.g. tech-savvy shoppers aged 25-40')
+                                ->label(__('admin.geo_entity_profile.fields.target_audience'))
+                                ->placeholder(__('admin.geo_entity_profile.fields.target_audience_placeholder'))
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('use_cases')
-                                ->label('Use Cases')
+                                ->label(__('admin.geo_entity_profile.fields.use_cases'))
                                 ->rows(3)
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('llm_context_hint')
-                                ->label('LLM Context Hint')
+                                ->label(__('admin.geo_entity_profile.fields.llm_context_hint'))
                                 ->rows(3)
-                                ->helperText('Extra context to help AI understand this entity correctly.')
+                                ->helperText(__('admin.geo_entity_profile.fields.llm_context_hint_help'))
                                 ->columnSpanFull(),
                         ])
                         ->columns(2),
 
                     // ── Tab 2: Key Facts ──────────────────────────────────────
-                    Tab::make('Key Facts')
+                    Tab::make(__('admin.geo_entity_profile.tabs.key_facts'))
                         ->schema([
                             Forms\Components\Repeater::make('key_facts')
-                                ->label('Key Facts')
+                                ->label(__('admin.geo_entity_profile.fields.key_facts'))
                                 ->schema([
                                     Forms\Components\TextInput::make('label')
-                                        ->label('Fact')
+                                        ->label(__('admin.geo_entity_profile.fields.fact'))
                                         ->required()
                                         ->columnSpan(1),
                                     Forms\Components\TextInput::make('value')
-                                        ->label('Value')
+                                        ->label(__('admin.geo_entity_profile.fields.value'))
                                         ->required()
                                         ->columnSpan(1),
                                 ])
@@ -114,23 +114,23 @@ class GeoEntityProfileResource extends Resource
                         ]),
 
                     // ── Tab 3: FAQ ────────────────────────────────────────────
-                    Tab::make('FAQ')
+                    Tab::make(__('admin.geo_entity_profile.tabs.faq'))
                         ->schema([
                             Forms\Components\Repeater::make('faq')
-                                ->label('Frequently Asked Questions')
+                                ->label(__('admin.geo_entity_profile.fields.faq'))
                                 ->schema([
                                     Forms\Components\TextInput::make('question')
-                                        ->label('Question')
+                                        ->label(__('admin.geo_entity_profile.fields.question'))
                                         ->required()
                                         ->columnSpanFull(),
 
                                     Forms\Components\Textarea::make('answer')
-                                        ->label('Answer')
+                                        ->label(__('admin.geo_entity_profile.fields.answer'))
                                         ->rows(3)
                                         ->required()
                                         ->columnSpanFull(),
                                 ])
-                                ->addActionLabel('Add FAQ')
+                                ->addActionLabel(__('admin.geo_entity_profile.actions.add_faq'))
                                 ->reorderable()
                                 ->collapsible()
                                 ->columnSpanFull(),
@@ -149,13 +149,13 @@ class GeoEntityProfileResource extends Resource
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('model_type')
-                    ->label('Model')
+                    ->label(__('admin.geo_entity_profile.fields.model_column'))
                     ->badge()
                     ->color('primary')
                     ->searchable(),
 
                 TextColumn::make('model_name')
-                    ->label('Name')
+                    ->label(__('admin.geo_entity_profile.fields.name_column'))
                     ->state(fn (GeoEntityProfile $record): string =>
                         (string) ($record->model?->getAttribute('name')
                             ?? $record->model?->getAttribute('title')
@@ -165,20 +165,20 @@ class GeoEntityProfileResource extends Resource
                     ->limit(50),
 
                 IconColumn::make('has_summary')
-                    ->label('Summary')
+                    ->label(__('admin.geo_entity_profile.fields.summary_column'))
                     ->state(fn (GeoEntityProfile $record): bool => ! empty($record->ai_summary))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('gray'),
 
                 TextColumn::make('key_facts_count')
-                    ->label('Key Facts')
+                    ->label(__('admin.geo_entity_profile.fields.key_facts_column'))
                     ->state(fn (GeoEntityProfile $record): string => count($record->key_facts ?? []) . ' facts')
                     ->badge()
                     ->color(fn (GeoEntityProfile $record): string => count($record->key_facts ?? []) > 0 ? 'success' : 'gray'),
 
                 TextColumn::make('faq_count')
-                    ->label('FAQ')
+                    ->label(__('admin.geo_entity_profile.fields.faq_column'))
                     ->state(fn (GeoEntityProfile $record): string => count($record->faq ?? []) . ' Q&A')
                     ->badge()
                     ->color(fn (GeoEntityProfile $record): string => count($record->faq ?? []) > 0 ? 'success' : 'gray'),
@@ -189,7 +189,7 @@ class GeoEntityProfileResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('model_type')
-                    ->label('Model Type')
+                    ->label(__('admin.geo_entity_profile.fields.model_type'))
                     ->options(fn () => GeoEntityProfile::query()
                         ->distinct()
                         ->pluck('model_type', 'model_type')

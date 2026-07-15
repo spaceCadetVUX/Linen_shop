@@ -48,15 +48,15 @@ class DeveloperPage extends Page
 
         return $schema
             ->schema([
-                Section::make('Robots.txt')
+                Section::make(__('admin.developer_page.sections.robots_txt'))
                     ->icon('heroicon-o-document-text')
-                    ->description('Nội dung rule robots.txt — dòng "Sitemap:" luôn tự thêm vào cuối theo APP_URL hiện tại, không sửa được ở đây để tránh lặp lại bug hardcode sai domain.')
+                    ->description(__('admin.developer_page.sections.robots_txt_desc'))
                     ->schema([
                         Textarea::make('robots_txt')
                             ->label(false)
                             ->rows(18)
                             ->extraInputAttributes(['style' => 'font-family:ui-monospace,monospace;font-size:0.8125rem;'])
-                            ->helperText("Sẽ tự thêm dòng cuối: {$sitemapLine}")
+                            ->helperText(__('admin.developer_page.fields.robots_txt_help', ['line' => $sitemapLine]))
                             ->columnSpanFull(),
                     ]),
             ])
@@ -67,14 +67,14 @@ class DeveloperPage extends Page
     {
         return [
             Action::make('viewRobots')
-                ->label('Xem robots.txt')
+                ->label(__('admin.developer_page.actions.view_robots'))
                 ->icon('heroicon-o-arrow-top-right-on-square')
                 ->color('gray')
                 ->url('/robots.txt')
                 ->openUrlInNewTab(),
 
             Action::make('saveRobots')
-                ->label('Lưu robots.txt')
+                ->label(__('admin.developer_page.actions.save_robots'))
                 ->icon('heroicon-o-check')
                 ->action('saveRobots'),
         ];
@@ -92,7 +92,7 @@ class DeveloperPage extends Page
         $profile->saveQuietly();
 
         Notification::make()
-            ->title('Đã lưu robots.txt')
+            ->title(__('admin.developer_page.notifications.saved'))
             ->success()
             ->send();
     }

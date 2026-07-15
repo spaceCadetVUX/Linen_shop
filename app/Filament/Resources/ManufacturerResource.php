@@ -40,13 +40,12 @@ class ManufacturerResource extends Resource
     {
         return $schema->schema([
             // ── General ───────────────────────────────────────────────────────
-            Section::make('General')
+            Section::make(__('admin.manufacturer.sections.general'))
                 ->schema([
                     Forms\Components\TextInput::make('name')
                         ->required()
                         ->live(debounce: 500)
-                        ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                            $set('slug', Str::slug($state ?? ''))
+                        ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                         ),
 
                     Forms\Components\TextInput::make('slug')
@@ -55,27 +54,27 @@ class ManufacturerResource extends Resource
 
                     Forms\Components\TextInput::make('website')
                         ->url()
-                        ->placeholder('https://...')
+                        ->placeholder(__('admin.manufacturer.fields.website_placeholder'))
                         ->columnSpanFull(),
 
                     Forms\Components\TextInput::make('country')
-                        ->placeholder('VN')
-                        ->hint('ISO 3166-1 alpha-2 — 2 ký tự viết hoa')
+                        ->placeholder(__('admin.manufacturer.fields.country_placeholder'))
+                        ->hint(__('admin.manufacturer.fields.country_hint'))
                         ->hintIcon('heroicon-o-code-bracket')
                         ->hintColor('info')
-                        ->helperText('VN = Vietnam · JP = Japan · DE = Germany · US = United States · CN = China · KR = Korea')
+                        ->helperText(__('admin.manufacturer.fields.country_help'))
                         ->maxLength(2)
                         ->minLength(2)
                         ->rules(['regex:/^[A-Za-z]{2}$/'])
                         ->dehydrateStateUsing(fn (?string $state): ?string => $state ? strtoupper(trim($state)) : null)
                         ->validationMessages([
-                            'regex'     => 'Country code phải đúng 2 chữ cái. VD: VN, JP, US.',
-                            'min'       => 'Country code phải đúng 2 ký tự.',
-                            'max'       => 'Country code phải đúng 2 ký tự.',
+                            'regex' => __('admin.manufacturer.validation.country_regex'),
+                            'min' => __('admin.manufacturer.validation.country_length'),
+                            'max' => __('admin.manufacturer.validation.country_length'),
                         ]),
 
                     Forms\Components\FileUpload::make('logo')
-                        ->label('Logo')
+                        ->label(__('admin.manufacturer.fields.logo'))
                         ->disk('public')
                         ->directory('manufacturers')
                         ->image()
@@ -88,7 +87,7 @@ class ManufacturerResource extends Resource
                     Forms\Components\TextInput::make('sort_order')
                         ->numeric()
                         ->default(0)
-                        ->helperText('Lower = appears first. Drag to reorder in the list view.')
+                        ->helperText(__('admin.manufacturer.fields.sort_order_help'))
                         ->minValue(0),
 
                     Forms\Components\Toggle::make('is_active')
@@ -100,17 +99,17 @@ class ManufacturerResource extends Resource
             Group::make()
                 ->relationship('seoMetaVi')
                 ->schema([
-                    Section::make('SEO')
+                    Section::make(__('admin.manufacturer.sections.seo'))
                         ->icon('heroicon-o-magnifying-glass')
                         ->schema([
                             Forms\Components\TextInput::make('meta_title')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title</span>'))
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.manufacturer.fields.meta_title').'</span>'))
                                 ->maxLength(70)
-                                ->placeholder('Auto-filled from manufacturer name')
-                                ->hint('Auto-filled from manufacturer name')
+                                ->placeholder(__('admin.manufacturer.fields.meta_title_placeholder'))
+                                ->hint(__('admin.manufacturer.fields.meta_title_placeholder'))
                                 ->hintIcon('heroicon-o-sparkles')
                                 ->hintColor('info')
-                                ->helperText('Optimal: 50–70 characters.')
+                                ->helperText(__('admin.manufacturer.fields.meta_title_help'))
                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                     if (empty($state) && $livewire->record?->name) {
                                         $set('meta_title', $livewire->record->name);
@@ -119,14 +118,14 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('meta_description')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description</span>'))
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.manufacturer.fields.meta_description').'</span>'))
                                 ->rows(3)
                                 ->maxLength(160)
-                                ->placeholder('Auto-filled from manufacturer description')
-                                ->hint('Auto-filled from manufacturer description')
+                                ->placeholder(__('admin.manufacturer.fields.meta_description_placeholder'))
+                                ->hint(__('admin.manufacturer.fields.meta_description_placeholder'))
                                 ->hintIcon('heroicon-o-sparkles')
                                 ->hintColor('info')
-                                ->helperText('Optimal: 120–160 characters.')
+                                ->helperText(__('admin.manufacturer.fields.meta_description_help'))
                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                     if (empty($state) && $livewire->record?->description) {
                                         $set('meta_description', $livewire->record->description);
@@ -135,10 +134,10 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('canonical_url')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Canonical URL</span>'))
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.manufacturer.fields.canonical_url').'</span>'))
                                 ->url()
-                                ->placeholder('Auto-generated from slug')
-                                ->hint('Auto-generated from slug')
+                                ->placeholder(__('admin.manufacturer.fields.canonical_url_placeholder'))
+                                ->hint(__('admin.manufacturer.fields.canonical_url_hint'))
                                 ->hintIcon('heroicon-o-sparkles')
                                 ->hintColor('info')
                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -149,11 +148,11 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Select::make('robots')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Robots</span>'))
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.manufacturer.fields.robots').'</span>'))
                                 ->options([
-                                    'index,follow'     => 'index, follow (default)',
-                                    'noindex,follow'   => 'noindex,follow',
-                                    'index,nofollow'   => 'index,nofollow',
+                                    'index,follow' => 'index, follow (default)',
+                                    'noindex,follow' => 'noindex,follow',
+                                    'index,nofollow' => 'index,nofollow',
                                     'noindex,nofollow' => 'noindex,nofollow',
                                 ])
                                 ->default('index,follow')
@@ -170,14 +169,14 @@ class ManufacturerResource extends Resource
                 ->schema([
                     Forms\Components\Hidden::make('locale')->default('en'),
 
-                    Section::make('SEO (English)')
+                    Section::make(__('admin.manufacturer.sections.seo_en'))
                         ->icon('heroicon-o-language')
                         ->schema([
                             Forms\Components\TextInput::make('canonical_url')
-                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Canonical URL (en)</span>'))
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.manufacturer.fields.canonical_url_en').'</span>'))
                                 ->url()
-                                ->placeholder('Auto-generated from slug — /en/manufacturers/{slug}')
-                                ->hint('Auto-generated from slug')
+                                ->placeholder(__('admin.manufacturer.fields.canonical_url_en_placeholder'))
+                                ->hint(__('admin.manufacturer.fields.canonical_url_hint'))
                                 ->hintIcon('heroicon-o-sparkles')
                                 ->hintColor('info')
                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -188,11 +187,11 @@ class ManufacturerResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\Select::make('robots')
-                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Robots</span>'))
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.manufacturer.fields.robots').'</span>'))
                                 ->options([
-                                    'index,follow'     => 'index, follow (default)',
-                                    'noindex,follow'   => 'noindex,follow',
-                                    'index,nofollow'   => 'index,nofollow',
+                                    'index,follow' => 'index, follow (default)',
+                                    'noindex,follow' => 'noindex,follow',
+                                    'index,nofollow' => 'index,nofollow',
                                     'noindex,nofollow' => 'noindex,nofollow',
                                 ])
                                 ->default('index,follow')
@@ -221,17 +220,17 @@ class ManufacturerResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('country')
-                    ->placeholder('—')
+                    ->placeholder(__('admin.manufacturer.fields.dash_placeholder'))
                     ->badge(),
 
                 Tables\Columns\TextColumn::make('website')
                     ->url(fn (Manufacturer $record): ?string => $record->website ?: null)
                     ->openUrlInNewTab()
                     ->color('primary')
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.manufacturer.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('products_count')
-                    ->label('Products')
+                    ->label(__('admin.manufacturer.fields.products'))
                     ->counts('products')
                     ->numeric()
                     ->sortable(),
@@ -242,14 +241,14 @@ class ManufacturerResource extends Resource
                     ->falseColor('danger'),
 
                 Tables\Columns\TextColumn::make('sort_order')
-                    ->label('Order')
+                    ->label(__('admin.manufacturer.fields.sort_order'))
                     ->sortable()
                     ->alignCenter()
                     ->width('80px'),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.manufacturer.fields.active')),
             ])
             ->actions([
                 EditAction::make(),
@@ -265,9 +264,9 @@ class ManufacturerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListManufacturers::route('/'),
+            'index' => Pages\ListManufacturers::route('/'),
             'create' => Pages\CreateManufacturer::route('/create'),
-            'edit'   => Pages\EditManufacturer::route('/{record}/edit'),
+            'edit' => Pages\EditManufacturer::route('/{record}/edit'),
         ];
     }
 }

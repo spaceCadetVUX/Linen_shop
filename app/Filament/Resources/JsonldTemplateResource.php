@@ -36,24 +36,24 @@ class JsonldTemplateResource extends Resource
         return $schema->schema([
 
             Forms\Components\Select::make('schema_type')
-                ->label('Schema Type')
+                ->label(__('admin.jsonld_template.fields.schema_type'))
                 ->options(collect(JsonldSchemaType::cases())->mapWithKeys(
                     fn (JsonldSchemaType $case) => [$case->value => $case->value]
                 ))
                 ->disabled(),
 
             Forms\Components\TextInput::make('label')
-                ->label('Label')
+                ->label(__('admin.jsonld_template.fields.label'))
                 ->disabled(),
 
             Forms\Components\Toggle::make('is_auto_generated')
-                ->label('Auto Generated')
-                ->helperText('Managed via code. When ON, the Observer fills payload from this template automatically.')
+                ->label(__('admin.jsonld_template.fields.auto_generated'))
+                ->helperText(__('admin.jsonld_template.fields.auto_generated_help'))
                 ->disabled()
                 ->columnSpanFull(),
 
             Forms\Components\Textarea::make('template')
-                ->label('Template (JSON)')
+                ->label(__('admin.jsonld_template.fields.template'))
                 ->rows(20)
                 ->formatStateUsing(fn ($state) => is_array($state)
                     ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
@@ -63,11 +63,11 @@ class JsonldTemplateResource extends Resource
                 ->columnSpanFull(),
 
             Forms\Components\KeyValue::make('placeholders')
-                ->label('Placeholders')
-                ->keyLabel('Placeholder Key')
-                ->valueLabel('Description / Example')
+                ->label(__('admin.jsonld_template.fields.placeholders'))
+                ->keyLabel(__('admin.jsonld_template.fields.placeholders_key_label'))
+                ->valueLabel(__('admin.jsonld_template.fields.placeholders_value_label'))
                 ->disabled()
-                ->helperText('Document each {{placeholder}} used in the template above.')
+                ->helperText(__('admin.jsonld_template.fields.placeholders_help'))
                 ->columnSpanFull(),
 
         ])->columns(2);
@@ -81,7 +81,7 @@ class JsonldTemplateResource extends Resource
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('schema_type')
-                    ->label('Schema Type')
+                    ->label(__('admin.jsonld_template.fields.schema_type'))
                     ->badge()
                     ->color('primary')
                     ->searchable(),
@@ -90,7 +90,7 @@ class JsonldTemplateResource extends Resource
                     ->searchable(),
 
                 IconColumn::make('is_auto_generated')
-                    ->label('Auto Generated')
+                    ->label(__('admin.jsonld_template.fields.auto_generated'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('warning'),

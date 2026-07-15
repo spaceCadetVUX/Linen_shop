@@ -50,66 +50,66 @@ class BlogSetting extends Page
     {
         return $schema
             ->schema([
-                Section::make('Blog Page Hero')
+                Section::make(__('admin.blog_setting.sections.hero'))
                     ->icon('heroicon-o-newspaper')
-                    ->description('Ảnh hero đầu trang Journal (/bai-viet, /blog). Bỏ trống thì trang chỉ có chữ như hiện tại.')
+                    ->description(__('admin.blog_setting.sections.hero_desc'))
                     ->schema([
                         FileUpload::make('hero_image')
-                            ->label('Ảnh Hero')
+                            ->label(__('admin.blog_setting.fields.hero_image'))
                             ->image()
                             ->disk('public')
                             ->directory('blog/hero')
                             ->imagePreviewHeight('200')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(5120)
-                            ->helperText('Full-width dưới tiêu đề Journal. Khuyến nghị 1920×600px, ≤5MB, WebP.')
+                            ->helperText(__('admin.blog_setting.fields.hero_image_help'))
                             ->columnSpanFull(),
 
                         TextInput::make('hero_alt')
-                            ->label('Alt ảnh Tiếng Việt')
-                            ->placeholder('Mô tả nội dung ảnh — cho Google Images và người dùng screen reader')
+                            ->label(__('admin.blog_setting.fields.hero_alt_vi'))
+                            ->placeholder(__('admin.blog_setting.fields.hero_alt_vi_placeholder'))
                             ->maxLength(160)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('hero_alt_en')
-                            ->label('Alt ảnh English')
-                            ->placeholder('Describe what the image shows')
+                            ->label(__('admin.blog_setting.fields.hero_alt_en'))
+                            ->placeholder(__('admin.blog_setting.fields.hero_alt_en_placeholder'))
                             ->maxLength(160)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
                     ])
                     ->columns(2),
 
-                Section::make('SEO / Tab Title')
+                Section::make(__('admin.blog_setting.sections.seo_tab_title'))
                     ->icon('heroicon-o-magnifying-glass')
-                    ->description('Thẻ <title> (tiêu đề tab cạnh favicon) và meta description của trang danh sách bài viết. Hậu tố tên shop tự thêm, đừng gõ vào.')
+                    ->description(__('admin.blog_setting.sections.seo_tab_title_desc'))
                     ->schema([
                         TextInput::make('meta_title')
-                            ->label('Tab Title Tiếng Việt')
-                            ->placeholder('Blog - Tin tức & Bài viết')
+                            ->label(__('admin.blog_setting.fields.meta_title_vi'))
+                            ->placeholder(__('admin.blog_setting.fields.meta_title_vi_placeholder'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('meta_title_en')
-                            ->label('Tab Title English')
-                            ->placeholder('Blog - News & Articles')
+                            ->label(__('admin.blog_setting.fields.meta_title_en'))
+                            ->placeholder(__('admin.blog_setting.fields.meta_title_en_placeholder'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         Textarea::make('meta_description')
-                            ->label('Meta Description Tiếng Việt')
-                            ->placeholder('Cập nhật kiến thức, xu hướng và câu chuyện từ chúng tôi.')
+                            ->label(__('admin.blog_setting.fields.meta_description_vi'))
+                            ->placeholder(__('admin.blog_setting.fields.meta_description_vi_placeholder'))
                             ->rows(2)
                             ->maxLength(300)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         Textarea::make('meta_description_en')
-                            ->label('Meta Description English')
-                            ->placeholder('Insights, trends and stories from our team.')
+                            ->label(__('admin.blog_setting.fields.meta_description_en'))
+                            ->placeholder(__('admin.blog_setting.fields.meta_description_en_placeholder'))
                             ->rows(2)
                             ->maxLength(300)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
@@ -124,7 +124,7 @@ class BlogSetting extends Page
     {
         return [
             Action::make('save')
-                ->label('Lưu cài đặt')
+                ->label(__('admin.blog_setting.actions.save'))
                 ->icon('heroicon-o-check')
                 ->action('save'),
         ];
@@ -153,7 +153,7 @@ class BlogSetting extends Page
         $profile->saveQuietly();
 
         Notification::make()
-            ->title('Đã lưu cài đặt blog page')
+            ->title(__('admin.blog_setting.notifications.saved'))
             ->success()
             ->send();
     }

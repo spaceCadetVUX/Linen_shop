@@ -38,42 +38,42 @@ class JsonldSchemaResource extends Resource
         return $schema->schema([
 
             Forms\Components\TextInput::make('model_type')
-                ->label('Model Type')
+                ->label(__('admin.jsonld_schema.fields.model_type'))
                 ->disabled()
                 ->dehydrated(false),
 
             Forms\Components\TextInput::make('model_id')
-                ->label('Model ID')
+                ->label(__('admin.jsonld_schema.fields.model_id'))
                 ->disabled()
                 ->dehydrated(false),
 
             Forms\Components\Select::make('schema_type')
-                ->label('Schema Type')
+                ->label(__('admin.jsonld_schema.fields.schema_type'))
                 ->options(collect(JsonldSchemaType::cases())->mapWithKeys(
                     fn (JsonldSchemaType $case) => [$case->value => $case->value]
                 ))
                 ->required(),
 
             Forms\Components\TextInput::make('label')
-                ->label('Label')
+                ->label(__('admin.jsonld_schema.fields.label'))
                 ->required(),
 
             Forms\Components\TextInput::make('sort_order')
-                ->label('Sort Order')
+                ->label(__('admin.jsonld_schema.fields.sort_order'))
                 ->numeric()
                 ->default(0),
 
             Forms\Components\Toggle::make('is_active')
-                ->label('Active')
+                ->label(__('admin.jsonld_schema.fields.active'))
                 ->default(true),
 
             Forms\Components\Toggle::make('is_auto_generated')
-                ->label('Auto Generated')
-                ->helperText('When OFF, Observer will never overwrite this payload (manual override).')
+                ->label(__('admin.jsonld_schema.fields.auto_generated'))
+                ->helperText(__('admin.jsonld_schema.fields.auto_generated_help'))
                 ->default(true),
 
             Forms\Components\Textarea::make('payload')
-                ->label('Payload (JSON)')
+                ->label(__('admin.jsonld_schema.fields.payload'))
                 ->rows(25)
                 ->formatStateUsing(fn ($state) => is_array($state)
                     ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
@@ -83,7 +83,7 @@ class JsonldSchemaResource extends Resource
                     ? json_decode($state, true) ?? $state
                     : $state
                 )
-                ->helperText('Set "Auto Generated" to OFF to lock this payload from Observer overwrites.')
+                ->helperText(__('admin.jsonld_schema.fields.payload_help'))
                 ->columnSpanFull(),
 
         ])->columns(2);
@@ -97,13 +97,13 @@ class JsonldSchemaResource extends Resource
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('model_type')
-                    ->label('Model')
+                    ->label(__('admin.jsonld_schema.fields.model_column'))
                     ->badge()
                     ->color('primary')
                     ->searchable(),
 
                 TextColumn::make('schema_type')
-                    ->label('Schema Type')
+                    ->label(__('admin.jsonld_schema.fields.schema_type'))
                     ->badge()
                     ->color('info')
                     ->searchable(),
@@ -113,13 +113,13 @@ class JsonldSchemaResource extends Resource
                     ->limit(40),
 
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('admin.jsonld_schema.fields.active'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('danger'),
 
                 IconColumn::make('is_auto_generated')
-                    ->label('Auto')
+                    ->label(__('admin.jsonld_schema.fields.auto_column'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('warning')
@@ -132,7 +132,7 @@ class JsonldSchemaResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('model_type')
-                    ->label('Model Type')
+                    ->label(__('admin.jsonld_schema.fields.model_type'))
                     ->options(fn () => JsonldSchema::query()
                         ->distinct()
                         ->pluck('model_type', 'model_type')
@@ -140,16 +140,16 @@ class JsonldSchemaResource extends Resource
                     ),
 
                 Tables\Filters\SelectFilter::make('schema_type')
-                    ->label('Schema Type')
+                    ->label(__('admin.jsonld_schema.fields.schema_type'))
                     ->options(collect(JsonldSchemaType::cases())->mapWithKeys(
                         fn (JsonldSchemaType $case) => [$case->value => $case->value]
                     )),
 
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.jsonld_schema.fields.active')),
 
                 Tables\Filters\TernaryFilter::make('is_auto_generated')
-                    ->label('Auto Generated'),
+                    ->label(__('admin.jsonld_schema.fields.auto_generated')),
             ])
             ->actions([
                 EditAction::make(),

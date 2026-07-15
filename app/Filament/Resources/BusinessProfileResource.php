@@ -6,16 +6,21 @@ use App\Filament\Resources\BusinessProfileResource\Pages;
 use App\Models\BusinessProfile;
 use App\Models\Seo\LlmsDocument;
 use App\Services\Seo\BusinessJsonldService;
+use App\Services\Seo\LlmsGeneratorService;
 use BackedEnum;
+use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Components\Placeholder;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 
 class BusinessProfileResource extends Resource
@@ -40,46 +45,46 @@ class BusinessProfileResource extends Resource
                 ->tabs([
 
                     // ── Identity ──────────────────────────────────────────────
-                    Tab::make('Identity')
+                    Tab::make(__('admin.business_profile.tabs.identity'))
                         ->schema([
                             Forms\Components\TextInput::make('name')
-                                ->label('Business Name')
+                                ->label(__('admin.business_profile.fields.name'))
                                 ->required()
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('legal_name')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Legal Name</span>'))
-                                ->placeholder('Công ty Cổ phần...'),
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.legal_name_vi').'</span>'))
+                                ->placeholder(__('admin.business_profile.fields.legal_name_vi_placeholder')),
 
                             Forms\Components\TextInput::make('extra.legal_name_en')
-                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Legal Name (EN)</span>'))
-                                ->placeholder('Company Ltd.'),
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.legal_name_en').'</span>'))
+                                ->placeholder(__('admin.business_profile.fields.legal_name_en_placeholder')),
 
                             Forms\Components\TextInput::make('tagline')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tagline</span>'))
-                                ->placeholder('Khẩu hiệu ngắn'),
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.tagline_vi').'</span>'))
+                                ->placeholder(__('admin.business_profile.fields.tagline_vi_placeholder')),
 
                             Forms\Components\TextInput::make('extra.tagline_en')
-                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tagline (EN)</span>'))
-                                ->placeholder('Short slogan in English'),
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.tagline_en').'</span>'))
+                                ->placeholder(__('admin.business_profile.fields.tagline_en_placeholder')),
 
                             Forms\Components\Textarea::make('description')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Description</span>'))
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.description_vi').'</span>'))
                                 ->rows(4)
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('extra.description_en')
-                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description (EN)</span>'))
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.description_en').'</span>'))
                                 ->rows(4)
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('logo_path')
-                                ->label('Logo Path / URL')
+                                ->label(__('admin.business_profile.fields.logo_path'))
                                 ->columnSpanFull(),
 
                             Forms\Components\FileUpload::make('extra.og_image')
-                                ->label('Default OG Image (Facebook / Zalo share)')
-                                ->helperText('Ảnh hiển thị khi share link trang chủ. Khuyến nghị: 1200×630px.')
+                                ->label(__('admin.business_profile.fields.og_image'))
+                                ->helperText(__('admin.business_profile.fields.og_image_help'))
                                 ->image()
                                 ->disk('public')
                                 ->directory('og')
@@ -87,8 +92,8 @@ class BusinessProfileResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\FileUpload::make('extra.favicon')
-                                ->label('Favicon')
-                                ->helperText('Hiển thị trên tab trình duyệt và kết quả Google Search. Yêu cầu: file .ico hoặc PNG tối thiểu 48×48px. SVG không được Google Search hỗ trợ.')
+                                ->label(__('admin.business_profile.fields.favicon'))
+                                ->helperText(__('admin.business_profile.fields.favicon_help'))
                                 ->image()
                                 ->disk('public')
                                 ->directory('favicon')
@@ -97,81 +102,81 @@ class BusinessProfileResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('currency')
-                                ->label('Currency')
+                                ->label(__('admin.business_profile.fields.currency'))
                                 ->default('VND'),
 
                             Forms\Components\TextInput::make('founded_year')
-                                ->label('Founded Year')
+                                ->label(__('admin.business_profile.fields.founded_year'))
                                 ->numeric()
                                 ->minValue(1800)
                                 ->maxValue(now()->year),
 
                             Forms\Components\TextInput::make('vat_number')
-                                ->label('VAT / Tax Number'),
+                                ->label(__('admin.business_profile.fields.vat_number')),
                         ])
                         ->columns(2),
 
                     // ── Contact ───────────────────────────────────────────────
-                    Tab::make('Contact & Location')
+                    Tab::make(__('admin.business_profile.tabs.contact'))
                         ->schema([
                             Forms\Components\TextInput::make('email')
-                                ->label('Email')
+                                ->label(__('admin.business_profile.fields.email'))
                                 ->email(),
 
                             Forms\Components\TextInput::make('phone')
-                                ->label('Phone')
+                                ->label(__('admin.business_profile.fields.phone'))
                                 ->tel(),
 
                             Forms\Components\Textarea::make('address_line')
-                                ->label('Address')
+                                ->label(__('admin.business_profile.fields.address_line'))
                                 ->rows(2)
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('city')
-                                ->label('City'),
+                                ->label(__('admin.business_profile.fields.city')),
 
                             Forms\Components\TextInput::make('state')
-                                ->label('State / Province'),
+                                ->label(__('admin.business_profile.fields.state')),
 
                             Forms\Components\Select::make('country')
-                                ->label('Country')
-                                ->helperText('Lưu mã ISO 3166-1 alpha-2 (VD: VN) — dùng cho JSON-LD addressCountry.')
+                                ->label(__('admin.business_profile.fields.country'))
+                                ->helperText(__('admin.business_profile.fields.country_help'))
                                 ->options(config('countries'))
                                 ->searchable()
                                 ->default('VN'),
 
                             Forms\Components\TextInput::make('postal_code')
-                                ->label('Postal Code'),
+                                ->label(__('admin.business_profile.fields.postal_code')),
 
                             Forms\Components\TextInput::make('latitude')
-                                ->label('Latitude')
+                                ->label(__('admin.business_profile.fields.latitude'))
                                 ->numeric()
-                                ->placeholder('10.7769'),
+                                ->placeholder(__('admin.business_profile.fields.latitude_placeholder')),
 
                             Forms\Components\TextInput::make('longitude')
-                                ->label('Longitude')
+                                ->label(__('admin.business_profile.fields.longitude'))
                                 ->numeric()
-                                ->placeholder('106.7009'),
+                                ->placeholder(__('admin.business_profile.fields.longitude_placeholder')),
                         ])
                         ->columns(2),
 
                     // ── Return policy ─────────────────────────────────────────
-                    Tab::make('Return Policy')
+                    Tab::make(__('admin.business_profile.tabs.return_policy'))
                         ->icon('heroicon-o-arrow-uturn-left')
                         ->schema([
-                            Section::make('Chính sách đổi trả')
-                                ->description('Áp dụng chung cho toàn shop — feed vào JSON-LD hasMerchantReturnPolicy trên mọi trang sản phẩm.')
+                            Section::make(__('admin.business_profile.sections.return_policy'))
+                                ->description(__('admin.business_profile.sections.return_policy_desc'))
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.return_days')
-                                        ->label('Số ngày đổi trả')
+                                        ->label(__('admin.business_profile.fields.return_days'))
                                         ->numeric()
                                         ->minValue(0)
                                         ->default(7)
-                                        ->helperText('0 = không nhận đổi trả.')
+                                        ->helperText(__('admin.business_profile.fields.return_days_help'))
                                         ->columnSpan(1),
 
                                     Forms\Components\Select::make('extra.return_method')
-                                        ->label('Hình thức trả hàng')
+                                        ->label(__('admin.business_profile.fields.return_method'))
                                         ->options([
                                             'mail' => 'Gửi qua bưu điện',
                                             'in_store' => 'Trả trực tiếp tại shop',
@@ -181,7 +186,7 @@ class BusinessProfileResource extends Resource
                                         ->columnSpan(1),
 
                                     Forms\Components\Select::make('extra.return_fees')
-                                        ->label('Phí ship trả hàng')
+                                        ->label(__('admin.business_profile.fields.return_fees'))
                                         ->options([
                                             'free' => 'Miễn phí',
                                             'customer' => 'Khách chịu phí',
@@ -194,51 +199,51 @@ class BusinessProfileResource extends Resource
                         ]),
 
                     // ── Online ────────────────────────────────────────────────
-                    Tab::make('Online Presence')
+                    Tab::make(__('admin.business_profile.tabs.online_presence'))
                         ->schema([
-                            Section::make('Social Links')
-                                ->description('Hiển thị dạng icon ở footer + dùng cho JSON-LD sameAs.')
+                            Section::make(__('admin.business_profile.sections.social_links'))
+                                ->description(__('admin.business_profile.sections.social_links_desc'))
                                 ->schema([
                                     Forms\Components\TextInput::make('social_links.facebook')
-                                        ->label('Facebook')
+                                        ->label(__('admin.business_profile.fields.facebook'))
                                         ->url()
-                                        ->placeholder('https://facebook.com/cacylinen'),
+                                        ->placeholder(__('admin.business_profile.fields.facebook_placeholder')),
 
                                     Forms\Components\TextInput::make('social_links.instagram')
-                                        ->label('Instagram')
+                                        ->label(__('admin.business_profile.fields.instagram'))
                                         ->url()
-                                        ->placeholder('https://instagram.com/cacylinen'),
+                                        ->placeholder(__('admin.business_profile.fields.instagram_placeholder')),
 
                                     Forms\Components\TextInput::make('social_links.youtube')
-                                        ->label('YouTube')
+                                        ->label(__('admin.business_profile.fields.youtube'))
                                         ->url()
-                                        ->placeholder('https://youtube.com/@cacylinen'),
+                                        ->placeholder(__('admin.business_profile.fields.youtube_placeholder')),
 
                                     Forms\Components\TextInput::make('social_links.tiktok')
-                                        ->label('TikTok')
+                                        ->label(__('admin.business_profile.fields.tiktok'))
                                         ->url()
-                                        ->placeholder('https://tiktok.com/@cacylinen'),
+                                        ->placeholder(__('admin.business_profile.fields.tiktok_placeholder')),
 
                                     Forms\Components\TextInput::make('social_links.twitter')
-                                        ->label('X (Twitter)')
+                                        ->label(__('admin.business_profile.fields.twitter'))
                                         ->url()
-                                        ->placeholder('https://x.com/cacylinen'),
+                                        ->placeholder(__('admin.business_profile.fields.twitter_placeholder')),
 
                                     Forms\Components\TextInput::make('social_links.zalo')
-                                        ->label('Zalo')
+                                        ->label(__('admin.business_profile.fields.zalo'))
                                         ->url()
-                                        ->placeholder('https://zalo.me/...'),
+                                        ->placeholder(__('admin.business_profile.fields.zalo_placeholder')),
                                 ])
                                 ->columns(2),
 
-                            Section::make('Shipping Carriers')
-                                ->description('Đơn vị vận chuyển hiển thị ở footer. Kéo thả để sắp xếp thứ tự hiển thị.')
+                            Section::make(__('admin.business_profile.sections.shipping_carriers'))
+                                ->description(__('admin.business_profile.sections.shipping_carriers_desc'))
                                 ->schema([
                                     Forms\Components\Repeater::make('extra.shipping_carriers')
                                         ->label('')
                                         ->schema([
                                             Forms\Components\FileUpload::make('logo')
-                                                ->label('Logo')
+                                                ->label(__('admin.business_profile.fields.logo'))
                                                 ->image()
                                                 ->disk('public')
                                                 ->directory('shipping-carriers')
@@ -246,32 +251,32 @@ class BusinessProfileResource extends Resource
                                                 ->columnSpan(1),
 
                                             Forms\Components\TextInput::make('name')
-                                                ->label('Tên đơn vị')
-                                                ->placeholder('Giao Hàng Nhanh')
+                                                ->label(__('admin.business_profile.fields.carrier_name'))
+                                                ->placeholder(__('admin.business_profile.fields.carrier_name_placeholder'))
                                                 ->required()
                                                 ->columnSpan(1),
 
                                             Forms\Components\TextInput::make('url')
-                                                ->label('Link')
+                                                ->label(__('admin.business_profile.fields.link'))
                                                 ->url()
-                                                ->placeholder('https://ghn.vn')
+                                                ->placeholder(__('admin.business_profile.fields.carrier_url_placeholder'))
                                                 ->columnSpan(1),
                                         ])
                                         ->columns(3)
                                         ->reorderable()
                                         ->reorderableWithDragAndDrop()
-                                        ->addActionLabel('+ Thêm đơn vị vận chuyển')
+                                        ->addActionLabel(__('admin.business_profile.actions.add_carrier'))
                                         ->columnSpanFull(),
                                 ]),
 
-                            Section::make('Payment Methods')
-                                ->description('Cổng / đơn vị thanh toán hiển thị ở footer. Kéo thả để sắp xếp thứ tự hiển thị.')
+                            Section::make(__('admin.business_profile.sections.payment_methods'))
+                                ->description(__('admin.business_profile.sections.payment_methods_desc'))
                                 ->schema([
                                     Forms\Components\Repeater::make('extra.payment_methods')
                                         ->label('')
                                         ->schema([
                                             Forms\Components\FileUpload::make('logo')
-                                                ->label('Logo')
+                                                ->label(__('admin.business_profile.fields.logo'))
                                                 ->image()
                                                 ->disk('public')
                                                 ->directory('payment-methods')
@@ -279,117 +284,117 @@ class BusinessProfileResource extends Resource
                                                 ->columnSpan(1),
 
                                             Forms\Components\TextInput::make('name')
-                                                ->label('Tên cổng thanh toán')
-                                                ->placeholder('MoMo')
+                                                ->label(__('admin.business_profile.fields.payment_name'))
+                                                ->placeholder(__('admin.business_profile.fields.payment_name_placeholder'))
                                                 ->required()
                                                 ->columnSpan(1),
 
                                             Forms\Components\TextInput::make('url')
-                                                ->label('Link')
+                                                ->label(__('admin.business_profile.fields.link'))
                                                 ->url()
-                                                ->placeholder('https://momo.vn')
+                                                ->placeholder(__('admin.business_profile.fields.payment_url_placeholder'))
                                                 ->columnSpan(1),
                                         ])
                                         ->columns(3)
                                         ->reorderable()
                                         ->reorderableWithDragAndDrop()
-                                        ->addActionLabel('+ Thêm cổng thanh toán')
+                                        ->addActionLabel(__('admin.business_profile.actions.add_payment_method'))
                                         ->columnSpanFull(),
                                 ]),
 
                             Forms\Components\Repeater::make('business_hours')
-                                ->label('Business Hours')
-                                ->helperText('Giờ mở cửa theo ngày — tự động đưa vào JSON-LD openingHours.')
+                                ->label(__('admin.business_profile.fields.business_hours'))
+                                ->helperText(__('admin.business_profile.fields.business_hours_help'))
                                 ->schema([
                                     Forms\Components\Select::make('day')
-                                        ->label('Day')
+                                        ->label(__('admin.business_profile.fields.day'))
                                         ->options([
-                                            'Monday'    => 'Monday',
-                                            'Tuesday'   => 'Tuesday',
+                                            'Monday' => 'Monday',
+                                            'Tuesday' => 'Tuesday',
                                             'Wednesday' => 'Wednesday',
-                                            'Thursday'  => 'Thursday',
-                                            'Friday'    => 'Friday',
-                                            'Saturday'  => 'Saturday',
-                                            'Sunday'    => 'Sunday',
+                                            'Thursday' => 'Thursday',
+                                            'Friday' => 'Friday',
+                                            'Saturday' => 'Saturday',
+                                            'Sunday' => 'Sunday',
                                         ])
                                         ->required()
                                         ->columnSpan(1),
                                     Forms\Components\TextInput::make('open')
-                                        ->label('Open')
-                                        ->placeholder('08:00')
+                                        ->label(__('admin.business_profile.fields.open'))
+                                        ->placeholder(__('admin.business_profile.fields.open_placeholder'))
                                         ->columnSpan(1),
                                     Forms\Components\TextInput::make('close')
-                                        ->label('Close')
-                                        ->placeholder('17:30')
+                                        ->label(__('admin.business_profile.fields.close'))
+                                        ->placeholder(__('admin.business_profile.fields.close_placeholder'))
                                         ->columnSpan(1),
                                 ])
                                 ->columns(3)
                                 ->reorderable()
-                                ->addActionLabel('Thêm ngày')
+                                ->addActionLabel(__('admin.business_profile.actions.add_business_hour'))
                                 ->columnSpanFull(),
 
                             Forms\Components\Repeater::make('extra.faq')
-                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 FAQ — Tiếng Việt (schema.org FAQPage)</span>'))
-                                ->helperText('Câu hỏi thường gặp — inject JSON-LD FAQPage vào trang chủ /vi/.')
+                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.business_profile.sections.faq_vi').'</span>'))
+                                ->helperText(__('admin.business_profile.sections.faq_vi_help'))
                                 ->schema([
                                     Forms\Components\TextInput::make('question')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.business_profile.fields.faq_question').'</span>'))
                                         ->required()
                                         ->columnSpanFull(),
                                     Forms\Components\Textarea::make('answer')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.business_profile.fields.faq_answer').'</span>'))
                                         ->required()
                                         ->rows(3)
                                         ->columnSpanFull(),
                                 ])
                                 ->reorderable()
-                                ->addActionLabel('+ Thêm câu hỏi')
+                                ->addActionLabel(__('admin.business_profile.actions.add_faq'))
                                 ->columnSpanFull(),
 
                             Forms\Components\Repeater::make('extra.faq_en')
-                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 FAQ — English (schema.org FAQPage)</span>'))
-                                ->helperText('Frequently asked questions — injected into JSON-LD FAQPage on /en/ homepage.')
+                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.business_profile.sections.faq_en').'</span>'))
+                                ->helperText(__('admin.business_profile.sections.faq_en_help'))
                                 ->schema([
                                     Forms\Components\TextInput::make('question')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.business_profile.fields.faq_question').'</span>'))
                                         ->required()
                                         ->columnSpanFull(),
                                     Forms\Components\Textarea::make('answer')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.business_profile.fields.faq_answer').'</span>'))
                                         ->required()
                                         ->rows(3)
                                         ->columnSpanFull(),
                                 ])
                                 ->reorderable()
-                                ->addActionLabel('+ Add Q&A')
+                                ->addActionLabel(__('admin.business_profile.actions.add_faq'))
                                 ->columnSpanFull(),
                         ]),
 
                     // ── Page Fallbacks ────────────────────────────────────────
-                    Tab::make('Page Fallbacks')
+                    Tab::make(__('admin.business_profile.tabs.page_fallbacks'))
                         ->id('page-fallbacks')
                         ->icon('heroicon-o-language')
                         ->schema([
-                            Section::make('Homepage (/)')
-                                ->description('Tab title + meta description trang chủ — đọc qua Setting::get() trong HomeController. Trống → dùng tagline / tên business.')
+                            Section::make(__('admin.business_profile.sections.page_fallback_home'))
+                                ->description(__('admin.business_profile.sections.page_fallback_home_desc'))
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.home_title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
-                                        ->placeholder('Trống → tagline → tên business'),
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.home_title_vi').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.home_title_vi_placeholder')),
 
                                     Forms\Components\TextInput::make('extra.home_title_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
-                                        ->placeholder('Empty → Tagline (EN) → business name'),
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.home_title_en').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.home_title_en_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.meta_description')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.home_meta_description_vi').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('CacyLinen - Thời trang linen tối giản, bền vững.'),
+                                        ->placeholder(__('admin.business_profile.fields.home_meta_description_vi_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.meta_description_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.home_meta_description_en').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('CacyLinen - Minimalist, sustainable linen fashion.'),
+                                        ->placeholder(__('admin.business_profile.fields.home_meta_description_en_placeholder')),
                                 ])
                                 ->columns(2),
 
@@ -397,95 +402,95 @@ class BusinessProfileResource extends Resource
                             // Pages Setting → Shop Setting (App\Filament\Pages\ShopSetting),
                             // vẫn đọc/ghi cùng key extra.product_catalog_*.
 
-                            Section::make('Category Index (/danh-muc, /categories)')
-                                ->description('Dùng khi trang danh sách danh mục chưa có SEO meta riêng — đọc qua Setting::get() trong CategoryController.')
+                            Section::make(__('admin.business_profile.sections.page_fallback_category_index'))
+                                ->description(__('admin.business_profile.sections.page_fallback_category_index_desc'))
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.category_index_title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tiêu đề</span>'))
-                                        ->placeholder('Danh mục sản phẩm'),
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.category_index_title_vi').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.category_index_title_vi_placeholder')),
 
                                     Forms\Components\TextInput::make('extra.category_index_title_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Title</span>'))
-                                        ->placeholder('Product Categories'),
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.category_index_title_en').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.category_index_title_en_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.category_index_description')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Mô tả</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.category_index_description_vi').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('Khám phá tất cả danh mục sản phẩm của CacyLinen.'),
+                                        ->placeholder(__('admin.business_profile.fields.category_index_description_vi_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.category_index_description_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Description</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.category_index_description_en').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('Browse all CacyLinen product categories.'),
+                                        ->placeholder(__('admin.business_profile.fields.category_index_description_en_placeholder')),
                                 ])
                                 ->columns(2),
 
-                            Section::make('About (/gioi-thieu, /about)')
-                                ->description('Tab title + meta description trang giới thiệu — đọc qua Setting::get() trong AboutController.')
+                            Section::make(__('admin.business_profile.sections.page_fallback_about'))
+                                ->description(__('admin.business_profile.sections.page_fallback_about_desc'))
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.about_title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
-                                        ->placeholder('Về CacyLinen - Thời trang tối giản, vải tự nhiên'),
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.about_title_vi').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.about_title_vi_placeholder')),
 
                                     Forms\Components\TextInput::make('extra.about_title_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
-                                        ->placeholder('About CacyLinen - Minimalist fashion, natural fabrics'),
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.about_title_en').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.about_title_en_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.about_meta_description')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.about_meta_description_vi').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('CacyLinen được tạo ra cho những người tin rằng vẻ đẹp thực sự đến từ sự tối giản...'),
+                                        ->placeholder(__('admin.business_profile.fields.about_meta_description_vi_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.about_meta_description_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.about_meta_description_en').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('CacyLinen is made for people who believe true beauty comes from simplicity...'),
+                                        ->placeholder(__('admin.business_profile.fields.about_meta_description_en_placeholder')),
                                 ])
                                 ->columns(2),
 
-                            Section::make('Blog Index (/bai-viet, /blog)')
-                                ->description('Tab title + meta description trang danh sách bài viết — đọc qua Setting::get() trong BlogController.')
+                            Section::make(__('admin.business_profile.sections.page_fallback_blog_index'))
+                                ->description(__('admin.business_profile.sections.page_fallback_blog_index_desc'))
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.blog_index_title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
-                                        ->placeholder('Blog - Tin tức & Bài viết'),
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.blog_index_title_vi').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.blog_index_title_vi_placeholder')),
 
                                     Forms\Components\TextInput::make('extra.blog_index_title_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
-                                        ->placeholder('Blog - News & Articles'),
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.blog_index_title_en').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.blog_index_title_en_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.blog_index_description')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Meta Description</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.blog_index_meta_description_vi').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('Góc nhìn của CacyLinen về thời trang bền vững, chất liệu tự nhiên và lối sống tối giản.'),
+                                        ->placeholder(__('admin.business_profile.fields.blog_index_meta_description_vi_placeholder')),
 
                                     Forms\Components\Textarea::make('extra.blog_index_description_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Meta Description</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.blog_index_meta_description_en').'</span>'))
                                         ->rows(2)
-                                        ->placeholder('CacyLinen\'s perspective on sustainable fashion, natural fabrics and minimalist living.'),
+                                        ->placeholder(__('admin.business_profile.fields.blog_index_meta_description_en_placeholder')),
                                 ])
                                 ->columns(2),
 
-                            Section::make('Search (/tim-kiem, /search)')
-                                ->description('Tiền tố tab title trang kết quả tìm kiếm — từ khóa sẽ nối vào sau, vd: "Tìm kiếm: áo linen".')
+                            Section::make(__('admin.business_profile.sections.page_fallback_search'))
+                                ->description(__('admin.business_profile.sections.page_fallback_search_desc'))
                                 ->schema([
                                     Forms\Components\TextInput::make('extra.search_title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 Tab Title</span>'))
-                                        ->placeholder('Tìm kiếm'),
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">🇻🇳 '.__('admin.business_profile.fields.search_title_vi').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.search_title_vi_placeholder')),
 
                                     Forms\Components\TextInput::make('extra.search_title_en')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 Tab Title</span>'))
-                                        ->placeholder('Search'),
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">🇬🇧 '.__('admin.business_profile.fields.search_title_en').'</span>'))
+                                        ->placeholder(__('admin.business_profile.fields.search_title_en_placeholder')),
                                 ])
                                 ->columns(2),
                         ]),
 
                     // ── JSON-LD ───────────────────────────────────────────────
-                    Tab::make('JSON-LD')
+                    Tab::make(__('admin.business_profile.tabs.jsonld'))
                         ->icon('heroicon-o-code-bracket')
                         ->schema([
-                            Section::make('Live Schemas')
-                                ->description('Auto-generated từ BusinessProfile data. Cache 24h Redis.')
+                            Section::make(__('admin.business_profile.sections.live_schemas'))
+                                ->description(__('admin.business_profile.sections.live_schemas_desc'))
                                 ->schema([
                                     Placeholder::make('jsonld_preview')
                                         ->label('')
@@ -501,90 +506,93 @@ class BusinessProfileResource extends Resource
                                                     $html .= "<pre style='white-space:pre-wrap;font-size:0.72rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;'>{$json}</pre>";
                                                 }
                                             }
+
                                             return new HtmlString($html ?: '<em>No schemas generated.</em>');
                                         })
                                         ->columnSpanFull(),
                                 ]),
 
-                            \Filament\Schemas\Components\Actions::make([
-                                \Filament\Actions\Action::make('flush_jsonld_cache')
-                                    ->label('Flush Cache')
+                            Actions::make([
+                                Action::make('flush_jsonld_cache')
+                                    ->label(__('admin.business_profile.actions.flush_jsonld_cache'))
                                     ->icon('heroicon-o-arrow-path')
                                     ->color('warning')
                                     ->requiresConfirmation()
-                                    ->modalHeading('Flush JSON-LD Cache')
-                                    ->modalDescription('Xoá Redis cache của Business schemas. Request tiếp theo sẽ rebuild từ DB.')
+                                    ->modalHeading(__('admin.business_profile.actions.flush_jsonld_cache_modal_heading'))
+                                    ->modalDescription(__('admin.business_profile.actions.flush_jsonld_cache_modal_description'))
                                     ->action(function (): void {
                                         app(BusinessJsonldService::class)->flushCache();
-                                        Notification::make()->title('JSON-LD cache flushed')->success()->send();
+                                        Notification::make()->title(__('admin.business_profile.notifications.jsonld_cache_flushed'))->success()->send();
                                     }),
                             ]),
                         ]),
 
                     // ── LLMs ──────────────────────────────────────────────────
-                    Tab::make('LLMs')
+                    Tab::make(__('admin.business_profile.tabs.llms'))
                         ->icon('heroicon-o-document-text')
                         ->schema([
-                            Section::make('LLMs Documents')
-                                ->description('Nội dung tổng hợp dùng cho llms.txt — AI context documents.')
+                            Section::make(__('admin.business_profile.sections.llms_documents'))
+                                ->description(__('admin.business_profile.sections.llms_documents_desc'))
                                 ->schema([
                                     Placeholder::make('llms_vi')
-                                        ->label('🇻🇳 business-vi')
+                                        ->label(__('admin.business_profile.fields.llms_vi_label'))
                                         ->content(function (): HtmlString {
                                             $doc = LlmsDocument::where('slug', 'business-vi')->first();
                                             if (! $doc) {
                                                 return new HtmlString('<em class="text-gray-400">Document not found.</em>');
                                             }
-                                            $file    = 'llms/' . $doc->slug . '.txt';
-                                            $content = \Illuminate\Support\Facades\Storage::disk('public')->exists($file)
-                                                ? htmlspecialchars(\Illuminate\Support\Facades\Storage::disk('public')->get($file))
+                                            $file = 'llms/'.$doc->slug.'.txt';
+                                            $content = Storage::disk('public')->exists($file)
+                                                ? htmlspecialchars(Storage::disk('public')->get($file))
                                                 : '';
                                             $updated = $doc->last_generated_at
-                                                ? \Carbon\Carbon::parse($doc->last_generated_at)->format('d/m/Y H:i')
+                                                ? Carbon::parse($doc->last_generated_at)->format('d/m/Y H:i')
                                                 : '—';
+
                                             return new HtmlString(
                                                 "<div style='font-size:0.75rem;color:#64748b;margin-bottom:6px;'>Last generated: {$updated}</div>"
-                                                . "<pre style='white-space:pre-wrap;font-size:0.72rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;max-height:320px;'>"
-                                                . ($content ?: '<em style="color:#94a3b8;">(empty — nhấn Regenerate để tạo)</em>')
-                                                . '</pre>'
+                                                ."<pre style='white-space:pre-wrap;font-size:0.72rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;max-height:320px;'>"
+                                                .($content ?: '<em style="color:#94a3b8;">(empty — nhấn Regenerate để tạo)</em>')
+                                                .'</pre>'
                                             );
                                         })
                                         ->columnSpanFull(),
 
                                     Placeholder::make('llms_en')
-                                        ->label('🇬🇧 business-en')
+                                        ->label(__('admin.business_profile.fields.llms_en_label'))
                                         ->content(function (): HtmlString {
                                             $doc = LlmsDocument::where('slug', 'business-en')->first();
                                             if (! $doc) {
                                                 return new HtmlString('<em class="text-gray-400">Document not found.</em>');
                                             }
-                                            $file    = 'llms/' . $doc->slug . '.txt';
-                                            $content = \Illuminate\Support\Facades\Storage::disk('public')->exists($file)
-                                                ? htmlspecialchars(\Illuminate\Support\Facades\Storage::disk('public')->get($file))
+                                            $file = 'llms/'.$doc->slug.'.txt';
+                                            $content = Storage::disk('public')->exists($file)
+                                                ? htmlspecialchars(Storage::disk('public')->get($file))
                                                 : '';
                                             $updated = $doc->last_generated_at
-                                                ? \Carbon\Carbon::parse($doc->last_generated_at)->format('d/m/Y H:i')
+                                                ? Carbon::parse($doc->last_generated_at)->format('d/m/Y H:i')
                                                 : '—';
+
                                             return new HtmlString(
                                                 "<div style='font-size:0.75rem;color:#64748b;margin-bottom:6px;'>Last generated: {$updated}</div>"
-                                                . "<pre style='white-space:pre-wrap;font-size:0.72rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;max-height:320px;'>"
-                                                . ($content ?: '<em style="color:#94a3b8;">(empty — nhấn Regenerate để tạo)</em>')
-                                                . '</pre>'
+                                                ."<pre style='white-space:pre-wrap;font-size:0.72rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;max-height:320px;'>"
+                                                .($content ?: '<em style="color:#94a3b8;">(empty — nhấn Regenerate để tạo)</em>')
+                                                .'</pre>'
                                             );
                                         })
                                         ->columnSpanFull(),
                                 ]),
 
-                            \Filament\Schemas\Components\Actions::make([
-                                \Filament\Actions\Action::make('regenerate_llms')
-                                    ->label('Regenerate LLMs')
+                            Actions::make([
+                                Action::make('regenerate_llms')
+                                    ->label(__('admin.business_profile.actions.regenerate_llms'))
                                     ->icon('heroicon-o-arrow-path')
                                     ->color('gray')
                                     ->requiresConfirmation()
-                                    ->modalHeading('Regenerate Business LLMs Documents')
-                                    ->modalDescription('Generate lại business-vi.txt và business-en.txt từ dữ liệu BusinessProfile hiện tại.')
+                                    ->modalHeading(__('admin.business_profile.actions.regenerate_llms_modal_heading'))
+                                    ->modalDescription(__('admin.business_profile.actions.regenerate_llms_modal_description'))
                                     ->action(function (): void {
-                                        $service = app(\App\Services\Seo\LlmsGeneratorService::class);
+                                        $service = app(LlmsGeneratorService::class);
                                         $docs = LlmsDocument::where('is_active', true)
                                             ->where(fn ($q) => $q->where('slug', 'business')
                                                 ->orWhere('slug', 'like', 'business-%'))
@@ -592,7 +600,7 @@ class BusinessProfileResource extends Resource
                                         foreach ($docs as $doc) {
                                             $service->generateDocument($doc);
                                         }
-                                        Notification::make()->title('LLMs documents regenerated')->success()->send();
+                                        Notification::make()->title(__('admin.business_profile.notifications.llms_regenerated'))->success()->send();
                                         redirect(BusinessProfileResource::getUrl());
                                     }),
                             ]),

@@ -7,10 +7,10 @@ use App\Enums\PaymentStatus;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use BackedEnum;
-use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
@@ -48,95 +48,95 @@ class OrderResource extends Resource
         return $schema->schema([
 
             // ── Customer Info ─────────────────────────────────────────────────
-            Section::make('Customer')
+            Section::make(__('admin.order.sections.customer'))
                 ->schema([
                     Grid::make(3)->schema([
                         TextEntry::make('user.name')
-                            ->label('Name')
-                            ->placeholder('—'),
+                            ->label(__('admin.order.fields.name'))
+                            ->placeholder(__('admin.order.fields.dash_placeholder')),
 
                         TextEntry::make('user.email')
-                            ->label('Email')
-                            ->placeholder('—'),
+                            ->label(__('admin.order.fields.email'))
+                            ->placeholder(__('admin.order.fields.dash_placeholder')),
 
                         TextEntry::make('user.phone')
-                            ->label('Phone')
-                            ->placeholder('—'),
+                            ->label(__('admin.order.fields.phone'))
+                            ->placeholder(__('admin.order.fields.dash_placeholder')),
                     ]),
                 ]),
 
             // ── Shipping Address ──────────────────────────────────────────────
-            Section::make('Shipping Address')
+            Section::make(__('admin.order.sections.shipping_address'))
                 ->schema([
                     Grid::make(2)->schema([
                         TextEntry::make('shipping_address.full_name')
-                            ->label('Full Name'),
+                            ->label(__('admin.order.fields.full_name')),
 
                         TextEntry::make('shipping_address.phone')
-                            ->label('Phone'),
+                            ->label(__('admin.order.fields.phone')),
 
                         TextEntry::make('shipping_address.address_line')
-                            ->label('Address')
+                            ->label(__('admin.order.fields.address'))
                             ->columnSpan(2),
 
                         TextEntry::make('shipping_address.city')
-                            ->label('City'),
+                            ->label(__('admin.order.fields.city')),
 
                         TextEntry::make('shipping_address.province')
-                            ->label('Province'),
+                            ->label(__('admin.order.fields.province')),
                     ]),
                 ]),
 
             // ── Order Items ───────────────────────────────────────────────────
-            Section::make('Items')
+            Section::make(__('admin.order.sections.items'))
                 ->schema([
                     RepeatableEntry::make('items')
                         ->schema([
                             TextEntry::make('product_name')
-                                ->label('Product'),
+                                ->label(__('admin.order.fields.product')),
 
                             TextEntry::make('product_sku')
-                                ->label('SKU'),
+                                ->label(__('admin.order.fields.sku')),
 
                             TextEntry::make('quantity')
-                                ->label('Qty'),
+                                ->label(__('admin.order.fields.qty')),
 
                             TextEntry::make('unit_price')
-                                ->label('Unit Price')
+                                ->label(__('admin.order.fields.unit_price'))
                                 ->money('VND'),
 
                             TextEntry::make('subtotal')
-                                ->label('Subtotal')
+                                ->label(__('admin.order.fields.subtotal'))
                                 ->money('VND'),
                         ])
                         ->columns(5),
                 ]),
 
             // ── Order Totals ──────────────────────────────────────────────────
-            Section::make('Order Summary')
+            Section::make(__('admin.order.sections.order_summary'))
                 ->schema([
                     Grid::make(3)->schema([
                         TextEntry::make('total_amount')
-                            ->label('Total')
+                            ->label(__('admin.order.fields.total'))
                             ->money('VND'),
 
                         TextEntry::make('payment_status')
-                            ->label('Payment')
+                            ->label(__('admin.order.fields.payment'))
                             ->badge()
                             ->color(fn (PaymentStatus $state) => match ($state) {
-                                PaymentStatus::Unpaid   => 'warning',
-                                PaymentStatus::Paid     => 'success',
+                                PaymentStatus::Unpaid => 'warning',
+                                PaymentStatus::Paid => 'success',
                                 PaymentStatus::Refunded => 'info',
                             }),
 
                         TextEntry::make('payment_method')
-                            ->label('Method')
-                            ->placeholder('—'),
+                            ->label(__('admin.order.fields.method'))
+                            ->placeholder(__('admin.order.fields.dash_placeholder')),
                     ]),
 
                     TextEntry::make('note')
-                        ->label('Note')
-                        ->placeholder('—')
+                        ->label(__('admin.order.fields.note'))
+                        ->placeholder(__('admin.order.fields.dash_placeholder'))
                         ->columnSpanFull(),
                 ]),
 
@@ -152,43 +152,43 @@ class OrderResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->label('Order ID')
+                    ->label(__('admin.order.fields.order_id'))
                     ->formatStateUsing(fn (string $state): string => strtoupper(substr($state, 0, 8)))
                     ->copyable()
                     ->copyMessage('UUID copied')
                     ->searchable(),
 
                 TextColumn::make('user.name')
-                    ->label('Customer')
+                    ->label(__('admin.order.fields.customer_column'))
                     ->searchable()
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.order.fields.dash_placeholder')),
 
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (OrderStatus $state) => match ($state) {
-                        OrderStatus::Pending    => 'warning',
+                        OrderStatus::Pending => 'warning',
                         OrderStatus::Processing => 'info',
-                        OrderStatus::Shipped    => 'primary',
-                        OrderStatus::Delivered  => 'success',
-                        OrderStatus::Cancelled  => 'danger',
+                        OrderStatus::Shipped => 'primary',
+                        OrderStatus::Delivered => 'success',
+                        OrderStatus::Cancelled => 'danger',
                     }),
 
                 TextColumn::make('payment_status')
-                    ->label('Payment')
+                    ->label(__('admin.order.fields.payment'))
                     ->badge()
                     ->color(fn (PaymentStatus $state) => match ($state) {
-                        PaymentStatus::Unpaid   => 'warning',
-                        PaymentStatus::Paid     => 'success',
+                        PaymentStatus::Unpaid => 'warning',
+                        PaymentStatus::Paid => 'success',
                         PaymentStatus::Refunded => 'info',
                     }),
 
                 TextColumn::make('total_amount')
-                    ->label('Total')
+                    ->label(__('admin.order.fields.total'))
                     ->money('VND')
                     ->sortable(),
 
                 TextColumn::make('items_count')
-                    ->label('Items')
+                    ->label(__('admin.order.fields.items_count'))
                     ->numeric()
                     ->sortable(),
 
@@ -203,19 +203,19 @@ class OrderResource extends Resource
                     )),
 
                 Tables\Filters\SelectFilter::make('payment_status')
-                    ->label('Payment Status')
+                    ->label(__('admin.order.fields.payment_status'))
                     ->options(collect(PaymentStatus::cases())->mapWithKeys(
                         fn (PaymentStatus $case) => [$case->value => ucfirst($case->value)]
                     )),
 
                 Tables\Filters\Filter::make('created_at')
                     ->form([
-                        \Filament\Forms\Components\DatePicker::make('from')->label('From'),
-                        \Filament\Forms\Components\DatePicker::make('until')->label('Until'),
+                        DatePicker::make('from')->label(__('admin.order.fields.from')),
+                        DatePicker::make('until')->label(__('admin.order.fields.until')),
                     ])
                     ->query(function ($query, array $data) {
                         return $query
-                            ->when($data['from'],  fn ($q) => $q->whereDate('created_at', '>=', $data['from']))
+                            ->when($data['from'], fn ($q) => $q->whereDate('created_at', '>=', $data['from']))
                             ->when($data['until'], fn ($q) => $q->whereDate('created_at', '<=', $data['until']));
                     }),
             ])
@@ -233,7 +233,7 @@ class OrderResource extends Resource
     {
         return [
             'index' => Pages\ListOrders::route('/'),
-            'view'  => Pages\ViewOrder::route('/{record}'),
+            'view' => Pages\ViewOrder::route('/{record}'),
         ];
     }
 }

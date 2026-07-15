@@ -55,95 +55,95 @@ class ShopSetting extends Page
     {
         return $schema
             ->schema([
-                Section::make('Shop Page Hero')
+                Section::make(__('admin.shop_setting.sections.hero'))
                     ->icon('heroicon-o-shopping-bag')
-                    ->description('Banner đầu trang danh sách sản phẩm (/products). Bỏ trống thì dùng mặc định "Tất cả sản phẩm".')
+                    ->description(__('admin.shop_setting.sections.hero_desc'))
                     ->schema([
                         TextInput::make('h1')
-                            ->label('Tiêu đề (H1) Tiếng Việt')
-                            ->placeholder('Tất cả sản phẩm')
+                            ->label(__('admin.shop_setting.fields.h1_vi'))
+                            ->placeholder(__('admin.shop_setting.fields.h1_vi_placeholder'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('h1_en')
-                            ->label('Tiêu đề (H1) English')
-                            ->placeholder('All Products')
+                            ->label(__('admin.shop_setting.fields.h1_en'))
+                            ->placeholder(__('admin.shop_setting.fields.h1_en_placeholder'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         Textarea::make('intro')
-                            ->label('Đoạn mô tả (P) Tiếng Việt')
-                            ->placeholder('Khám phá bộ sưu tập linen tối giản, bền vững...')
+                            ->label(__('admin.shop_setting.fields.intro_vi'))
+                            ->placeholder(__('admin.shop_setting.fields.intro_vi_placeholder'))
                             ->rows(3)
                             ->maxLength(500)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         Textarea::make('intro_en')
-                            ->label('Đoạn mô tả (P) English')
-                            ->placeholder('Explore our minimalist, sustainable linen collection...')
+                            ->label(__('admin.shop_setting.fields.intro_en'))
+                            ->placeholder(__('admin.shop_setting.fields.intro_en_placeholder'))
                             ->rows(3)
                             ->maxLength(500)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         FileUpload::make('hero_image')
-                            ->label('Ảnh Hero')
+                            ->label(__('admin.shop_setting.fields.hero_image'))
                             ->image()
                             ->disk('public')
                             ->directory('shop/hero')
                             ->imagePreviewHeight('200')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                            ->helperText('Hiển thị cột trái banner. Khuyến nghị 800×600px, WebP. Bỏ trống thì banner chỉ có chữ.')
+                            ->helperText(__('admin.shop_setting.fields.hero_image_help'))
                             ->columnSpanFull(),
 
                         TextInput::make('hero_alt')
-                            ->label('Alt ảnh Tiếng Việt')
-                            ->placeholder('Mô tả nội dung ảnh — bỏ trống sẽ dùng H1')
+                            ->label(__('admin.shop_setting.fields.hero_alt_vi'))
+                            ->placeholder(__('admin.shop_setting.fields.hero_alt_vi_placeholder'))
                             ->maxLength(160)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('hero_alt_en')
-                            ->label('Alt ảnh English')
-                            ->placeholder('Describe what the image shows')
+                            ->label(__('admin.shop_setting.fields.hero_alt_en'))
+                            ->placeholder(__('admin.shop_setting.fields.hero_alt_en_placeholder'))
                             ->maxLength(160)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
                     ])
                     ->columns(2),
 
-                Section::make('SEO / Tab Title')
+                Section::make(__('admin.shop_setting.sections.seo_tab_title'))
                     ->icon('heroicon-o-magnifying-glass')
-                    ->description('Thẻ <title> (tiêu đề tab cạnh favicon) và meta description của trang danh sách sản phẩm. Hậu tố " - CacyLinen" tự thêm, đừng gõ vào.')
+                    ->description(__('admin.shop_setting.sections.seo_tab_title_desc'))
                     ->schema([
                         TextInput::make('meta_title')
-                            ->label('Tab Title Tiếng Việt')
-                            ->placeholder('Tất cả sản phẩm')
+                            ->label(__('admin.shop_setting.fields.meta_title_vi'))
+                            ->placeholder(__('admin.shop_setting.fields.meta_title_vi_placeholder'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('meta_title_en')
-                            ->label('Tab Title English')
-                            ->placeholder('All Products')
+                            ->label(__('admin.shop_setting.fields.meta_title_en'))
+                            ->placeholder(__('admin.shop_setting.fields.meta_title_en_placeholder'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         Textarea::make('meta_description')
-                            ->label('Meta Description Tiếng Việt')
-                            ->placeholder('Khám phá toàn bộ bộ sưu tập thời trang linen tối giản, bền vững của CacyLinen.')
+                            ->label(__('admin.shop_setting.fields.meta_description_vi'))
+                            ->placeholder(__('admin.shop_setting.fields.meta_description_vi_placeholder'))
                             ->rows(2)
                             ->maxLength(300)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         Textarea::make('meta_description_en')
-                            ->label('Meta Description English')
-                            ->placeholder('Browse the full CacyLinen collection of minimalist, sustainable linen fashion.')
+                            ->label(__('admin.shop_setting.fields.meta_description_en'))
+                            ->placeholder(__('admin.shop_setting.fields.meta_description_en_placeholder'))
                             ->rows(2)
                             ->maxLength(300)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
@@ -158,7 +158,7 @@ class ShopSetting extends Page
     {
         return [
             Action::make('save')
-                ->label('Lưu cài đặt')
+                ->label(__('admin.shop_setting.actions.save'))
                 ->icon('heroicon-o-check')
                 ->action('save'),
         ];
@@ -191,7 +191,7 @@ class ShopSetting extends Page
         $profile->saveQuietly();
 
         Notification::make()
-            ->title('Đã lưu cài đặt shop page')
+            ->title(__('admin.shop_setting.notifications.saved'))
             ->success()
             ->send();
     }

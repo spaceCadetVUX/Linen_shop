@@ -63,76 +63,76 @@ class LandingSetup extends Page
         return $schema
             ->schema([
 
-                Section::make('Hero Banner')
+                Section::make(__('admin.landing_setup.sections.hero_banner'))
                     ->icon('heroicon-o-star')
-                    ->description('Phần đầu trang — hiển thị ngay khi vào homepage.')
+                    ->description(__('admin.landing_setup.sections.hero_banner_desc'))
                     ->schema([
                         TextInput::make('hero_eyebrow')
-                            ->label('Eyebrow Tiếng Việt')
-                            ->placeholder('Mới ra mắt')
+                            ->label(__('admin.landing_setup.fields.eyebrow_vi'))
+                            ->placeholder(__('admin.landing_setup.fields.eyebrow_vi_placeholder'))
                             ->maxLength(60)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('hero_eyebrow_en')
-                            ->label('Eyebrow English')
-                            ->placeholder('New Arrivals')
+                            ->label(__('admin.landing_setup.fields.eyebrow_en'))
+                            ->placeholder(__('admin.landing_setup.fields.eyebrow_en_placeholder'))
                             ->maxLength(60)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('hero_headline')
-                            ->label('Tiêu đề chính (h1) Tiếng Việt')
+                            ->label(__('admin.landing_setup.fields.headline_vi'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('hero_headline_en')
-                            ->label('Tiêu đề chính (h1) English')
+                            ->label(__('admin.landing_setup.fields.headline_en'))
                             ->maxLength(120)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
-                        Fieldset::make('Link trái')
+                        Fieldset::make(__('admin.landing_setup.fieldsets.cta1'))
                             ->schema([
                                 TextInput::make('hero_cta_label')
-                                    ->label('Text Tiếng Việt')
-                                    ->placeholder('Khám phá lookbook')
+                                    ->label(__('admin.landing_setup.fields.cta_text_vi'))
+                                    ->placeholder(__('admin.landing_setup.fields.cta1_text_vi_placeholder'))
                                     ->maxLength(50)
                                     ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                     ->columnSpan(1),
                                 TextInput::make('hero_cta_label_en')
-                                    ->label('Text English')
-                                    ->placeholder('Explore lookbook')
+                                    ->label(__('admin.landing_setup.fields.cta_text_en'))
+                                    ->placeholder(__('admin.landing_setup.fields.cta1_text_en_placeholder'))
                                     ->maxLength(50)
                                     ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                     ->columnSpan(1),
                                 TextInput::make('hero_cta_url')
-                                    ->label('URL đích')
-                                    ->placeholder('/collections/lookbook')
+                                    ->label(__('admin.landing_setup.fields.cta_url'))
+                                    ->placeholder(__('admin.landing_setup.fields.cta1_url_placeholder'))
                                     ->maxLength(200)
                                     ->columnSpanFull(),
                             ])
                             ->columns(2)
                             ->columnSpanFull(),
 
-                        Fieldset::make('Link phải')
+                        Fieldset::make(__('admin.landing_setup.fieldsets.cta2'))
                             ->schema([
                                 TextInput::make('hero_cta2_label')
-                                    ->label('Text Tiếng Việt')
-                                    ->placeholder('Khám phá thêm')
+                                    ->label(__('admin.landing_setup.fields.cta_text_vi'))
+                                    ->placeholder(__('admin.landing_setup.fields.cta2_text_vi_placeholder'))
                                     ->maxLength(50)
                                     ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                                     ->columnSpan(1),
                                 TextInput::make('hero_cta2_label_en')
-                                    ->label('Text English')
-                                    ->placeholder('Discover more')
+                                    ->label(__('admin.landing_setup.fields.cta_text_en'))
+                                    ->placeholder(__('admin.landing_setup.fields.cta2_text_en_placeholder'))
                                     ->maxLength(50)
                                     ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                                     ->columnSpan(1),
                                 TextInput::make('hero_cta2_url')
-                                    ->label('URL đích')
-                                    ->placeholder('/collections/new')
+                                    ->label(__('admin.landing_setup.fields.cta_url'))
+                                    ->placeholder(__('admin.landing_setup.fields.cta2_url_placeholder'))
                                     ->maxLength(200)
                                     ->columnSpanFull(),
                             ])
@@ -140,47 +140,47 @@ class LandingSetup extends Page
                             ->columnSpanFull(),
 
                         FileUpload::make('hero_image')
-                            ->label('Ảnh nền Hero')
+                            ->label(__('admin.landing_setup.fields.hero_image'))
                             ->image()
                             ->disk('public')
                             ->directory('landing/hero')
                             ->imagePreviewHeight('200')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                            ->helperText('Khuyến nghị 1920×800px, WebP.')
+                            ->helperText(__('admin.landing_setup.fields.hero_image_help'))
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
 
-                Section::make('Sản phẩm nổi bật')
+                Section::make(__('admin.landing_setup.sections.featured'))
                     ->icon('heroicon-o-sparkles')
-                    ->description('Section giới thiệu sản phẩm nổi bật trên homepage.')
+                    ->description(__('admin.landing_setup.sections.featured_desc'))
                     ->schema([
                         Toggle::make('featured_enabled')
-                            ->label('Hiển thị section')
+                            ->label(__('admin.landing_setup.fields.show_section'))
                             ->columnSpanFull(),
 
                         TextInput::make('featured_title')
-                            ->label('Tiêu đề section Tiếng Việt')
-                            ->placeholder('Sản phẩm nổi bật')
+                            ->label(__('admin.landing_setup.fields.featured_title_vi'))
+                            ->placeholder(__('admin.landing_setup.fields.featured_title_vi_placeholder'))
                             ->maxLength(80)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('featured_title_en')
-                            ->label('Tiêu đề section English')
-                            ->placeholder('Featured products')
+                            ->label(__('admin.landing_setup.fields.featured_title_en'))
+                            ->placeholder(__('admin.landing_setup.fields.featured_title_en_placeholder'))
                             ->maxLength(80)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
                     ])
                     ->columns(2),
 
-                Section::make('Editorial Grid')
+                Section::make(__('admin.landing_setup.sections.editorial_grid'))
                     ->icon('heroicon-o-squares-2x2')
-                    ->description('3 ô ảnh danh mục nằm dưới hero banner — ảnh, tên, thứ tự lấy trực tiếp từ Category management.')
+                    ->description(__('admin.landing_setup.sections.editorial_grid_desc'))
                     ->schema([
                         Select::make('editorial_scope')
-                            ->label('Danh mục hiển thị')
+                            ->label(__('admin.landing_setup.fields.editorial_scope'))
                             ->options(HomeEditorialScope::options())
                             ->default(HomeEditorialScope::Parents->value)
                             ->native(false)
@@ -188,22 +188,22 @@ class LandingSetup extends Page
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Newsletter')
+                Section::make(__('admin.landing_setup.sections.newsletter'))
                     ->icon('heroicon-o-envelope')
-                    ->description('Form đăng ký nhận email newsletter.')
+                    ->description(__('admin.landing_setup.sections.newsletter_desc'))
                     ->schema([
                         Toggle::make('newsletter_enabled')
-                            ->label('Hiển thị section')
+                            ->label(__('admin.landing_setup.fields.show_section'))
                             ->columnSpanFull(),
 
                         TextInput::make('newsletter_heading')
-                            ->label('Tiêu đề')
-                            ->placeholder('Nhận ưu đãi mỗi tuần')
+                            ->label(__('admin.landing_setup.fields.newsletter_heading'))
+                            ->placeholder(__('admin.landing_setup.fields.newsletter_heading_placeholder'))
                             ->maxLength(80)
                             ->columnSpan(1),
 
                         TextInput::make('newsletter_body')
-                            ->label('Mô tả ngắn')
+                            ->label(__('admin.landing_setup.fields.newsletter_body'))
                             ->maxLength(160)
                             ->columnSpan(1),
                     ])
@@ -217,7 +217,7 @@ class LandingSetup extends Page
     {
         return [
             Action::make('save')
-                ->label('Lưu cài đặt')
+                ->label(__('admin.landing_setup.actions.save'))
                 ->icon('heroicon-o-check')
                 ->action('save'),
         ];
@@ -257,7 +257,7 @@ class LandingSetup extends Page
         $profile->saveQuietly();
 
         Notification::make()
-            ->title('Đã lưu cài đặt landing page')
+            ->title(__('admin.landing_setup.notifications.saved'))
             ->success()
             ->send();
     }

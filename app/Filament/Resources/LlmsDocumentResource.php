@@ -41,17 +41,17 @@ class LlmsDocumentResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Document Details')
+            Section::make(__('admin.llms_document.sections.document_details'))
                 ->schema([
                     TextEntry::make('name')
-                        ->label('Name'),
+                        ->label(__('admin.llms_document.fields.name')),
 
                     TextEntry::make('slug')
-                        ->label('Slug')
+                        ->label(__('admin.llms_document.fields.slug'))
                         ->copyable(),
 
                     TextEntry::make('scope')
-                        ->label('Scope')
+                        ->label(__('admin.llms_document.fields.scope'))
                         ->badge()
                         ->formatStateUsing(fn (LlmsScope $state): string => ucfirst($state->value))
                         ->color(fn (LlmsScope $state): string => match ($state) {
@@ -60,32 +60,32 @@ class LlmsDocumentResource extends Resource
                         }),
 
                     TextEntry::make('model_type')
-                        ->label('Model Type')
-                        ->placeholder('—'),
+                        ->label(__('admin.llms_document.fields.model_type'))
+                        ->placeholder(__('admin.llms_document.fields.dash_placeholder')),
 
                     TextEntry::make('title')
-                        ->label('Title')
-                        ->placeholder('—'),
+                        ->label(__('admin.llms_document.fields.title'))
+                        ->placeholder(__('admin.llms_document.fields.dash_placeholder')),
 
                     IconEntry::make('is_active')
-                        ->label('Active')
+                        ->label(__('admin.llms_document.fields.active'))
                         ->boolean()
                         ->trueColor('success')
                         ->falseColor('danger'),
 
                     TextEntry::make('description')
-                        ->label('Description')
-                        ->placeholder('—')
+                        ->label(__('admin.llms_document.fields.description'))
+                        ->placeholder(__('admin.llms_document.fields.dash_placeholder'))
                         ->columnSpanFull(),
 
                     TextEntry::make('entry_count')
-                        ->label('Entries')
+                        ->label(__('admin.llms_document.fields.entries'))
                         ->numeric(),
 
                     TextEntry::make('last_generated_at')
-                        ->label('Last Generated')
+                        ->label(__('admin.llms_document.fields.last_generated'))
                         ->dateTime()
-                        ->placeholder('Never'),
+                        ->placeholder(__('admin.llms_document.fields.never_placeholder')),
                 ])
                 ->columns(3),
         ]);
@@ -106,18 +106,18 @@ class LlmsDocumentResource extends Resource
             ->defaultSort('name')
             ->columns([
                 TextColumn::make('name')
-                    ->label('Name')
+                    ->label(__('admin.llms_document.fields.name'))
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('slug')
-                    ->label('Slug')
+                    ->label(__('admin.llms_document.fields.slug'))
                     ->copyable()
                     ->copyMessage('Slug copied')
                     ->color('gray'),
 
                 TextColumn::make('scope')
-                    ->label('Scope')
+                    ->label(__('admin.llms_document.fields.scope'))
                     ->badge()
                     ->formatStateUsing(fn (LlmsScope $state): string => ucfirst($state->value))
                     ->color(fn (LlmsScope $state): string => match ($state) {
@@ -126,31 +126,31 @@ class LlmsDocumentResource extends Resource
                     }),
 
                 TextColumn::make('model_type')
-                    ->label('Model Type')
-                    ->placeholder('—')
+                    ->label(__('admin.llms_document.fields.model_type'))
+                    ->placeholder(__('admin.llms_document.fields.dash_placeholder'))
                     ->color('gray'),
 
                 TextColumn::make('entry_count')
-                    ->label('Entries')
+                    ->label(__('admin.llms_document.fields.entries'))
                     ->numeric()
                     ->sortable()
                     ->alignCenter(),
 
                 TextColumn::make('last_generated_at')
-                    ->label('Last Generated')
+                    ->label(__('admin.llms_document.fields.last_generated'))
                     ->dateTime()
                     ->sortable()
-                    ->placeholder('Never'),
+                    ->placeholder(__('admin.llms_document.fields.never_placeholder')),
 
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('admin.llms_document.fields.active'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('danger'),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.llms_document.fields.active')),
 
                 Tables\Filters\SelectFilter::make('scope')
                     ->options([
@@ -162,23 +162,25 @@ class LlmsDocumentResource extends Resource
                 ViewAction::make(),
 
                 Action::make('regenerate')
-                    ->label('Regenerate')
+                    ->label(__('admin.llms_document.actions.regenerate'))
                     ->icon('heroicon-o-arrow-path')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Regenerate LLMs Document')
-                    ->modalDescription('This will regenerate the .txt file for this document.')
+                    ->modalHeading(__('admin.llms_document.actions.regenerate_modal_heading'))
+                    ->modalDescription(__('admin.llms_document.actions.regenerate_modal_description'))
                     ->action(function (LlmsDocument $record, LlmsGeneratorService $service): void {
                         $service->generateDocument($record);
 
                         Notification::make()
-                            ->title('LLMs document regenerated: ' . $record->slug . '.txt')
+                            ->title(__('admin.llms_document.notifications.regenerated', ['file' => $record->slug . '.txt']))
                             ->success()
                             ->send();
                     }),
 
                 Action::make('toggleActive')
-                    ->label(fn (LlmsDocument $record): string => $record->is_active ? 'Deactivate' : 'Activate')
+                    ->label(fn (LlmsDocument $record): string => $record->is_active
+                        ? __('admin.llms_document.actions.deactivate')
+                        : __('admin.llms_document.actions.activate'))
                     ->icon(fn (LlmsDocument $record): string => $record->is_active ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
                     ->color(fn (LlmsDocument $record): string => $record->is_active ? 'warning' : 'success')
                     ->requiresConfirmation()

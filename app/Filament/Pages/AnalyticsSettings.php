@@ -59,58 +59,58 @@ class AnalyticsSettings extends Page
         return $schema
             ->schema([
 
-                Section::make('Default OG Image')
+                Section::make(__('admin.analytics_settings.sections.og_image'))
                     ->icon('heroicon-o-photo')
-                    ->description('Ảnh mặc định khi share trang web lên Facebook, Zalo, Telegram... Khuyến nghị 1200×630px, ≤1MB.')
+                    ->description(__('admin.analytics_settings.sections.og_image_desc'))
                     ->schema([
                         FileUpload::make('default_og_image')
-                            ->label('OG Image')
+                            ->label(__('admin.analytics_settings.fields.og_image'))
                             ->image()
                             ->disk('public')
                             ->directory('og')
                             ->imagePreviewHeight('180')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                             ->maxSize(2048)
-                            ->helperText('Định dạng: JPG, PNG, WebP. Kích thước tối đa 2MB. Tỉ lệ lý tưởng 1.91:1 (1200×630px).')
+                            ->helperText(__('admin.analytics_settings.fields.og_image_help'))
                             ->columnSpanFull(),
                     ]),
 
-                Section::make('Google Analytics 4')
+                Section::make(__('admin.analytics_settings.sections.ga4'))
                     ->icon('heroicon-o-chart-bar')
-                    ->description('Measurement ID từ GA4 Property → Data Streams.')
+                    ->description(__('admin.analytics_settings.sections.ga4_desc'))
                     ->schema([
                         TextInput::make('ga4_id')
-                            ->label('Measurement ID')
-                            ->placeholder('G-XXXXXXXXXX')
-                            ->helperText('Tìm tại GA4 → Admin → Data Streams → chọn stream → Measurement ID.')
+                            ->label(__('admin.analytics_settings.fields.ga4_id'))
+                            ->placeholder(__('admin.analytics_settings.fields.ga4_id_placeholder'))
+                            ->helperText(__('admin.analytics_settings.fields.ga4_id_help'))
                             ->columnSpan(1),
 
                         TextInput::make('gtm_id')
-                            ->label('GTM Container ID (optional)')
-                            ->placeholder('GTM-XXXXXXX')
-                            ->helperText('Nếu dùng Google Tag Manager thay vì nhúng GA4 trực tiếp.')
+                            ->label(__('admin.analytics_settings.fields.gtm_id'))
+                            ->placeholder(__('admin.analytics_settings.fields.gtm_id_placeholder'))
+                            ->helperText(__('admin.analytics_settings.fields.gtm_id_help'))
                             ->columnSpan(1),
 
                         Toggle::make('ga4_active')
-                            ->label('Enable GA4 tracking')
-                            ->helperText('Tắt để disable script trên frontend mà không cần xoá ID.')
+                            ->label(__('admin.analytics_settings.fields.ga4_active'))
+                            ->helperText(__('admin.analytics_settings.fields.ga4_active_help'))
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
 
-                Section::make('Google Search Console')
+                Section::make(__('admin.analytics_settings.sections.gsc'))
                     ->icon('heroicon-o-magnifying-glass')
-                    ->description('Xác minh quyền sở hữu website với Google Search Console.')
+                    ->description(__('admin.analytics_settings.sections.gsc_desc'))
                     ->schema([
                         TextInput::make('gsc_meta')
-                            ->label('Verification Meta Content')
-                            ->placeholder('abc123xyz...')
-                            ->helperText('Chỉ lấy phần content="..." trong thẻ meta. Tìm tại GSC → Settings → Ownership verification → HTML tag.')
+                            ->label(__('admin.analytics_settings.fields.gsc_meta'))
+                            ->placeholder(__('admin.analytics_settings.fields.gsc_meta_placeholder'))
+                            ->helperText(__('admin.analytics_settings.fields.gsc_meta_help'))
                             ->live(debounce: 400)
                             ->columnSpanFull(),
 
                         Placeholder::make('gsc_preview')
-                            ->label('Thẻ sẽ inject vào <head>')
+                            ->label(__('admin.analytics_settings.fields.gsc_preview_label'))
                             ->content(function (): HtmlString {
                                 $val = $this->data['gsc_meta'] ?? null;
 
@@ -135,7 +135,7 @@ class AnalyticsSettings extends Page
     {
         return [
             Action::make('save')
-                ->label('Lưu cài đặt')
+                ->label(__('admin.analytics_settings.actions.save'))
                 ->icon('heroicon-o-check')
                 ->action('save'),
         ];
@@ -158,7 +158,7 @@ class AnalyticsSettings extends Page
         $profile->saveQuietly();
 
         Notification::make()
-            ->title('Đã lưu settings')
+            ->title(__('admin.analytics_settings.notifications.saved'))
             ->success()
             ->send();
     }

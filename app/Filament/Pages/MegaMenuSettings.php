@@ -47,52 +47,52 @@ class MegaMenuSettings extends Page
     {
         return $schema
             ->schema([
-                Section::make('Mega Menu')
+                Section::make(__('admin.mega_menu_settings.sections.mega_menu'))
                     ->icon('heroicon-o-bars-3-bottom-left')
-                    ->description('Cấu hình menu điều hướng chính (header). Cấu trúc dữ liệu (danh mục, cột, link) sẽ được bổ sung sau.')
+                    ->description(__('admin.mega_menu_settings.sections.mega_menu_desc'))
                     ->schema([
                         Toggle::make('enabled')
-                            ->label('Bật Mega Menu')
-                            ->helperText('Tắt để dùng menu mặc định thay vì mega menu.')
+                            ->label(__('admin.mega_menu_settings.fields.enabled'))
+                            ->helperText(__('admin.mega_menu_settings.fields.enabled_help'))
                             ->columnSpanFull(),
 
                         TextInput::make('collection_label')
-                            ->label('Nhãn "Bộ sưu tập" Tiếng Việt')
-                            ->placeholder('Bộ sưu tập')
+                            ->label(__('admin.mega_menu_settings.fields.collection_label_vi'))
+                            ->placeholder(__('admin.mega_menu_settings.fields.collection_label_vi_placeholder'))
                             ->maxLength(60)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('collection_label_en')
-                            ->label('Nhãn "Bộ sưu tập" English')
-                            ->placeholder('Collections')
+                            ->label(__('admin.mega_menu_settings.fields.collection_label_en'))
+                            ->placeholder(__('admin.mega_menu_settings.fields.collection_label_en_placeholder'))
                             ->maxLength(60)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
                     ])
                     ->columns(2),
 
-                Section::make('Cột 1 — Sản phẩm mới')
+                Section::make(__('admin.mega_menu_settings.sections.new_products_column'))
                     ->icon('heroicon-o-sparkles')
-                    ->description('Tiêu đề + danh sách sản phẩm hiển thị ở cột đầu mega menu.')
+                    ->description(__('admin.mega_menu_settings.sections.new_products_column_desc'))
                     ->schema([
                         TextInput::make('new_products_label')
-                            ->label('Tiêu đề Tiếng Việt')
-                            ->placeholder('Sản phẩm mới')
+                            ->label(__('admin.mega_menu_settings.fields.new_products_label_vi'))
+                            ->placeholder(__('admin.mega_menu_settings.fields.new_products_label_vi_placeholder'))
                             ->maxLength(60)
                             ->extraFieldWrapperAttributes(['style' => 'background:#f0fdf4;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         TextInput::make('new_products_label_en')
-                            ->label('Tiêu đề English')
-                            ->placeholder('New Arrivals')
+                            ->label(__('admin.mega_menu_settings.fields.new_products_label_en'))
+                            ->placeholder(__('admin.mega_menu_settings.fields.new_products_label_en_placeholder'))
                             ->maxLength(60)
                             ->extraFieldWrapperAttributes(['style' => 'background:#eff6ff;padding:10px 12px;border-radius:8px;'])
                             ->columnSpan(1),
 
                         Select::make('new_products_ids')
-                            ->label('Sản phẩm hiển thị')
-                            ->helperText('Tìm và chọn sản phẩm — kéo để đổi thứ tự trong ô. Để trống → tự động lấy 4 sản phẩm mới nhất.')
+                            ->label(__('admin.mega_menu_settings.fields.new_products_ids'))
+                            ->helperText(__('admin.mega_menu_settings.fields.new_products_ids_help'))
                             ->multiple()
                             ->searchable()
                             ->reorderable()
@@ -118,7 +118,7 @@ class MegaMenuSettings extends Page
     {
         return [
             Action::make('save')
-                ->label('Lưu cài đặt')
+                ->label(__('admin.mega_menu_settings.actions.save'))
                 ->icon('heroicon-o-check')
                 ->action('save'),
         ];
@@ -146,7 +146,7 @@ class MegaMenuSettings extends Page
         app(ProductService::class)->bustLatestMegaCache();
 
         Notification::make()
-            ->title('Đã lưu cài đặt Mega Menu')
+            ->title(__('admin.mega_menu_settings.notifications.saved'))
             ->success()
             ->send();
     }

@@ -42,7 +42,7 @@ class ReviewResource extends Resource
     {
         return $schema->schema([
             Forms\Components\Select::make('product_id')
-                ->label('Product')
+                ->label(__('admin.review.fields.product'))
                 ->relationship('product', 'name')
                 ->searchable()
                 ->preload()
@@ -54,13 +54,13 @@ class ReviewResource extends Resource
                 ->maxLength(100),
 
             Forms\Components\TextInput::make('email')
-                ->label('Email')
+                ->label(__('admin.review.fields.email'))
                 ->email()
                 ->maxLength(255)
-                ->helperText('Chỉ admin thấy — dùng để liên hệ lại khách khi cần, không hiện công khai.'),
+                ->helperText(__('admin.review.fields.email_help')),
 
             Forms\Components\Select::make('rating')
-                ->label('Rating')
+                ->label(__('admin.review.fields.rating'))
                 ->options([
                     1 => '⭐ 1 — Very Bad',
                     2 => '⭐⭐ 2 — Bad',
@@ -72,19 +72,19 @@ class ReviewResource extends Resource
                 ->native(false),
 
             Forms\Components\TextInput::make('title')
-                ->label('Review Title')
+                ->label(__('admin.review.fields.review_title'))
                 ->maxLength(255)
                 ->columnSpanFull(),
 
             Forms\Components\Textarea::make('content')
-                ->label('Content')
+                ->label(__('admin.review.fields.content'))
                 ->rows(5)
                 ->required()
                 ->columnSpanFull(),
 
             Forms\Components\Toggle::make('is_approved')
-                ->label('Approved')
-                ->helperText('Only approved reviews are shown publicly and counted in AggregateRating schema.')
+                ->label(__('admin.review.fields.approved'))
+                ->helperText(__('admin.review.fields.approved_help'))
                 ->default(false),
         ])->columns(2);
     }
@@ -95,7 +95,7 @@ class ReviewResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('product.name')
-                    ->label('Product')
+                    ->label(__('admin.review.fields.product'))
                     ->searchable()
                     ->sortable()
                     ->limit(30),
@@ -108,7 +108,7 @@ class ReviewResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('title')
-                    ->placeholder('—')
+                    ->placeholder(__('admin.review.fields.dash_placeholder'))
                     ->limit(40),
 
                 Tables\Columns\TextColumn::make('content')
@@ -116,7 +116,7 @@ class ReviewResource extends Resource
                     ->wrap(),
 
                 Tables\Columns\IconColumn::make('is_approved')
-                    ->label('Approved')
+                    ->label(__('admin.review.fields.approved'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('warning'),
@@ -127,10 +127,10 @@ class ReviewResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_approved')
-                    ->label('Approved')
-                    ->trueLabel('Approved only')
-                    ->falseLabel('Pending only')
-                    ->placeholder('All'),
+                    ->label(__('admin.review.fields.approved'))
+                    ->trueLabel(__('admin.review.fields.approved_only'))
+                    ->falseLabel(__('admin.review.fields.pending_only'))
+                    ->placeholder(__('admin.review.fields.all')),
 
                 Tables\Filters\SelectFilter::make('rating')
                     ->options([
@@ -143,7 +143,7 @@ class ReviewResource extends Resource
             ])
             ->actions([
                 Action::make('approve')
-                    ->label('Approve')
+                    ->label(__('admin.review.actions.approve'))
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->visible(fn (Review $record): bool => ! $record->is_approved)
@@ -152,13 +152,13 @@ class ReviewResource extends Resource
                         $record->update(['is_approved' => true]);
 
                         Notification::make()
-                            ->title('Review approved')
+                            ->title(__('admin.review.notifications.approved'))
                             ->success()
                             ->send();
                     }),
 
                 Action::make('reject')
-                    ->label('Reject')
+                    ->label(__('admin.review.actions.reject'))
                     ->icon('heroicon-o-x-circle')
                     ->color('warning')
                     ->visible(fn (Review $record): bool => $record->is_approved)
@@ -167,7 +167,7 @@ class ReviewResource extends Resource
                         $record->update(['is_approved' => false]);
 
                         Notification::make()
-                            ->title('Review rejected')
+                            ->title(__('admin.review.notifications.rejected'))
                             ->warning()
                             ->send();
                     }),
@@ -178,7 +178,7 @@ class ReviewResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('approve_selected')
-                        ->label('Approve selected')
+                        ->label(__('admin.review.actions.approve_selected'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
@@ -192,9 +192,9 @@ class ReviewResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListReviews::route('/'),
+            'index' => Pages\ListReviews::route('/'),
             'create' => Pages\CreateReview::route('/create'),
-            'edit'   => Pages\EditReview::route('/{record}/edit'),
+            'edit' => Pages\EditReview::route('/{record}/edit'),
         ];
     }
 }

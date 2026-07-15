@@ -6,13 +6,21 @@ use App\Enums\BlogPostStatus;
 use App\Filament\Resources\BlogPostResource\Pages;
 use App\Forms\Components\MediaFileUpload;
 use App\Forms\Plugins\MediaRichEditorPlugin;
-use App\Models\Author;
 use App\Models\BlogPost;
+use App\Services\Seo\JsonldService;
+use App\Services\Seo\LlmsGeneratorService;
+use App\Support\LocaleUrl;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Components\Placeholder;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -20,11 +28,6 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
@@ -51,24 +54,24 @@ class BlogPostResource extends Resource
                 ->tabs([
 
                     // ── Tab 1: General ────────────────────────────────────────
-                    Tab::make('General')
+                    Tab::make(__('admin.blog_post.tabs.general'))
                         ->schema([
                             Forms\Components\Select::make('blog_category_id')
-                                ->label('Category')
+                                ->label(__('admin.blog_post.fields.category'))
                                 ->relationship('blogCategory', 'name')
                                 ->searchable()
                                 ->preload()
                                 ->required()
-                                ->helperText('Bắt buộc — URL bài viết công khai (/bai-viet/{category}/{slug}) phụ thuộc vào category. Bài không có category sẽ bị gãy link.'),
+                                ->helperText(__('admin.blog_post.fields.category_help')),
 
                             MediaFileUpload::make('featured_image')
-                                ->label('Featured Image')
+                                ->label(__('admin.blog_post.fields.featured_image'))
                                 ->image()
                                 ->nullable()
                                 ->columnSpanFull(),
 
                             Forms\Components\Select::make('tags')
-                                ->label('Tags')
+                                ->label(__('admin.blog_post.fields.tags'))
                                 ->relationship('tags', 'name')
                                 ->multiple()
                                 ->searchable()
@@ -77,8 +80,7 @@ class BlogPostResource extends Resource
                                     Forms\Components\TextInput::make('name')
                                         ->required()
                                         ->live(debounce: 500)
-                                        ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                                            $set('slug', Str::slug($state ?? ''))
+                                        ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                                         ),
                                     Forms\Components\TextInput::make('slug')
                                         ->required(),
@@ -88,58 +90,56 @@ class BlogPostResource extends Resource
                         ->columns(2),
 
                     // ── Tab 2: Content ────────────────────────────────────────
-                    Tab::make('Content')
+                    Tab::make(__('admin.blog_post.tabs.content'))
                         ->icon('heroicon-o-language')
                         ->schema([
                             Tabs::make('LocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt (vi)')
+                                    Tab::make(__('admin.blog_post.tabs.locale_vi_full'))
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.vi.title')
-                                                ->label('Tiêu đề (vi)')
+                                                ->label(__('admin.blog_post.fields.title_vi'))
                                                 ->required()
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) =>
-                                                    $set('translations.vi.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.vi.slug', Str::slug($state ?? '')))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
-                                                ->label('Slug (vi)')
-                                                ->helperText('Auto-generated from title. Must be unique per locale.')
+                                                ->label(__('admin.blog_post.fields.slug_vi'))
+                                                ->helperText(__('admin.blog_post.fields.slug_auto_help'))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.excerpt')
-                                                ->label('Tóm tắt (vi)')
+                                                ->label(__('admin.blog_post.fields.excerpt_vi'))
                                                 ->rows(3)
                                                 ->columnSpanFull(),
 
                                             Forms\Components\RichEditor::make('translations.vi.body')
-                                                ->label('Nội dung (vi)')
+                                                ->label(__('admin.blog_post.fields.body_vi'))
                                                 ->plugins([MediaRichEditorPlugin::make()])
                                                 ->columnSpanFull(),
                                         ]),
 
-                                    Tab::make('🇬🇧 English (en)')
+                                    Tab::make(__('admin.blog_post.tabs.locale_en_full'))
                                         ->schema([
                                             Forms\Components\TextInput::make('translations.en.title')
-                                                ->label('Title (en)')
+                                                ->label(__('admin.blog_post.fields.title_en'))
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) =>
-                                                    $set('translations.en.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
-                                                ->label('Slug (en)')
-                                                ->helperText('Auto-generated from title. Must be unique per locale.')
+                                                ->label(__('admin.blog_post.fields.slug_en'))
+                                                ->helperText(__('admin.blog_post.fields.slug_auto_help'))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.excerpt')
-                                                ->label('Excerpt (en)')
+                                                ->label(__('admin.blog_post.fields.excerpt_en'))
                                                 ->rows(3)
                                                 ->columnSpanFull(),
 
                                             Forms\Components\RichEditor::make('translations.en.body')
-                                                ->label('Body (en)')
+                                                ->label(__('admin.blog_post.fields.body_en'))
                                                 ->plugins([MediaRichEditorPlugin::make()])
                                                 ->columnSpanFull(),
                                         ]),
@@ -148,7 +148,7 @@ class BlogPostResource extends Resource
                         ]),
 
                     // ── Tab 3: Publishing ─────────────────────────────────────
-                    Tab::make('Publishing')
+                    Tab::make(__('admin.blog_post.tabs.publishing'))
                         ->schema([
                             Forms\Components\Select::make('status')
                                 ->options(collect(BlogPostStatus::cases())->mapWithKeys(
@@ -161,7 +161,7 @@ class BlogPostResource extends Resource
                                 ->nullable(),
 
                             Forms\Components\Select::make('author_id')
-                                ->label('Author')
+                                ->label(__('admin.blog_post.fields.author'))
                                 ->relationship('author', 'name')
                                 ->searchable()
                                 ->preload()
@@ -171,45 +171,44 @@ class BlogPostResource extends Resource
                                     Forms\Components\TextInput::make('name')
                                         ->required()
                                         ->live(debounce: 500)
-                                        ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                                            $set('slug', \Illuminate\Support\Str::slug($state ?? ''))
+                                        ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                                         ),
                                     Forms\Components\TextInput::make('slug')
                                         ->required(),
                                     Forms\Components\TextInput::make('title')
-                                        ->label('Job Title'),
+                                        ->label(__('admin.blog_post.fields.author_job_title')),
                                 ])
-                                ->placeholder('— Select or create author —'),
+                                ->placeholder(__('admin.blog_post.fields.author_placeholder')),
                         ])
                         ->columns(2),
 
                     // ── Tab 3: FAQ ────────────────────────────────────────────
-                    Tab::make('FAQ')
+                    Tab::make(__('admin.blog_post.tabs.faq'))
                         ->icon('heroicon-o-question-mark-circle')
                         ->schema([
-                            Forms\Components\Placeholder::make('faq_hint')
+                            Placeholder::make('faq_hint')
                                 ->label('')
                                 ->content(new HtmlString(
                                     '<p class="text-sm text-gray-500">'
-                                    . 'FAQ items are automatically injected into the <strong>FAQPage JSON-LD schema</strong> '
-                                    . 'and the <strong>LLMs document</strong> when the post is published.'
-                                    . '</p>'
+                                    .'FAQ items are automatically injected into the <strong>FAQPage JSON-LD schema</strong> '
+                                    .'and the <strong>LLMs document</strong> when the post is published.'
+                                    .'</p>'
                                 ))
                                 ->columnSpanFull(),
 
-                            Section::make('🇻🇳 Tiếng Việt')
+                            Section::make(__('admin.blog_post.tabs.locale_vi'))
                                 ->schema([
                                     Forms\Components\Repeater::make('faq_items_vi')
                                         ->label('')
                                         ->schema([
                                             Forms\Components\TextInput::make('question')
-                                                ->label('Câu hỏi')
+                                                ->label(__('admin.blog_post.fields.faq_question'))
                                                 ->required()
-                                                ->placeholder('VD: KNX là gì?')
+                                                ->placeholder(__('admin.blog_post.fields.faq_question_vi_placeholder'))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('answer')
-                                                ->label('Trả lời')
+                                                ->label(__('admin.blog_post.fields.faq_answer'))
                                                 ->required()
                                                 ->rows(3)
                                                 ->columnSpanFull(),
@@ -217,7 +216,7 @@ class BlogPostResource extends Resource
                                         ->afterStateHydrated(function (Forms\Components\Repeater $component, $record): void {
                                             $component->state($record?->faq_items_vi ?? []);
                                         })
-                                        ->addActionLabel('Thêm câu hỏi')
+                                        ->addActionLabel(__('admin.blog_post.actions.add_faq'))
                                         ->reorderable()
                                         ->collapsible()
                                         ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -226,19 +225,19 @@ class BlogPostResource extends Resource
                                 ])
                                 ->columnSpanFull(),
 
-                            Section::make('🇬🇧 English')
+                            Section::make(__('admin.blog_post.tabs.locale_en'))
                                 ->schema([
                                     Forms\Components\Repeater::make('faq_items_en')
                                         ->label('')
                                         ->schema([
                                             Forms\Components\TextInput::make('question')
-                                                ->label('Question')
+                                                ->label(__('admin.blog_post.fields.faq_question'))
                                                 ->required()
-                                                ->placeholder('e.g. What is KNX?')
+                                                ->placeholder(__('admin.blog_post.fields.faq_question_en_placeholder'))
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('answer')
-                                                ->label('Answer')
+                                                ->label(__('admin.blog_post.fields.faq_answer'))
                                                 ->required()
                                                 ->rows(3)
                                                 ->columnSpanFull(),
@@ -246,7 +245,7 @@ class BlogPostResource extends Resource
                                         ->afterStateHydrated(function (Forms\Components\Repeater $component, $record): void {
                                             $component->state($record?->faq_items_en ?? []);
                                         })
-                                        ->addActionLabel('Add question')
+                                        ->addActionLabel(__('admin.blog_post.actions.add_faq'))
                                         ->reorderable()
                                         ->collapsible()
                                         ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -257,23 +256,23 @@ class BlogPostResource extends Resource
                         ]),
 
                     // ── Tab 3b: GEO / AI ──────────────────────────────────────
-                    Tab::make('GEO / AI')
+                    Tab::make(__('admin.blog_post.tabs.geo_ai'))
                         ->icon('heroicon-o-cpu-chip')
                         ->schema([
-                            Forms\Components\Placeholder::make('geo_hint')
+                            Placeholder::make('geo_hint')
                                 ->label('')
                                 ->content(new HtmlString(
                                     '<p class="text-sm text-gray-500">'
-                                    . 'AI Summary is rendered <strong>answer-first</strong> on the public post page '
-                                    . '(right under the title) and read by AI Overviews / ChatGPT / Perplexity crawlers. '
-                                    . 'Key Facts render as a quick-facts list under it. Both also feed the LLMs document.'
-                                    . '</p>'
+                                    .'AI Summary is rendered <strong>answer-first</strong> on the public post page '
+                                    .'(right under the title) and read by AI Overviews / ChatGPT / Perplexity crawlers. '
+                                    .'Key Facts render as a quick-facts list under it. Both also feed the LLMs document.'
+                                    .'</p>'
                                 ))
                                 ->columnSpanFull(),
 
                             Tabs::make('GeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.blog_post.tabs.locale_vi'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileVi')
@@ -281,42 +280,42 @@ class BlogPostResource extends Resource
                                                     Forms\Components\Hidden::make('locale')->default('vi'),
 
                                                     Forms\Components\Textarea::make('ai_summary')
-                                                        ->label('AI Summary (vi)')
-                                                        ->hint('Tóm tắt 2–4 câu — hiển thị answer-first trên trang bài viết')
+                                                        ->label(__('admin.blog_post.fields.ai_summary_vi'))
+                                                        ->hint(__('admin.blog_post.fields.ai_summary_hint'))
                                                         ->rows(4)
-                                                        ->placeholder('Mô tả ngắn gọn bài viết trả lời câu hỏi/chủ đề gì...')
+                                                        ->placeholder(__('admin.blog_post.fields.ai_summary_vi_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('use_cases')
-                                                        ->label('Use Cases (vi)')
-                                                        ->hint('AI dùng để trả lời "bài này phù hợp cho ai / dùng khi nào"')
+                                                        ->label(__('admin.blog_post.fields.use_cases_vi'))
+                                                        ->hint(__('admin.blog_post.fields.use_cases_hint'))
                                                         ->rows(3)
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('target_audience')
-                                                        ->label('Target Audience (vi)')
+                                                        ->label(__('admin.blog_post.fields.target_audience_vi'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('llm_context_hint')
-                                                        ->label('LLM Context Hint (vi)')
+                                                        ->label(__('admin.blog_post.fields.llm_context_hint_vi'))
                                                         ->rows(2)
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Repeater::make('key_facts')
-                                                        ->label('Key Facts (vi)')
-                                                        ->hint('Hiển thị dạng danh sách ngay dưới AI Summary')
+                                                        ->label(__('admin.blog_post.fields.key_facts_vi'))
+                                                        ->hint(__('admin.blog_post.fields.key_facts_hint'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('label')
-                                                                ->label('Nhãn')
+                                                                ->label(__('admin.blog_post.fields.key_fact_label'))
                                                                 ->required()
-                                                                ->placeholder('VD: Thời gian đọc'),
+                                                                ->placeholder(__('admin.blog_post.fields.key_fact_label_placeholder_vi')),
                                                             Forms\Components\TextInput::make('value')
-                                                                ->label('Giá trị')
+                                                                ->label(__('admin.blog_post.fields.key_fact_value'))
                                                                 ->required()
-                                                                ->placeholder('VD: 5 phút'),
+                                                                ->placeholder(__('admin.blog_post.fields.key_fact_value_placeholder_vi')),
                                                         ])
                                                         ->columns(2)
-                                                        ->addActionLabel('Thêm fact')
+                                                        ->addActionLabel(__('admin.blog_post.actions.add_key_fact'))
                                                         ->reorderable()
                                                         ->collapsible()
                                                         ->defaultItems(0)
@@ -324,7 +323,7 @@ class BlogPostResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.blog_post.tabs.locale_en'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileEn')
@@ -332,42 +331,42 @@ class BlogPostResource extends Resource
                                                     Forms\Components\Hidden::make('locale')->default('en'),
 
                                                     Forms\Components\Textarea::make('ai_summary')
-                                                        ->label('AI Summary (en)')
-                                                        ->hint('2–4 sentence summary — rendered answer-first on the post page')
+                                                        ->label(__('admin.blog_post.fields.ai_summary_en'))
+                                                        ->hint(__('admin.blog_post.fields.ai_summary_hint'))
                                                         ->rows(4)
-                                                        ->placeholder('Briefly describe what question/topic this post answers...')
+                                                        ->placeholder(__('admin.blog_post.fields.ai_summary_en_placeholder'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('use_cases')
-                                                        ->label('Use Cases (en)')
-                                                        ->hint('AI uses this to answer "who is this for / when to read it"')
+                                                        ->label(__('admin.blog_post.fields.use_cases_en'))
+                                                        ->hint(__('admin.blog_post.fields.use_cases_hint'))
                                                         ->rows(3)
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\TextInput::make('target_audience')
-                                                        ->label('Target Audience (en)')
+                                                        ->label(__('admin.blog_post.fields.target_audience_en'))
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Textarea::make('llm_context_hint')
-                                                        ->label('LLM Context Hint (en)')
+                                                        ->label(__('admin.blog_post.fields.llm_context_hint_en'))
                                                         ->rows(2)
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Repeater::make('key_facts')
-                                                        ->label('Key Facts (en)')
-                                                        ->hint('Rendered as a list right under the AI Summary')
+                                                        ->label(__('admin.blog_post.fields.key_facts_en'))
+                                                        ->hint(__('admin.blog_post.fields.key_facts_hint'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('label')
-                                                                ->label('Label')
+                                                                ->label(__('admin.blog_post.fields.key_fact_label'))
                                                                 ->required()
-                                                                ->placeholder('E.g. Reading time'),
+                                                                ->placeholder(__('admin.blog_post.fields.key_fact_label_placeholder_en')),
                                                             Forms\Components\TextInput::make('value')
-                                                                ->label('Value')
+                                                                ->label(__('admin.blog_post.fields.key_fact_value'))
                                                                 ->required()
-                                                                ->placeholder('E.g. 5 min'),
+                                                                ->placeholder(__('admin.blog_post.fields.key_fact_value_placeholder_en')),
                                                         ])
                                                         ->columns(2)
-                                                        ->addActionLabel('Add fact')
+                                                        ->addActionLabel(__('admin.blog_post.actions.add_key_fact'))
                                                         ->reorderable()
                                                         ->collapsible()
                                                         ->defaultItems(0)
@@ -379,20 +378,23 @@ class BlogPostResource extends Resource
                         ]),
 
                     // ── Tab 4: SEO ───────────────────────────────────────────
-                    Tab::make('SEO')
+                    Tab::make(__('admin.blog_post.tabs.seo'))
                         ->icon('heroicon-o-magnifying-glass')
                         ->schema([
                             Tabs::make('SeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.blog_post.tabs.locale_vi'))
                                         ->schema([
                                             Placeholder::make('canonical_url_auto_vi')
-                                                ->label('Canonical URL (auto-generated)')
+                                                ->label(__('admin.blog_post.fields.canonical_url_auto'))
                                                 ->content(function ($record): string {
                                                     $slug = $record?->translations()->where('locale', 'vi')->value('slug');
-                                                    if (! $slug) return '—';
+                                                    if (! $slug) {
+                                                        return '—';
+                                                    }
                                                     $record->loadMissing(['blogCategory.translations']);
-                                                    return \App\Support\LocaleUrl::forBlogPost($record, 'vi') ?: '—';
+
+                                                    return LocaleUrl::forBlogPost($record, 'vi') ?: '—';
                                                 }),
 
                                             Group::make()
@@ -401,38 +403,38 @@ class BlogPostResource extends Resource
                                                     fn (array $data) => ['locale' => 'vi', ...$data]
                                                 )
                                                 ->schema([
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.blog_post.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label('Meta Title (vi)')
-                                                                ->placeholder('Tự điền từ tiêu đề bài viết')
-                                                                ->helperText('Tối ưu: 50–60 ký tự. Google cắt bớt nếu quá dài.')
+                                                                ->label(__('admin.blog_post.fields.meta_title_vi'))
+                                                                ->placeholder(__('admin.blog_post.fields.meta_title_placeholder'))
+                                                                ->helperText(__('admin.blog_post.fields.meta_title_help'))
                                                                 ->live(debounce: 500)
-                                                                ->hint(fn ($state): string => mb_strlen($state ?? '') . '/60')
+                                                                ->hint(fn ($state): string => mb_strlen($state ?? '').'/60')
                                                                 ->hintColor(fn ($state): string => mb_strlen($state ?? '') > 60 ? 'warning' : 'success')
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label('Meta Description (vi)')
-                                                                ->placeholder('Mô tả ngắn hiển thị trên Google')
-                                                                ->helperText('Tối ưu: 120–155 ký tự. Google cắt bớt nếu quá dài.')
+                                                                ->label(__('admin.blog_post.fields.meta_description_vi'))
+                                                                ->placeholder(__('admin.blog_post.fields.meta_description_placeholder'))
+                                                                ->helperText(__('admin.blog_post.fields.meta_description_help'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 500)
-                                                                ->hint(fn ($state): string => mb_strlen($state ?? '') . '/155')
+                                                                ->hint(fn ($state): string => mb_strlen($state ?? '').'/155')
                                                                 ->hintColor(fn ($state): string => mb_strlen($state ?? '') > 155 ? 'warning' : 'success')
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label('Override canonical URL (chỉ điền nếu syndicated)')
+                                                                ->label(__('admin.blog_post.fields.canonical_url_override'))
                                                                 ->url()
-                                                                ->placeholder('Để trống → dùng URL auto ở trên')
+                                                                ->placeholder(__('admin.blog_post.fields.canonical_url_override_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label('Robots (vi)')
+                                                                ->label(__('admin.blog_post.fields.robots_vi'))
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow — Default',
-                                                                    'noindex,follow'   => 'noindex, follow — Exclude from index',
+                                                                    'index,follow' => 'index, follow — Default',
+                                                                    'noindex,follow' => 'noindex, follow — Exclude from index',
                                                                     'noindex,nofollow' => 'noindex, nofollow — Block completely',
                                                                 ])
                                                                 ->default('index,follow')
@@ -440,18 +442,18 @@ class BlogPostResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (vi)')
+                                                    Section::make(__('admin.blog_post.sections.og_vi'))
                                                         ->schema([
                                                             MediaFileUpload::make('og_image')
-                                                                ->label('OG Image (vi)')
-                                                                ->helperText('Facebook, Zalo. Recommended: 1200×630px.')
+                                                                ->label(__('admin.blog_post.fields.og_image_vi'))
+                                                                ->helperText(__('admin.blog_post.fields.og_image_help'))
                                                                 ->image()
                                                                 ->nullable()
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label('OG Title (vi)')
-                                                                ->placeholder('Tự điền từ Meta Title')
+                                                                ->label(__('admin.blog_post.fields.og_title_vi'))
+                                                                ->placeholder(__('admin.blog_post.fields.auto_from_meta_title'))
                                                                 ->afterStateHydrated(function (Forms\Components\TextInput $component, $state, $record): void {
                                                                     if (blank($state)) {
                                                                         $component->state($record?->meta_title);
@@ -460,7 +462,7 @@ class BlogPostResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label('OG Description (vi)')
+                                                                ->label(__('admin.blog_post.fields.og_description_vi'))
                                                                 ->rows(2)
                                                                 ->afterStateHydrated(function (Forms\Components\Textarea $component, $state, $record): void {
                                                                     if (blank($state)) {
@@ -475,15 +477,18 @@ class BlogPostResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.blog_post.tabs.locale_en'))
                                         ->schema([
                                             Placeholder::make('canonical_url_auto_en')
-                                                ->label('Canonical URL (auto-generated)')
+                                                ->label(__('admin.blog_post.fields.canonical_url_auto'))
                                                 ->content(function ($record): string {
                                                     $slug = $record?->translations()->where('locale', 'en')->value('slug');
-                                                    if (! $slug) return '—';
+                                                    if (! $slug) {
+                                                        return '—';
+                                                    }
                                                     $record->loadMissing(['blogCategory.translations']);
-                                                    return \App\Support\LocaleUrl::forBlogPost($record, 'en') ?: '—';
+
+                                                    return LocaleUrl::forBlogPost($record, 'en') ?: '—';
                                                 }),
 
                                             Group::make()
@@ -492,38 +497,38 @@ class BlogPostResource extends Resource
                                                     fn (array $data) => ['locale' => 'en', ...$data]
                                                 )
                                                 ->schema([
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.blog_post.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label('Meta Title (en)')
-                                                                ->placeholder('Auto-filled from post title')
-                                                                ->helperText('Optimal: 50–60 characters. Google truncates if too long.')
+                                                                ->label(__('admin.blog_post.fields.meta_title_en'))
+                                                                ->placeholder(__('admin.blog_post.fields.meta_title_placeholder'))
+                                                                ->helperText(__('admin.blog_post.fields.meta_title_help'))
                                                                 ->live(debounce: 500)
-                                                                ->hint(fn ($state): string => mb_strlen($state ?? '') . '/60')
+                                                                ->hint(fn ($state): string => mb_strlen($state ?? '').'/60')
                                                                 ->hintColor(fn ($state): string => mb_strlen($state ?? '') > 60 ? 'warning' : 'success')
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label('Meta Description (en)')
-                                                                ->placeholder('Short description shown in Google results')
-                                                                ->helperText('Optimal: 120–155 characters. Google truncates if too long.')
+                                                                ->label(__('admin.blog_post.fields.meta_description_en'))
+                                                                ->placeholder(__('admin.blog_post.fields.meta_description_placeholder'))
+                                                                ->helperText(__('admin.blog_post.fields.meta_description_help'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 500)
-                                                                ->hint(fn ($state): string => mb_strlen($state ?? '') . '/155')
+                                                                ->hint(fn ($state): string => mb_strlen($state ?? '').'/155')
                                                                 ->hintColor(fn ($state): string => mb_strlen($state ?? '') > 155 ? 'warning' : 'success')
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label('Override canonical URL (only if syndicated)')
+                                                                ->label(__('admin.blog_post.fields.canonical_url_override'))
                                                                 ->url()
-                                                                ->placeholder('Leave empty → uses auto URL above')
+                                                                ->placeholder(__('admin.blog_post.fields.canonical_url_override_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label('Robots (en)')
+                                                                ->label(__('admin.blog_post.fields.robots_en'))
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow — Default',
-                                                                    'noindex,follow'   => 'noindex, follow — Exclude from index',
+                                                                    'index,follow' => 'index, follow — Default',
+                                                                    'noindex,follow' => 'noindex, follow — Exclude from index',
                                                                     'noindex,nofollow' => 'noindex, nofollow — Block completely',
                                                                 ])
                                                                 ->default('index,follow')
@@ -531,18 +536,18 @@ class BlogPostResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (en)')
+                                                    Section::make(__('admin.blog_post.sections.og_en'))
                                                         ->schema([
                                                             MediaFileUpload::make('og_image')
-                                                                ->label('OG Image (en)')
-                                                                ->helperText('Facebook, Zalo. Recommended: 1200×630px.')
+                                                                ->label(__('admin.blog_post.fields.og_image_en'))
+                                                                ->helperText(__('admin.blog_post.fields.og_image_help'))
                                                                 ->image()
                                                                 ->nullable()
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label('OG Title (en)')
-                                                                ->placeholder('Auto-filled from Meta Title')
+                                                                ->label(__('admin.blog_post.fields.og_title_en'))
+                                                                ->placeholder(__('admin.blog_post.fields.auto_from_meta_title'))
                                                                 ->afterStateHydrated(function (Forms\Components\TextInput $component, $state, $record): void {
                                                                     if (blank($state)) {
                                                                         $component->state($record?->meta_title);
@@ -551,7 +556,7 @@ class BlogPostResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label('OG Description (en)')
+                                                                ->label(__('admin.blog_post.fields.og_description_en'))
                                                                 ->rows(2)
                                                                 ->afterStateHydrated(function (Forms\Components\Textarea $component, $state, $record): void {
                                                                     if (blank($state)) {
@@ -569,11 +574,11 @@ class BlogPostResource extends Resource
                         ]),
 
                     // ── Tab 5: JSON-LD ────────────────────────────────────────
-                    Tab::make('JSON-LD')
+                    Tab::make(__('admin.blog_post.tabs.jsonld'))
                         ->icon('heroicon-o-code-bracket')
                         ->schema([
 
-                            Section::make('How JSON-LD schemas work')
+                            Section::make(__('admin.blog_post.sections.jsonld_how_it_works'))
                                 ->schema([
                                     Placeholder::make('jsonld_info')
                                         ->label('')
@@ -592,46 +597,49 @@ class BlogPostResource extends Resource
 
                             Tabs::make('JsonldLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.blog_post.tabs.locale_vi'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasVi')
                                                 ->relationship()
-                                                ->label('Schemas (vi)')
+                                                ->label(__('admin.blog_post.fields.jsonld_schemas_vi'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
                                                         ->content(function ($record): HtmlString {
-                                                            if (! $record) { return new HtmlString(''); }
-                                                            $type  = $record->schema_type?->value ?? '—';
+                                                            if (! $record) {
+                                                                return new HtmlString('');
+                                                            }
+                                                            $type = $record->schema_type?->value ?? '—';
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
-                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>" . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "{$auto}</div>");
+
+                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."{$auto}</div>");
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
-                                                        ->label('Payload (what Google reads)')
+                                                        ->label(__('admin.blog_post.fields.jsonld_payload_preview'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — publish the post to generate.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">' . e($json) . '</pre>');
+
+                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'.e($json).'</pre>');
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Active (inject into page <head>)')
+                                                        ->label(__('admin.blog_post.fields.jsonld_active'))
                                                         ->inline(false),
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label('Last generated')
+                                                        ->label(__('admin.blog_post.fields.jsonld_last_generated'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -642,64 +650,69 @@ class BlogPostResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_jsonld_vi')
-                                                    ->label('Regenerate vi')
+                                            Actions::make([
+                                                Action::make('regenerate_jsonld_vi')
+                                                    ->label(__('admin.blog_post.actions.regenerate_jsonld_vi'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate JSON-LD (vi)')
-                                                    ->modalDescription('Re-generate all Auto schemas for the Vietnamese locale. Manual schemas will not be affected.')
+                                                    ->modalHeading(__('admin.blog_post.actions.regenerate_jsonld_vi_modal_heading'))
+                                                    ->modalDescription(__('admin.blog_post.actions.regenerate_jsonld_vi_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $post = $livewire->record;
-                                                        if (! $post?->exists) { return; }
-                                                        app(\App\Services\Seo\JsonldService::class)->syncForModel($post, 'vi');
-                                                        Notification::make()->title('JSON-LD (vi) regenerated')->success()->send();
+                                                        if (! $post?->exists) {
+                                                            return;
+                                                        }
+                                                        app(JsonldService::class)->syncForModel($post, 'vi');
+                                                        Notification::make()->title(__('admin.blog_post.notifications.jsonld_regenerated_vi'))->success()->send();
                                                         redirect(BlogPostResource::getUrl('edit', ['record' => $post]));
                                                     }),
                                             ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.blog_post.tabs.locale_en'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasEn')
                                                 ->relationship()
-                                                ->label('Schemas (en)')
+                                                ->label(__('admin.blog_post.fields.jsonld_schemas_en'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
                                                         ->content(function ($record): HtmlString {
-                                                            if (! $record) { return new HtmlString(''); }
-                                                            $type  = $record->schema_type?->value ?? '—';
+                                                            if (! $record) {
+                                                                return new HtmlString('');
+                                                            }
+                                                            $type = $record->schema_type?->value ?? '—';
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
-                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>" . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "{$auto}</div>");
+
+                                                            return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."{$auto}</div>");
                                                         })
                                                         ->columnSpanFull(),
                                                     Placeholder::make('payload_preview')
-                                                        ->label('Payload (what Google reads)')
+                                                        ->label(__('admin.blog_post.fields.jsonld_payload_preview'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — publish the post to generate.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">' . e($json) . '</pre>');
+
+                                                            return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'.e($json).'</pre>');
                                                         })
                                                         ->columnSpanFull(),
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label('Active (inject into page <head>)')
+                                                        ->label(__('admin.blog_post.fields.jsonld_active'))
                                                         ->inline(false),
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label('Last generated')
+                                                        ->label(__('admin.blog_post.fields.jsonld_last_generated'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -710,19 +723,21 @@ class BlogPostResource extends Resource
                                                 ->defaultItems(0)
                                                 ->columnSpanFull(),
 
-                                            \Filament\Schemas\Components\Actions::make([
-                                                \Filament\Actions\Action::make('regenerate_jsonld_en')
-                                                    ->label('Regenerate en')
+                                            Actions::make([
+                                                Action::make('regenerate_jsonld_en')
+                                                    ->label(__('admin.blog_post.actions.regenerate_jsonld_en'))
                                                     ->icon('heroicon-o-arrow-path')
                                                     ->color('gray')
                                                     ->requiresConfirmation()
-                                                    ->modalHeading('Regenerate JSON-LD (en)')
-                                                    ->modalDescription('Re-generate all Auto schemas for the English locale. Manual schemas will not be affected.')
+                                                    ->modalHeading(__('admin.blog_post.actions.regenerate_jsonld_en_modal_heading'))
+                                                    ->modalDescription(__('admin.blog_post.actions.regenerate_jsonld_en_modal_description'))
                                                     ->action(function ($livewire): void {
                                                         $post = $livewire->record;
-                                                        if (! $post?->exists) { return; }
-                                                        app(\App\Services\Seo\JsonldService::class)->syncForModel($post, 'en');
-                                                        Notification::make()->title('JSON-LD (en) regenerated')->success()->send();
+                                                        if (! $post?->exists) {
+                                                            return;
+                                                        }
+                                                        app(JsonldService::class)->syncForModel($post, 'en');
+                                                        Notification::make()->title(__('admin.blog_post.notifications.jsonld_regenerated_en'))->success()->send();
                                                         redirect(BlogPostResource::getUrl('edit', ['record' => $post]));
                                                     }),
                                             ]),
@@ -733,11 +748,11 @@ class BlogPostResource extends Resource
                         ->hidden(fn ($record) => $record === null),
 
                     // ── Tab 6: LLMs ───────────────────────────────────────────
-                    Tab::make('LLMs')
+                    Tab::make(__('admin.blog_post.tabs.llms'))
                         ->icon('heroicon-o-document-text')
                         ->schema([
 
-                            Section::make('How LLMs entries work')
+                            Section::make(__('admin.blog_post.sections.llms_how_it_works'))
                                 ->schema([
                                     Placeholder::make('llms_source_hint')
                                         ->label('')
@@ -757,23 +772,23 @@ class BlogPostResource extends Resource
 
                             Forms\Components\Repeater::make('llmsEntries')
                                 ->relationship()
-                                ->label('Published Entries')
+                                ->label(__('admin.blog_post.fields.llms_published_entries'))
                                 ->schema([
 
                                     Placeholder::make('llms_preview')
-                                        ->label('Preview (llms.txt output)')
+                                        ->label(__('admin.blog_post.fields.llms_preview'))
                                         ->content(function ($record): HtmlString {
                                             if (! $record) {
                                                 return new HtmlString('<em class="text-gray-400">Not generated yet — publish the post to trigger sync.</em>');
                                             }
 
-                                            $lines   = [];
-                                            $lines[] = '## ' . e($record->title);
-                                            $lines[] = 'URL: ' . e($record->url);
+                                            $lines = [];
+                                            $lines[] = '## '.e($record->title);
+                                            $lines[] = 'URL: '.e($record->url);
 
                                             if (filled($record->summary)) {
                                                 $lines[] = '';
-                                                $lines[] = 'Summary: ' . e($record->summary);
+                                                $lines[] = 'Summary: '.e($record->summary);
                                             }
 
                                             if (filled($record->key_facts_text)) {
@@ -792,21 +807,21 @@ class BlogPostResource extends Resource
 
                                             return new HtmlString(
                                                 '<pre style="white-space:pre-wrap;font-size:0.8rem;line-height:1.6;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px;color:#334155;">'
-                                                . $content
-                                                . '</pre>'
+                                                .$content
+                                                .'</pre>'
                                             );
                                         })
                                         ->columnSpanFull(),
 
                                     Forms\Components\Toggle::make('is_active')
-                                        ->label('Published to llms.txt')
-                                        ->helperText('Toggle off to exclude this entry from the AI document.')
+                                        ->label(__('admin.blog_post.fields.llms_published'))
+                                        ->helperText(__('admin.blog_post.fields.llms_published_help'))
                                         ->inline(false),
 
                                     Placeholder::make('updated_at')
-                                        ->label('Last synced')
+                                        ->label(__('admin.blog_post.fields.last_synced'))
                                         ->content(fn ($record) => $record?->updated_at
-                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                             : '—'
                                         ),
                                 ])
@@ -816,14 +831,14 @@ class BlogPostResource extends Resource
                                 ->defaultItems(0)
                                 ->columnSpanFull(),
 
-                            \Filament\Schemas\Components\Actions::make([
-                                \Filament\Actions\Action::make('regenerate_llms')
-                                    ->label('Regenerate')
+                            Actions::make([
+                                Action::make('regenerate_llms')
+                                    ->label(__('admin.blog_post.actions.regenerate_llms'))
                                     ->icon('heroicon-o-arrow-path')
                                     ->color('gray')
                                     ->requiresConfirmation()
-                                    ->modalHeading('Regenerate LLMs Entry')
-                                    ->modalDescription('This will re-pull data from the FAQ tab and GEO profile and overwrite the current entry. Proceed?')
+                                    ->modalHeading(__('admin.blog_post.actions.regenerate_llms_modal_heading'))
+                                    ->modalDescription(__('admin.blog_post.actions.regenerate_llms_modal_description'))
                                     ->action(function ($livewire): void {
                                         $post = $livewire->record;
 
@@ -831,11 +846,11 @@ class BlogPostResource extends Resource
                                             return;
                                         }
 
-                                        app(\App\Services\Seo\LlmsGeneratorService::class)->upsertEntry($post);
+                                        app(LlmsGeneratorService::class)->upsertEntry($post);
 
                                         Notification::make()
-                                            ->title('LLMs entry regenerated')
-                                            ->body('The entry has been updated successfully.')
+                                            ->title(__('admin.blog_post.notifications.llms_regenerated_title'))
+                                            ->body(__('admin.blog_post.notifications.llms_regenerated_body'))
                                             ->success()
                                             ->send();
 
@@ -856,14 +871,15 @@ class BlogPostResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('title_bilingual')
-                    ->label('Title')
+                    ->label(__('admin.blog_post.fields.title'))
                     ->html()
                     ->getStateUsing(function ($record): string {
                         $vi = $record->translations->firstWhere('locale', 'vi')?->title;
                         $en = $record->translations->firstWhere('locale', 'en')?->title;
-                        $top    = e($vi ?? '—');
-                        $bottom = $en ? '<br><span style="font-size:0.75rem;color:#6b7280">' . e($en) . '</span>' : '';
-                        return $top . $bottom;
+                        $top = e($vi ?? '—');
+                        $bottom = $en ? '<br><span style="font-size:0.75rem;color:#6b7280">'.e($en).'</span>' : '';
+
+                        return $top.$bottom;
                     })
                     ->searchable(query: function ($query, string $search) {
                         $query->whereHas('translations', fn ($q) => $q->where('title', 'ilike', "%{$search}%"));
@@ -873,17 +889,17 @@ class BlogPostResource extends Resource
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
                         'secondary' => BlogPostStatus::Draft->value,
-                        'success'   => BlogPostStatus::Published->value,
-                        'danger'    => BlogPostStatus::Archived->value,
+                        'success' => BlogPostStatus::Published->value,
+                        'danger' => BlogPostStatus::Archived->value,
                     ]),
 
                 Tables\Columns\TextColumn::make('blogCategory.name')
-                    ->label('Category')
-                    ->placeholder('—'),
+                    ->label(__('admin.blog_post.fields.category'))
+                    ->placeholder(__('admin.blog_post.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('author.name')
-                    ->label('Author')
-                    ->placeholder('—'),
+                    ->label(__('admin.blog_post.fields.author'))
+                    ->placeholder(__('admin.blog_post.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime(timezone: 'Asia/Ho_Chi_Minh')
@@ -896,7 +912,7 @@ class BlogPostResource extends Resource
                     )),
 
                 Tables\Filters\SelectFilter::make('blog_category_id')
-                    ->label('Category')
+                    ->label(__('admin.blog_post.fields.category'))
                     ->relationship('blogCategory', 'name'),
             ])
             ->modifyQueryUsing(fn ($query) => $query->with('translations'))
@@ -914,9 +930,9 @@ class BlogPostResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListBlogPosts::route('/'),
+            'index' => Pages\ListBlogPosts::route('/'),
             'create' => Pages\CreateBlogPost::route('/create'),
-            'edit'   => Pages\EditBlogPost::route('/{record}/edit'),
+            'edit' => Pages\EditBlogPost::route('/{record}/edit'),
         ];
     }
 }

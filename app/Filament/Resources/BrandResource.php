@@ -4,8 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Enums\OgType;
 use App\Filament\Resources\BrandResource\Pages;
-use App\Support\LocaleUrl;
 use App\Models\Brand;
+use App\Support\LocaleUrl;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -47,14 +47,13 @@ class BrandResource extends Resource
                 ->tabs([
 
                     // ── General ───────────────────────────────────────────────────
-                    Tab::make('General')
+                    Tab::make(__('admin.brand.tabs.general'))
                         ->icon('heroicon-o-cog-6-tooth')
                         ->schema([
                             Forms\Components\TextInput::make('name')
                                 ->required()
                                 ->live(debounce: 500)
-                                ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                                    $set('slug', Str::slug($state ?? ''))
+                                ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                                 ),
 
                             Forms\Components\TextInput::make('slug')
@@ -63,7 +62,7 @@ class BrandResource extends Resource
 
                             Forms\Components\TextInput::make('website')
                                 ->url()
-                                ->placeholder('https://...')
+                                ->placeholder(__('admin.brand.fields.website_placeholder'))
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('description')
@@ -71,7 +70,7 @@ class BrandResource extends Resource
                                 ->columnSpanFull(),
 
                             Forms\Components\FileUpload::make('logo')
-                                ->label('Logo')
+                                ->label(__('admin.brand.fields.logo'))
                                 ->disk('public')
                                 ->directory('brands')
                                 ->image()
@@ -81,7 +80,7 @@ class BrandResource extends Resource
                             Forms\Components\TextInput::make('sort_order')
                                 ->numeric()
                                 ->default(0)
-                                ->helperText('Lower = appears first. Drag to reorder in the list view.')
+                                ->helperText(__('admin.brand.fields.sort_order_help'))
                                 ->minValue(0),
 
                             Forms\Components\Toggle::make('is_active')
@@ -90,12 +89,12 @@ class BrandResource extends Resource
                         ->columns(2),
 
                     // ── SEO ───────────────────────────────────────────────────────
-                    Tab::make('SEO')
+                    Tab::make(__('admin.brand.tabs.seo'))
                         ->icon('heroicon-o-magnifying-glass')
                         ->schema([
                             Tabs::make('SeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.brand.tabs.locale_vi'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('seoMetaVi')
@@ -103,15 +102,15 @@ class BrandResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('vi'),
 
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.brand.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.meta_title_vi').'</span>'))
                                                                 ->live(debounce: 400)
-                                                                ->placeholder('Tự điền từ tên thương hiệu')
+                                                                ->placeholder(__('admin.brand.fields.meta_title_placeholder'))
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 50, 70))
-                                                                ->helperText('Tối ưu: 50–70 ký tự.')
+                                                                ->helperText(__('admin.brand.fields.meta_title_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->name) {
                                                                         $set('meta_title', $livewire->record->name);
@@ -120,12 +119,12 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.meta_description_vi').'</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 120, 160))
-                                                                ->helperText('Tối ưu: 120–160 ký tự.')
+                                                                ->helperText(__('admin.brand.fields.meta_description_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->description) {
                                                                         $set('meta_description', $livewire->record->description);
@@ -134,15 +133,15 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Keywords (vi)</span>'))
-                                                                ->helperText('Phân cách bằng dấu phẩy')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.meta_keywords_vi').'</span>'))
+                                                                ->helperText(__('admin.brand.fields.meta_keywords_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Canonical URL (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.canonical_url_vi').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Tự tạo từ slug — /vi/thuong-hieu/{slug}')
-                                                                ->hint('Tự tạo từ slug')
+                                                                ->placeholder(__('admin.brand.fields.canonical_url_vi_placeholder'))
+                                                                ->hint(__('admin.brand.fields.canonical_url_auto_hint'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -153,11 +152,11 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Robots</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.robots').'</span>'))
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow (default)',
-                                                                    'noindex,follow'   => 'noindex,follow',
-                                                                    'index,nofollow'   => 'index,nofollow',
+                                                                    'index,follow' => 'index, follow (default)',
+                                                                    'noindex,follow' => 'noindex,follow',
+                                                                    'index,nofollow' => 'index,nofollow',
                                                                     'noindex,nofollow' => 'noindex,nofollow',
                                                                 ])
                                                                 ->default('index,follow')
@@ -165,12 +164,12 @@ class BrandResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (vi)')
+                                                    Section::make(__('admin.brand.sections.og_vi'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Title (vi)</span>'))
-                                                                ->placeholder('Tự điền từ Meta Title (vi)')
-                                                                ->hint('Tự điền từ Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.og_title_vi').'</span>'))
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_title_vi'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_title_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -181,10 +180,10 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.og_description_vi').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Tự điền từ Meta Description (vi)')
-                                                                ->hint('Tự điền từ Meta Description (vi)')
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_description_vi'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_description_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -195,22 +194,22 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Image URL</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.og_image').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Tự điền từ logo thương hiệu')
-                                                                ->hint('Tự điền từ logo thương hiệu')
+                                                                ->placeholder(__('admin.brand.fields.auto_from_logo'))
+                                                                ->hint(__('admin.brand.fields.auto_from_logo'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
-                                                                ->helperText('Khuyến nghị: 1200×630px.')
+                                                                ->helperText(__('admin.brand.fields.og_image_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->logo) {
-                                                                        $set('og_image', asset('storage/' . $livewire->record->logo));
+                                                                        $set('og_image', asset('storage/'.$livewire->record->logo));
                                                                     }
                                                                 })
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">OG Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.og_type').'</span>'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -220,21 +219,21 @@ class BrandResource extends Resource
                                                         ->columns(2)
                                                         ->collapsed(),
 
-                                                    Section::make('Twitter Card (vi)')
+                                                    Section::make(__('admin.brand.sections.twitter_vi'))
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Card Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.card_type').'</span>'))
                                                                 ->options([
-                                                                    'summary'             => 'Summary',
+                                                                    'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
                                                                 ])
                                                                 ->default('summary_large_image')
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Title (vi)</span>'))
-                                                                ->placeholder('Tự điền từ Meta Title (vi)')
-                                                                ->hint('Tự điền từ Meta Title (vi)')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.twitter_title_vi').'</span>'))
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_title_vi'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_title_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -244,10 +243,10 @@ class BrandResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Twitter Description (vi)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.twitter_description_vi').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Tự điền từ Meta Description (vi)')
-                                                                ->hint('Tự điền từ Meta Description (vi)')
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_description_vi'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_description_vi'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -262,7 +261,7 @@ class BrandResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.brand.tabs.locale_en'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('seoMetaEn')
@@ -270,15 +269,15 @@ class BrandResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('en'),
 
-                                                    Section::make('Meta Tags')
+                                                    Section::make(__('admin.brand.sections.meta_tags'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('meta_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Title (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.meta_title_en').'</span>'))
                                                                 ->live(debounce: 400)
-                                                                ->placeholder('Auto-filled from brand name')
+                                                                ->placeholder(__('admin.brand.fields.meta_title_placeholder'))
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 50, 70))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 50, 70))
-                                                                ->helperText('Optimal: 50–70 chars.')
+                                                                ->helperText(__('admin.brand.fields.meta_title_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->name) {
                                                                         $set('meta_title', $livewire->record->name);
@@ -287,12 +286,12 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('meta_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.meta_description_en').'</span>'))
                                                                 ->rows(3)
                                                                 ->live(debounce: 400)
                                                                 ->hint(fn (?string $state): string => self::charCounter($state, 120, 160))
                                                                 ->hintColor(fn (?string $state): string => self::charCounterColor($state, 120, 160))
-                                                                ->helperText('Optimal: 120–160 chars.')
+                                                                ->helperText(__('admin.brand.fields.meta_description_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->description) {
                                                                         $set('meta_description', $livewire->record->description);
@@ -301,15 +300,15 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('meta_keywords')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Keywords (en)</span>'))
-                                                                ->helperText('Comma-separated')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.meta_keywords_en').'</span>'))
+                                                                ->helperText(__('admin.brand.fields.meta_keywords_help'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('canonical_url')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Canonical URL (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.canonical_url_en').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Auto-generated from slug — /en/brands/{slug}')
-                                                                ->hint('Auto-generated from slug')
+                                                                ->placeholder(__('admin.brand.fields.canonical_url_en_placeholder'))
+                                                                ->hint(__('admin.brand.fields.canonical_url_auto_hint'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
@@ -320,11 +319,11 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('robots')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Robots</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.robots').'</span>'))
                                                                 ->options([
-                                                                    'index,follow'     => 'index, follow (default)',
-                                                                    'noindex,follow'   => 'noindex,follow',
-                                                                    'index,nofollow'   => 'index,nofollow',
+                                                                    'index,follow' => 'index, follow (default)',
+                                                                    'noindex,follow' => 'noindex,follow',
+                                                                    'index,nofollow' => 'index,nofollow',
                                                                     'noindex,nofollow' => 'noindex,nofollow',
                                                                 ])
                                                                 ->default('index,follow')
@@ -332,12 +331,12 @@ class BrandResource extends Resource
                                                         ])
                                                         ->columns(2),
 
-                                                    Section::make('Open Graph (en)')
+                                                    Section::make(__('admin.brand.sections.og_en'))
                                                         ->schema([
                                                             Forms\Components\TextInput::make('og_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Title (en)</span>'))
-                                                                ->placeholder('Auto-filled from Meta Title (en)')
-                                                                ->hint('Auto-filled from Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.og_title_en').'</span>'))
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_title_en'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_title_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -348,10 +347,10 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('og_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.og_description_en').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Auto-filled from Meta Description (en)')
-                                                                ->hint('Auto-filled from Meta Description (en)')
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_description_en'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_description_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -362,22 +361,22 @@ class BrandResource extends Resource
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('og_image')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Image URL</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.og_image').'</span>'))
                                                                 ->url()
-                                                                ->placeholder('Auto-filled from brand logo')
-                                                                ->hint('Auto-filled from brand logo')
+                                                                ->placeholder(__('admin.brand.fields.auto_from_logo'))
+                                                                ->hint(__('admin.brand.fields.auto_from_logo'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
-                                                                ->helperText('Recommended: 1200×630px.')
+                                                                ->helperText(__('admin.brand.fields.og_image_help'))
                                                                 ->afterStateHydrated(function ($state, $set, $livewire): void {
                                                                     if (empty($state) && $livewire->record?->logo) {
-                                                                        $set('og_image', asset('storage/' . $livewire->record->logo));
+                                                                        $set('og_image', asset('storage/'.$livewire->record->logo));
                                                                     }
                                                                 })
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Select::make('og_type')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">OG Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.og_type').'</span>'))
                                                                 ->options(collect(OgType::cases())->mapWithKeys(
                                                                     fn (OgType $case) => [$case->value => $case->value]
                                                                 ))
@@ -387,21 +386,21 @@ class BrandResource extends Resource
                                                         ->columns(2)
                                                         ->collapsed(),
 
-                                                    Section::make('Twitter Card (en)')
+                                                    Section::make(__('admin.brand.sections.twitter_en'))
                                                         ->schema([
                                                             Forms\Components\Select::make('twitter_card')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Card Type</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.card_type').'</span>'))
                                                                 ->options([
-                                                                    'summary'             => 'Summary',
+                                                                    'summary' => 'Summary',
                                                                     'summary_large_image' => 'Summary Large Image',
                                                                 ])
                                                                 ->default('summary_large_image')
                                                                 ->native(false),
 
                                                             Forms\Components\TextInput::make('twitter_title')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Title (en)</span>'))
-                                                                ->placeholder('Auto-filled from Meta Title (en)')
-                                                                ->hint('Auto-filled from Meta Title (en)')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.twitter_title_en').'</span>'))
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_title_en'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_title_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record, $livewire): void {
@@ -411,10 +410,10 @@ class BrandResource extends Resource
                                                                 }),
 
                                                             Forms\Components\Textarea::make('twitter_description')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Twitter Description (en)</span>'))
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.twitter_description_en').'</span>'))
                                                                 ->rows(2)
-                                                                ->placeholder('Auto-filled from Meta Description (en)')
-                                                                ->hint('Auto-filled from Meta Description (en)')
+                                                                ->placeholder(__('admin.brand.fields.auto_from_meta_description_en'))
+                                                                ->hint(__('admin.brand.fields.auto_from_meta_description_en'))
                                                                 ->hintIcon('heroicon-o-sparkles')
                                                                 ->hintColor('info')
                                                                 ->afterStateHydrated(function ($state, $set, $record): void {
@@ -432,12 +431,12 @@ class BrandResource extends Resource
                         ]),
 
                     // ── GEO / AI ──────────────────────────────────────────────────
-                    Tab::make('GEO / AI')
+                    Tab::make(__('admin.brand.tabs.geo_ai'))
                         ->icon('heroicon-o-cpu-chip')
                         ->schema([
                             Tabs::make('GeoLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.brand.tabs.locale_vi'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileVi')
@@ -445,51 +444,51 @@ class BrandResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('vi'),
 
-                                                    Section::make('AI Context')
+                                                    Section::make(__('admin.brand.sections.ai_context'))
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">AI Summary (vi)</span>'))
-                                                                ->hint('Đoạn tóm tắt ngắn cho AI / chatbot hiểu thương hiệu này')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.ai_summary_vi').'</span>'))
+                                                                ->hint(__('admin.brand.fields.ai_summary_hint'))
                                                                 ->rows(4)
-                                                                ->placeholder('Mô tả 2–4 câu về thương hiệu: sản phẩm gì, xuất xứ, điểm nổi bật...')
+                                                                ->placeholder(__('admin.brand.fields.ai_summary_vi_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Use Cases (vi)</span>'))
-                                                                ->hint('Ứng dụng thực tế — AI dùng để trả lời "thương hiệu này phù hợp cho ai"')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.use_cases_vi').'</span>'))
+                                                                ->hint(__('admin.brand.fields.use_cases_hint'))
                                                                 ->rows(3)
-                                                                ->placeholder('VD: Phù hợp cho công trình dân dụng, công nghiệp...')
+                                                                ->placeholder(__('admin.brand.fields.use_cases_vi_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Target Audience (vi)</span>'))
-                                                                ->hint('Đối tượng mục tiêu — AI dùng để phân loại và gợi ý')
-                                                                ->placeholder('VD: Kỹ sư điện, nhà thầu, hộ gia đình...')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.target_audience_vi').'</span>'))
+                                                                ->hint(__('admin.brand.fields.target_audience_hint'))
+                                                                ->placeholder(__('admin.brand.fields.target_audience_vi_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">LLM Context Hint (vi)</span>'))
-                                                                ->hint('Gợi ý thêm cho LLM khi sinh nội dung về thương hiệu')
+                                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.llm_context_hint_vi').'</span>'))
+                                                                ->hint(__('admin.brand.fields.llm_context_help'))
                                                                 ->rows(2)
                                                                 ->columnSpanFull(),
                                                         ]),
 
-                                                    Section::make('Key Facts (vi)')
+                                                    Section::make(__('admin.brand.sections.key_facts_vi'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Nhãn</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.key_fact_label').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: Năm thành lập'),
+                                                                        ->placeholder(__('admin.brand.fields.key_fact_label_placeholder_vi')),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Giá trị</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.key_fact_value').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: 1995'),
+                                                                        ->placeholder(__('admin.brand.fields.key_fact_value_placeholder_vi')),
                                                                 ])
                                                                 ->columns(2)
-                                                                ->addActionLabel('Thêm fact')
+                                                                ->addActionLabel(__('admin.brand.actions.add_key_fact'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->defaultItems(0)
@@ -497,24 +496,24 @@ class BrandResource extends Resource
                                                         ])
                                                         ->collapsible(),
 
-                                                    Section::make('FAQ (vi)')
+                                                    Section::make(__('admin.brand.sections.faq_vi'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('faq')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('question')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Câu hỏi</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.faq_question').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('VD: Thương hiệu này xuất xứ từ đâu?')
+                                                                        ->placeholder(__('admin.brand.fields.faq_question_vi_placeholder'))
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
-                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Trả lời</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.faq_answer').'</span>'))
                                                                         ->required()
                                                                         ->rows(3)
-                                                                        ->placeholder('Câu trả lời ngắn gọn, rõ ràng...')
+                                                                        ->placeholder(__('admin.brand.fields.faq_answer_vi_placeholder'))
                                                                         ->columnSpanFull(),
                                                                 ])
-                                                                ->addActionLabel('Thêm câu hỏi')
+                                                                ->addActionLabel(__('admin.brand.actions.add_faq'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -525,7 +524,7 @@ class BrandResource extends Resource
                                                 ]),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.brand.tabs.locale_en'))
                                         ->schema([
                                             Group::make()
                                                 ->relationship('geoProfileEn')
@@ -533,51 +532,51 @@ class BrandResource extends Resource
                                                     Forms\Components\Hidden::make('locale')
                                                         ->default('en'),
 
-                                                    Section::make('AI Context')
+                                                    Section::make(__('admin.brand.sections.ai_context'))
                                                         ->schema([
                                                             Forms\Components\Textarea::make('ai_summary')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">AI Summary (en)</span>'))
-                                                                ->hint('Short summary for AI / chatbot understanding of this brand')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.ai_summary_en').'</span>'))
+                                                                ->hint(__('admin.brand.fields.ai_summary_hint'))
                                                                 ->rows(4)
-                                                                ->placeholder('Describe the brand in 2–4 sentences: products, origin, key highlights...')
+                                                                ->placeholder(__('admin.brand.fields.ai_summary_en_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('use_cases')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Use Cases (en)</span>'))
-                                                                ->hint('Practical applications — AI uses this to answer "who is this brand for"')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.use_cases_en').'</span>'))
+                                                                ->hint(__('admin.brand.fields.use_cases_hint'))
                                                                 ->rows(3)
-                                                                ->placeholder('E.g. Suitable for residential, commercial, and industrial projects...')
+                                                                ->placeholder(__('admin.brand.fields.use_cases_en_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\TextInput::make('target_audience')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Target Audience (en)</span>'))
-                                                                ->hint('Target demographic — AI uses this for classification and recommendations')
-                                                                ->placeholder('E.g. Electricians, contractors, homeowners...')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.target_audience_en').'</span>'))
+                                                                ->hint(__('admin.brand.fields.target_audience_hint'))
+                                                                ->placeholder(__('admin.brand.fields.target_audience_en_placeholder'))
                                                                 ->columnSpanFull(),
 
                                                             Forms\Components\Textarea::make('llm_context_hint')
-                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">LLM Context Hint (en)</span>'))
-                                                                ->hint('Additional context hint for LLMs when generating content about this brand')
+                                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.llm_context_hint_en').'</span>'))
+                                                                ->hint(__('admin.brand.fields.llm_context_help'))
                                                                 ->rows(2)
                                                                 ->columnSpanFull(),
                                                         ]),
 
-                                                    Section::make('Key Facts (en)')
+                                                    Section::make(__('admin.brand.sections.key_facts_en'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('key_facts')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('label')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Label</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.key_fact_label').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. Founded'),
+                                                                        ->placeholder(__('admin.brand.fields.key_fact_label_placeholder_en')),
                                                                     Forms\Components\TextInput::make('value')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Value</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.key_fact_value').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. 1995'),
+                                                                        ->placeholder(__('admin.brand.fields.key_fact_value_placeholder_en')),
                                                                 ])
                                                                 ->columns(2)
-                                                                ->addActionLabel('Add fact')
+                                                                ->addActionLabel(__('admin.brand.actions.add_key_fact'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->defaultItems(0)
@@ -585,24 +584,24 @@ class BrandResource extends Resource
                                                         ])
                                                         ->collapsible(),
 
-                                                    Section::make('FAQ (en)')
+                                                    Section::make(__('admin.brand.sections.faq_en'))
                                                         ->schema([
                                                             Forms\Components\Repeater::make('faq')
                                                                 ->label('')
                                                                 ->schema([
                                                                     Forms\Components\TextInput::make('question')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Question</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.faq_question').'</span>'))
                                                                         ->required()
-                                                                        ->placeholder('E.g. Where is this brand from?')
+                                                                        ->placeholder(__('admin.brand.fields.faq_question_en_placeholder'))
                                                                         ->columnSpanFull(),
                                                                     Forms\Components\Textarea::make('answer')
-                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Answer</span>'))
+                                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.faq_answer').'</span>'))
                                                                         ->required()
                                                                         ->rows(3)
-                                                                        ->placeholder('Short, clear answer...')
+                                                                        ->placeholder(__('admin.brand.fields.faq_answer_en_placeholder'))
                                                                         ->columnSpanFull(),
                                                                 ])
-                                                                ->addActionLabel('Add FAQ')
+                                                                ->addActionLabel(__('admin.brand.actions.add_faq'))
                                                                 ->reorderable()
                                                                 ->collapsible()
                                                                 ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
@@ -616,10 +615,10 @@ class BrandResource extends Resource
                         ]),
 
                     // ── JSON-LD ───────────────────────────────────────────────────
-                    Tab::make('JSON-LD')
+                    Tab::make(__('admin.brand.tabs.jsonld'))
                         ->icon('heroicon-o-code-bracket')
                         ->schema([
-                            Section::make('Schemas hoạt động như thế nào?')
+                            Section::make(__('admin.brand.sections.jsonld_how_it_works'))
                                 ->schema([
                                     Placeholder::make('jsonld_info')
                                         ->label('')
@@ -638,11 +637,11 @@ class BrandResource extends Resource
 
                             Tabs::make('JsonldLocaleTabs')
                                 ->tabs([
-                                    Tab::make('🇻🇳 Tiếng Việt')
+                                    Tab::make(__('admin.brand.tabs.locale_vi'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasVi')
                                                 ->relationship()
-                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Schemas (vi)</span>'))
+                                                ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.jsonld_schemas_vi').'</span>'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -650,15 +649,16 @@ class BrandResource extends Resource
                                                             if (! $record) {
                                                                 return new HtmlString('');
                                                             }
-                                                            $type  = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
+                                                            $type = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
+
                                                             return new HtmlString("
                                                                 <div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'>
                                                                     <span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>
-                                                                    " . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "
+                                                                    ".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."
                                                                     {$auto}
                                                                 </div>
                                                             ");
@@ -666,33 +666,33 @@ class BrandResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Placeholder::make('payload_preview')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Payload (Google reads this)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.jsonld_payload_preview').'</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">Chưa có payload — lưu thương hiệu để tạo.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
                                                             return new HtmlString(
                                                                 '<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'
-                                                                . e($json)
-                                                                . '</pre>'
+                                                                .e($json)
+                                                                .'</pre>'
                                                             );
                                                         })
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Active (inject vào &lt;head&gt; trang)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.jsonld_active').'</span>'))
                                                         ->inline(false),
 
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Cập nhật lần cuối</span>'))
+                                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.brand.fields.jsonld_last_updated').'</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -704,11 +704,11 @@ class BrandResource extends Resource
                                                 ->columnSpanFull(),
                                         ]),
 
-                                    Tab::make('🇬🇧 English')
+                                    Tab::make(__('admin.brand.tabs.locale_en'))
                                         ->schema([
                                             Forms\Components\Repeater::make('jsonldSchemasEn')
                                                 ->relationship()
-                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Schemas (en)</span>'))
+                                                ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.jsonld_schemas_en').'</span>'))
                                                 ->schema([
                                                     Placeholder::make('schema_header')
                                                         ->label('')
@@ -716,15 +716,16 @@ class BrandResource extends Resource
                                                             if (! $record) {
                                                                 return new HtmlString('');
                                                             }
-                                                            $type  = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
+                                                            $type = is_object($record->schema_type) ? $record->schema_type->value : (string) ($record->schema_type ?? '—');
                                                             $label = e($record->label ?? '');
-                                                            $auto  = $record->is_auto_generated
+                                                            $auto = $record->is_auto_generated
                                                                 ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                                 : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
+
                                                             return new HtmlString("
                                                                 <div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'>
                                                                     <span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>
-                                                                    " . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "
+                                                                    ".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."
                                                                     {$auto}
                                                                 </div>
                                                             ");
@@ -732,33 +733,33 @@ class BrandResource extends Resource
                                                         ->columnSpanFull(),
 
                                                     Placeholder::make('payload_preview')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Payload (Google reads this)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.jsonld_payload_preview').'</span>'))
                                                         ->content(function ($record): HtmlString {
                                                             if (! $record || empty($record->payload)) {
                                                                 return new HtmlString('<em class="text-gray-400">No payload yet — save the brand to generate.</em>');
                                                             }
                                                             $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
                                                             return new HtmlString(
                                                                 '<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'
-                                                                . e($json)
-                                                                . '</pre>'
+                                                                .e($json)
+                                                                .'</pre>'
                                                             );
                                                         })
                                                         ->columnSpanFull(),
 
                                                     Forms\Components\Toggle::make('is_active')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Active (inject into &lt;head&gt;)</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.jsonld_active').'</span>'))
                                                         ->inline(false),
 
                                                     Placeholder::make('schema_updated_at')
-                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Last updated</span>'))
+                                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.brand.fields.jsonld_last_updated').'</span>'))
                                                         ->content(fn ($record) => $record?->updated_at
-                                                            ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                            ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                             : '—'
                                                         ),
                                                 ])
-                                                ->itemLabel(fn (array $state): ?string =>
-                                                    filled($state['schema_type'] ?? '')
+                                                ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                         ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                         : null
                                                 )
@@ -797,10 +798,10 @@ class BrandResource extends Resource
                     ->url(fn (Brand $record): ?string => $record->website ?: null)
                     ->openUrlInNewTab()
                     ->color('primary')
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.brand.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('products_count')
-                    ->label('Products')
+                    ->label(__('admin.brand.fields.products'))
                     ->counts('products')
                     ->numeric()
                     ->sortable(),
@@ -811,14 +812,14 @@ class BrandResource extends Resource
                     ->falseColor('danger'),
 
                 Tables\Columns\TextColumn::make('sort_order')
-                    ->label('Order')
+                    ->label(__('admin.brand.fields.sort_order'))
                     ->sortable()
                     ->alignCenter()
                     ->width('80px'),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.brand.fields.active')),
             ])
             ->actions([
                 EditAction::make(),
@@ -834,9 +835,9 @@ class BrandResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListBrands::route('/'),
+            'index' => Pages\ListBrands::route('/'),
             'create' => Pages\CreateBrand::route('/create'),
-            'edit'   => Pages\EditBrand::route('/{record}/edit'),
+            'edit' => Pages\EditBrand::route('/{record}/edit'),
         ];
     }
 
@@ -845,14 +846,20 @@ class BrandResource extends Resource
     private static function charCounter(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
+
         return "{$len} / {$max} chars";
     }
 
     private static function charCounterColor(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
-        if ($len === 0) return 'gray';
-        if ($len < $min || $len > $max) return 'warning';
+        if ($len === 0) {
+            return 'gray';
+        }
+        if ($len < $min || $len > $max) {
+            return 'warning';
+        }
+
         return 'success';
     }
 }

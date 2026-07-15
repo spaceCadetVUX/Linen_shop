@@ -40,10 +40,10 @@ class PromotionResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Banner')
+            Section::make(__('admin.promotion.sections.banner'))
                 ->schema([
                     Forms\Components\FileUpload::make('banner_image')
-                        ->label('Ảnh banner')
+                        ->label(__('admin.promotion.fields.banner_image'))
                         ->disk('public')
                         ->visibility('public')
                         ->directory(fn () => 'promotions/'.now()->format('Y/m'))
@@ -73,79 +73,79 @@ class PromotionResource extends Resource
                         ->columnSpanFull(),
 
                     Forms\Components\Select::make('banner_position')
-                        ->label('Vị trí banner')
+                        ->label(__('admin.promotion.fields.banner_position'))
                         ->options(PromotionBannerPosition::options())
                         ->default(PromotionBannerPosition::Left->value)
                         ->native(false)
                         ->required()
-                        ->helperText('Banner nằm trái hoặc phải, sản phẩm luôn ở phía đối diện.')
+                        ->helperText(__('admin.promotion.fields.banner_position_help'))
                         ->columnSpanFull(),
 
                     Forms\Components\TextInput::make('title')
-                        ->label('Tiêu đề (vi)')
+                        ->label(__('admin.promotion.fields.title_vi'))
                         ->required()
                         ->maxLength(150)
                         ->columnSpan(1),
 
                     Forms\Components\TextInput::make('title_en')
-                        ->label('Tiêu đề (en)')
+                        ->label(__('admin.promotion.fields.title_en'))
                         ->maxLength(150)
                         ->columnSpan(1),
                 ])
                 ->columns(2),
 
-            Section::make('CTA (tuỳ chọn)')
+            Section::make(__('admin.promotion.sections.cta'))
                 ->schema([
                     Forms\Components\TextInput::make('cta_label')
-                        ->label('Text nút (vi)')
+                        ->label(__('admin.promotion.fields.cta_label_vi'))
                         ->maxLength(60)
                         ->columnSpan(1),
 
                     Forms\Components\TextInput::make('cta_label_en')
-                        ->label('Text nút (en)')
+                        ->label(__('admin.promotion.fields.cta_label_en'))
                         ->maxLength(60)
                         ->columnSpan(1),
 
                     Forms\Components\TextInput::make('cta_url')
-                        ->label('URL đích')
+                        ->label(__('admin.promotion.fields.cta_url'))
                         ->maxLength(255)
                         ->columnSpanFull(),
                 ])
                 ->columns(2),
 
-            Section::make('Lên lịch')
+            Section::make(__('admin.promotion.sections.schedule'))
                 ->schema([
                     Forms\Components\Toggle::make('is_active')
-                        ->label('Bật campaign')
+                        ->label(__('admin.promotion.fields.is_active'))
                         ->default(true)
                         ->columnSpanFull(),
 
                     Forms\Components\DateTimePicker::make('starts_at')
-                        ->label('Bắt đầu')
+                        ->label(__('admin.promotion.fields.starts_at'))
                         ->native(false)
-                        ->helperText('Để trống = hiển thị ngay khi bật.')
+                        ->helperText(__('admin.promotion.fields.starts_at_help'))
                         ->columnSpan(1),
 
                     Forms\Components\DateTimePicker::make('ends_at')
-                        ->label('Kết thúc')
+                        ->label(__('admin.promotion.fields.ends_at'))
                         ->native(false)
-                        ->helperText('Để trống = không đếm ngược, không tự tắt.')
+                        ->helperText(__('admin.promotion.fields.ends_at_help'))
                         ->columnSpan(1),
 
                     Forms\Components\TextInput::make('sort_order')
-                        ->label('Thứ tự slide')
+                        ->label(__('admin.promotion.fields.sort_order_form'))
                         ->numeric()
                         ->default(0)
-                        ->helperText('Số nhỏ hơn hiện trước khi có nhiều campaign cùng active.')
+                        ->helperText(__('admin.promotion.fields.sort_order_help'))
                         ->columnSpanFull(),
                 ])
                 ->columns(2),
 
-            Section::make('Sản phẩm')
+            Section::make(__('admin.promotion.sections.products'))
                 ->schema([
                     Forms\Components\Select::make('product_ids')
-                        ->label('Sản phẩm hiển thị trong campaign')
-                        ->helperText('Tìm và chọn sản phẩm — kéo để đổi thứ tự. Giá bán lấy trực tiếp từ sale_price của sản phẩm.')
+                        ->label(__('admin.promotion.fields.product_ids'))
+                        ->helperText(__('admin.promotion.fields.product_ids_help'))
                         ->multiple()
                         ->searchable()
                         ->reorderable()
@@ -175,21 +175,21 @@ class PromotionResource extends Resource
             ->defaultSort('sort_order')
             ->columns([
                 Tables\Columns\ImageColumn::make('banner_image')
-                    ->label('Banner')
+                    ->label(__('admin.promotion.fields.banner_column'))
                     ->disk('public')
                     ->height(50),
 
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Tiêu đề')
+                    ->label(__('admin.promotion.fields.title_column'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('banner_position')
-                    ->label('Vị trí')
+                    ->label(__('admin.promotion.fields.position_column'))
                     ->formatStateUsing(fn (PromotionBannerPosition $state): string => $state->label()),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Trạng thái')
+                    ->label(__('admin.promotion.fields.status_column'))
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'running' => 'Đang chạy',
@@ -205,37 +205,37 @@ class PromotionResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('starts_at')
-                    ->label('Bắt đầu')
+                    ->label(__('admin.promotion.fields.starts_at'))
                     ->dateTime('d/m/Y H:i')
-                    ->placeholder('—')
+                    ->placeholder(__('admin.promotion.fields.dash_placeholder'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('ends_at')
-                    ->label('Kết thúc')
+                    ->label(__('admin.promotion.fields.ends_at'))
                     ->dateTime('d/m/Y H:i')
-                    ->placeholder('—')
+                    ->placeholder(__('admin.promotion.fields.dash_placeholder'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('product_ids')
-                    ->label('SP')
+                    ->label(__('admin.promotion.fields.product_count_column'))
                     ->state(fn (Promotion $record): int => count($record->product_ids ?? []))
                     ->alignCenter(),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Bật')
+                    ->label(__('admin.promotion.fields.enabled_column'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('danger'),
 
                 Tables\Columns\TextColumn::make('sort_order')
-                    ->label('Order')
+                    ->label(__('admin.promotion.fields.sort_order_column'))
                     ->sortable()
                     ->alignCenter()
                     ->width('80px'),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Bật campaign'),
+                    ->label(__('admin.promotion.fields.is_active')),
             ])
             ->actions([
                 EditAction::make(),

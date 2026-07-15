@@ -40,20 +40,20 @@ class OrderInquiryResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Forms\Components\TextInput::make('name')->label('Tên khách')->disabled(),
-            Forms\Components\TextInput::make('phone')->label('SĐT')->disabled(),
-            Forms\Components\TextInput::make('email')->label('Email')->disabled(),
-            Forms\Components\TextInput::make('channel')->label('Kênh')->disabled()
+            Forms\Components\TextInput::make('name')->label(__('admin.order_inquiry.fields.customer_name'))->disabled(),
+            Forms\Components\TextInput::make('phone')->label(__('admin.order_inquiry.fields.phone'))->disabled(),
+            Forms\Components\TextInput::make('email')->label(__('admin.order_inquiry.fields.email'))->disabled(),
+            Forms\Components\TextInput::make('channel')->label(__('admin.order_inquiry.fields.channel'))->disabled()
                 ->formatStateUsing(fn ($state) => $state?->value ?? $state),
 
             Forms\Components\Textarea::make('message')
-                ->label('Nội dung đơn hàng')
+                ->label(__('admin.order_inquiry.fields.message_form'))
                 ->rows(8)
                 ->disabled()
                 ->columnSpanFull(),
 
             Forms\Components\Select::make('status')
-                ->label('Trạng thái')
+                ->label(__('admin.order_inquiry.fields.status'))
                 ->options([
                     'new' => 'Mới',
                     'contacted' => 'Đã liên hệ',
@@ -69,31 +69,31 @@ class OrderInquiryResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Thời gian')
+                    ->label(__('admin.order_inquiry.fields.created_at'))
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Tên khách')
+                    ->label(__('admin.order_inquiry.fields.customer_name'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('SĐT')
+                    ->label(__('admin.order_inquiry.fields.phone'))
                     ->searchable()
                     ->copyable(),
 
                 Tables\Columns\TextColumn::make('channel')
-                    ->label('Kênh')
+                    ->label(__('admin.order_inquiry.fields.channel'))
                     ->badge()
                     ->formatStateUsing(fn ($state) => $state?->value ?? $state),
 
                 Tables\Columns\TextColumn::make('message')
-                    ->label('Đơn hàng')
+                    ->label(__('admin.order_inquiry.fields.message_table'))
                     ->limit(50)
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Trạng thái')
+                    ->label(__('admin.order_inquiry.fields.status'))
                     ->badge()
                     ->formatStateUsing(fn ($state) => $state instanceof OrderInquiryStatus ? $state->label() : $state)
                     ->color(fn ($state) => $state instanceof OrderInquiryStatus ? $state->color() : 'gray'),
@@ -114,23 +114,23 @@ class OrderInquiryResource extends Resource
             ])
             ->actions([
                 Action::make('mark_contacted')
-                    ->label('Đã liên hệ')
+                    ->label(__('admin.order_inquiry.actions.mark_contacted'))
                     ->icon('heroicon-o-check')
                     ->color('info')
                     ->visible(fn (OrderInquiry $record): bool => $record->status === OrderInquiryStatus::New)
                     ->action(function (OrderInquiry $record): void {
                         $record->update(['status' => OrderInquiryStatus::Contacted]);
-                        Notification::make()->title('Đã đánh dấu liên hệ')->success()->send();
+                        Notification::make()->title(__('admin.order_inquiry.notifications.marked_contacted'))->success()->send();
                     }),
 
                 Action::make('mark_closed')
-                    ->label('Đóng')
+                    ->label(__('admin.order_inquiry.actions.mark_closed'))
                     ->icon('heroicon-o-x-circle')
                     ->color('gray')
                     ->visible(fn (OrderInquiry $record): bool => $record->status !== OrderInquiryStatus::Closed)
                     ->action(function (OrderInquiry $record): void {
                         $record->update(['status' => OrderInquiryStatus::Closed]);
-                        Notification::make()->title('Đã đóng yêu cầu')->success()->send();
+                        Notification::make()->title(__('admin.order_inquiry.notifications.marked_closed'))->success()->send();
                     }),
 
                 Tables\Actions\EditAction::make(),
