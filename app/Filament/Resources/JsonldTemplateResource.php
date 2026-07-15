@@ -10,7 +10,6 @@ use Filament\Actions\ViewAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -21,13 +20,19 @@ class JsonldTemplateResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-code-bracket';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'SEO & GEO';
-
     protected static ?int $navigationSort = 40;
 
-    protected static ?string $navigationLabel = 'JSON-LD Templates';
-
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.seo_geo');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.jsonld_template');
+    }
 
     // ── Form ──────────────────────────────────────────────────────────────────
 
@@ -110,7 +115,7 @@ class JsonldTemplateResource extends Resource
     {
         return [
             'index' => Pages\ListJsonldTemplates::route('/'),
-            'view'  => Pages\ViewJsonldTemplate::route('/{record}'),
+            'view' => Pages\ViewJsonldTemplate::route('/{record}'),
         ];
     }
 }

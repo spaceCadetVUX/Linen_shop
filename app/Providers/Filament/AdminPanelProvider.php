@@ -55,6 +55,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make(__('admin.nav.catalog')),
                 NavigationGroup::make(__('admin.nav.commerce')),
+                NavigationGroup::make(__('admin.nav.marketing')),
                 NavigationGroup::make(__('admin.nav.blog')),
                 NavigationGroup::make(__('admin.nav.content')),
                 NavigationGroup::make(__('admin.nav.seo_geo')),

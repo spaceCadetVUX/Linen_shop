@@ -47,9 +47,17 @@ class CategoryResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-tag';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 20;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.category');
+    }
 
     public static function getNavigationBadge(): ?string
     {

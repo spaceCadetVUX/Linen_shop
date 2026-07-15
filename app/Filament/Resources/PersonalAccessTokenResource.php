@@ -22,11 +22,17 @@ class PersonalAccessTokenResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-key';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'System';
-
-    protected static ?string $navigationLabel = 'API Tokens (MCP)';
-
     protected static ?int $navigationSort = 20;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.system');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.personal_access_token');
+    }
 
     public static function canAccess(): bool
     {
@@ -37,7 +43,7 @@ class PersonalAccessTokenResource extends Resource
     {
         return $form->schema([
             Forms\Components\Select::make('user_id')
-                ->label('User')
+                ->label(__('admin.personal_access_token.fields.user'))
                 ->options(
                     User::orderBy('name')->get()
                         ->mapWithKeys(fn ($u) => [
@@ -48,13 +54,13 @@ class PersonalAccessTokenResource extends Resource
                 ->required(),
 
             Forms\Components\TextInput::make('name')
-                ->label('Token name')
-                ->placeholder('e.g. claude-desktop-tung')
-                ->helperText('Dùng để phân biệt token của từng người / thiết bị')
+                ->label(__('admin.personal_access_token.fields.token_name'))
+                ->placeholder(__('admin.personal_access_token.fields.token_name_placeholder'))
+                ->helperText(__('admin.personal_access_token.fields.token_name_help'))
                 ->required(),
 
             Forms\Components\CheckboxList::make('abilities')
-                ->label('Abilities')
+                ->label(__('admin.personal_access_token.fields.abilities'))
                 ->options([
                     'mcp:read' => 'mcp:read — Đọc context (GET)',
                     'mcp:write' => 'mcp:write — Tạo/sửa draft (PUT)',
@@ -71,38 +77,38 @@ class PersonalAccessTokenResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Token name')
+                    ->label(__('admin.personal_access_token.fields.token_name'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('tokenable.name')
-                    ->label('User'),
+                    ->label(__('admin.personal_access_token.fields.user')),
 
                 Tables\Columns\TextColumn::make('abilities')
-                    ->label('Abilities')
+                    ->label(__('admin.personal_access_token.fields.abilities'))
                     ->badge()
                     ->separator(',')
                     ->getStateUsing(fn ($record) => implode(',', $record->abilities ?? [])),
 
                 Tables\Columns\TextColumn::make('last_used_at')
-                    ->label('Last used')
+                    ->label(__('admin.personal_access_token.fields.last_used'))
                     ->dateTime(timezone: 'Asia/Ho_Chi_Minh')
-                    ->placeholder('Never')
+                    ->placeholder(__('admin.personal_access_token.fields.never_placeholder'))
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('admin.personal_access_token.fields.created'))
                     ->dateTime(timezone: 'Asia/Ho_Chi_Minh')
                     ->sortable(),
             ])
             ->actions([
                 DeleteAction::make()
-                    ->label('Revoke')
+                    ->label(__('admin.personal_access_token.actions.revoke'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger'),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->label('Revoke selected'),
+                    DeleteBulkAction::make()->label(__('admin.personal_access_token.actions.revoke_selected')),
                 ]),
             ]);
     }

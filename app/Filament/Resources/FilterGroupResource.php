@@ -23,11 +23,17 @@ class FilterGroupResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-funnel';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 50;
 
-    protected static ?string $navigationLabel = 'Filter Groups';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.filter_group');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -44,35 +50,35 @@ class FilterGroupResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Filter Group')
+            Section::make(__('admin.filter_group.sections.filter_group'))
                 ->columns(2)
                 ->schema([
                     Forms\Components\TextInput::make('name')
-                        ->label('Tên (vi)')
+                        ->label(__('admin.filter_group.fields.name_vi'))
                         ->required(),
 
                     Forms\Components\TextInput::make('name_en')
-                        ->label('Name (en)'),
+                        ->label(__('admin.filter_group.fields.name_en')),
 
                     Forms\Components\Select::make('type')
-                        ->label('Loại')
+                        ->label(__('admin.filter_group.fields.type'))
                         ->options(FilterGroupType::options())
                         ->default(FilterGroupType::Text->value)
                         ->required()
                         ->live()
-                        ->helperText('Màu sắc: mỗi value có ô chọn màu, storefront hiển thị swatch thay vì chữ.'),
+                        ->helperText(__('admin.filter_group.fields.type_help')),
 
                     Forms\Components\Toggle::make('is_active')
-                        ->label('Active')
+                        ->label(__('admin.filter_group.fields.active'))
                         ->default(true),
 
                     Forms\Components\Toggle::make('is_variant_dimension')
-                        ->label('Dùng làm biến thể (Variant)')
-                        ->helperText('Bật nếu nhóm này (VD: Color, Size) dùng để sinh SKU/giá/tồn kho riêng ở tab Variants của sản phẩm.')
+                        ->label(__('admin.filter_group.fields.is_variant_dimension'))
+                        ->helperText(__('admin.filter_group.fields.is_variant_dimension_help'))
                         ->default(false),
                 ]),
 
-            Section::make('Values')
+            Section::make(__('admin.filter_group.sections.values'))
                 ->schema([
                     Forms\Components\Repeater::make('values')
                         ->relationship('values')
@@ -80,27 +86,27 @@ class FilterGroupResource extends Resource
                         ->columns(4)
                         ->schema([
                             Forms\Components\TextInput::make('name')
-                                ->label('Tên (vi)')
+                                ->label(__('admin.filter_group.fields.name_vi'))
                                 ->required(),
 
                             Forms\Components\TextInput::make('name_en')
-                                ->label('Name (en)'),
+                                ->label(__('admin.filter_group.fields.name_en')),
 
                             Forms\Components\ColorPicker::make('color_hex')
-                                ->label('Màu')
+                                ->label(__('admin.filter_group.fields.value_color'))
                                 ->visible(fn (Get $get) => self::isColorType($get('../../type')))
                                 ->required(fn (Get $get) => self::isColorType($get('../../type')))
                                 ->regex('/^#[0-9A-Fa-f]{6}$/')
-                                ->validationMessages(['regex' => 'Màu phải ở dạng #RRGGBB.']),
+                                ->validationMessages(['regex' => __('admin.filter_group.validation.color_regex')]),
 
                             Forms\Components\Toggle::make('is_active')
-                                ->label('Active')
+                                ->label(__('admin.filter_group.fields.active'))
                                 ->default(true)
                                 ->inline(false),
                         ])
                         ->orderColumn('sort_order')
                         ->defaultItems(0)
-                        ->addActionLabel('+ Add value')
+                        ->addActionLabel(__('admin.filter_group.actions.add_value'))
                         ->reorderableWithDragAndDrop()
                         ->collapsible(),
                 ]),
@@ -112,44 +118,44 @@ class FilterGroupResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Name (vi)')
+                    ->label(__('admin.filter_group.fields.name_vi_column'))
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('name_en')
-                    ->label('Name (en)')
+                    ->label(__('admin.filter_group.fields.name_en_column'))
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('type')
-                    ->label('Loại')
+                    ->label(__('admin.filter_group.fields.type_column'))
                     ->badge()
                     ->formatStateUsing(fn (FilterGroupType $state) => $state->label())
                     ->color(fn (FilterGroupType $state) => $state === FilterGroupType::Color ? 'info' : 'gray'),
 
                 Tables\Columns\TextColumn::make('values_count')
-                    ->label('Values')
+                    ->label(__('admin.filter_group.fields.values_count'))
                     ->counts('values')
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('admin.filter_group.fields.active_column'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('is_variant_dimension')
-                    ->label('Variant')
+                    ->label(__('admin.filter_group.fields.variant_column'))
                     ->boolean()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label(__('admin.filter_group.fields.updated'))
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])
             ->reorderable('sort_order')
             ->defaultSort('sort_order')
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')->label('Active'),
+                Tables\Filters\TernaryFilter::make('is_active')->label(__('admin.filter_group.fields.active')),
             ])
             ->actions([
                 EditAction::make(),

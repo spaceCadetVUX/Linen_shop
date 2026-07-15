@@ -20,11 +20,14 @@ class BlogSetting extends Page
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-newspaper';
 
-    protected static ?string $navigationLabel = 'Blog Page';
-
     protected static ?string $title = 'Blog Page Setting';
 
     protected string $view = 'filament.pages.blog-setting';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.blog_setting');
+    }
 
     public ?array $data = [];
 

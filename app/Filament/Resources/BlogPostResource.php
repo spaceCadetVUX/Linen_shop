@@ -38,9 +38,17 @@ class BlogPostResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Blog';
-
     protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.blog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.blog_post');
+    }
 
     public static function getNavigationBadge(): ?string
     {

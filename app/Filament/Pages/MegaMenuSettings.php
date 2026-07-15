@@ -19,13 +19,19 @@ class MegaMenuSettings extends Page
 {
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-bars-3-bottom-left';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Setting';
-
-    protected static ?string $navigationLabel = 'Mega Menu';
-
     protected static ?int $navigationSort = 25;
 
     protected string $view = 'filament.pages.mega-menu-settings';
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.setting');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.mega_menu_settings');
+    }
 
     public ?array $data = [];
 

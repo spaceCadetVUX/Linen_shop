@@ -20,13 +20,19 @@ class AnalyticsSettings extends Page
 {
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Setting';
-
-    protected static ?string $navigationLabel = 'Analytics & Search Console';
-
     protected static ?int $navigationSort = 30;
 
     protected string $view = 'filament.pages.analytics-settings';
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.setting');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.analytics_settings');
+    }
 
     public static function canAccess(): bool
     {

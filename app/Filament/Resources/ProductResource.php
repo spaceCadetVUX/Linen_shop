@@ -56,9 +56,17 @@ class ProductResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-cube';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.product');
+    }
 
     public static function form(Schema $schema): Schema
     {

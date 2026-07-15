@@ -27,9 +27,17 @@ class ManufacturerResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 40;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.manufacturer');
+    }
 
     public static function getNavigationBadge(): ?string
     {

@@ -5,16 +5,15 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\BlogTagResource\Pages;
 use App\Models\BlogTag;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
@@ -24,9 +23,17 @@ class BlogTagResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-hashtag';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Blog';
-
     protected static ?int $navigationSort = 30;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.blog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.blog_tag');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -39,8 +46,7 @@ class BlogTagResource extends Resource
             Forms\Components\TextInput::make('name')
                 ->required()
                 ->live(debounce: 500)
-                ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                    $set('slug', Str::slug($state ?? ''))
+                ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                 ),
 
             Forms\Components\TextInput::make('slug')
@@ -85,9 +91,9 @@ class BlogTagResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListBlogTags::route('/'),
+            'index' => Pages\ListBlogTags::route('/'),
             'create' => Pages\CreateBlogTag::route('/create'),
-            'edit'   => Pages\EditBlogTag::route('/{record}/edit'),
+            'edit' => Pages\EditBlogTag::route('/{record}/edit'),
         ];
     }
 }

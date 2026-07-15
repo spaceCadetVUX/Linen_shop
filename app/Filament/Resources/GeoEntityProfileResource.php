@@ -25,13 +25,19 @@ class GeoEntityProfileResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-cpu-chip';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'SEO & GEO';
-
     protected static ?int $navigationSort = 20;
 
-    protected static ?string $navigationLabel = 'GEO Profiles';
-
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.seo_geo');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.geo_entity_profile');
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -156,8 +162,7 @@ class GeoEntityProfileResource extends Resource
 
                 TextColumn::make('model_name')
                     ->label(__('admin.geo_entity_profile.fields.name_column'))
-                    ->state(fn (GeoEntityProfile $record): string =>
-                        (string) ($record->model?->getAttribute('name')
+                    ->state(fn (GeoEntityProfile $record): string => (string) ($record->model?->getAttribute('name')
                             ?? $record->model?->getAttribute('title')
                             ?? '—')
                     )
@@ -173,13 +178,13 @@ class GeoEntityProfileResource extends Resource
 
                 TextColumn::make('key_facts_count')
                     ->label(__('admin.geo_entity_profile.fields.key_facts_column'))
-                    ->state(fn (GeoEntityProfile $record): string => count($record->key_facts ?? []) . ' facts')
+                    ->state(fn (GeoEntityProfile $record): string => count($record->key_facts ?? []).' facts')
                     ->badge()
                     ->color(fn (GeoEntityProfile $record): string => count($record->key_facts ?? []) > 0 ? 'success' : 'gray'),
 
                 TextColumn::make('faq_count')
                     ->label(__('admin.geo_entity_profile.fields.faq_column'))
-                    ->state(fn (GeoEntityProfile $record): string => count($record->faq ?? []) . ' Q&A')
+                    ->state(fn (GeoEntityProfile $record): string => count($record->faq ?? []).' Q&A')
                     ->badge()
                     ->color(fn (GeoEntityProfile $record): string => count($record->faq ?? []) > 0 ? 'success' : 'gray'),
 
@@ -210,7 +215,7 @@ class GeoEntityProfileResource extends Resource
     {
         return [
             'index' => Pages\ListGeoEntityProfiles::route('/'),
-            'edit'  => Pages\EditGeoEntityProfile::route('/{record}/edit'),
+            'edit' => Pages\EditGeoEntityProfile::route('/{record}/edit'),
         ];
     }
 }

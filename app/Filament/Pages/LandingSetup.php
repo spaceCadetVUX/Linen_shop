@@ -23,9 +23,12 @@ class LandingSetup extends Page
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-home';
 
-    protected static ?string $navigationLabel = 'Landing Page';
-
     protected string $view = 'filament.pages.landing-setup';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.landing_setup');
+    }
 
     public ?array $data = [];
 

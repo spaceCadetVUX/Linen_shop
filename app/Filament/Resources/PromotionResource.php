@@ -26,11 +26,17 @@ class PromotionResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-megaphone';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Marketing';
-
-    protected static ?string $navigationLabel = 'Khuyến mãi';
-
     protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.marketing');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.promotion');
+    }
 
     public static function getNavigationBadge(): ?string
     {

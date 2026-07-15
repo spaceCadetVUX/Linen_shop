@@ -3,37 +3,49 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\MediaResource\Pages;
+use App\Models\BlogPostTranslation;
+use App\Models\CategoryTranslation;
 use App\Models\Media;
-use BackedEnum;
+use App\Models\ProductTranslation;
 use App\Services\Media\MediaUploadService;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
+use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Actions\BulkAction;
-use Filament\Tables;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\FontWeight;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\Layout\Panel;
 use Filament\Tables\Columns\Layout\Stack;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Filament\Support\Enums\FontWeight;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class MediaResource extends Resource
 {
     protected static ?string $model = Media::class;
 
-    protected static BackedEnum|string|null $navigationIcon  = 'heroicon-o-photo';
-    protected static ?string               $navigationLabel = 'Media Library';
-    protected static \UnitEnum|string|null $navigationGroup = 'Content';
-    protected static ?int                  $navigationSort  = 10;
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-photo';
+
+    protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.content');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.media');
+    }
 
     public static function table(Table $table): Table
     {
@@ -51,7 +63,7 @@ class MediaResource extends Resource
                         ->extraAttributes(['style' => 'display:block;width:100%;overflow:hidden;line-height:0;'])
                         ->extraImgAttributes([
                             'loading' => 'lazy',
-                            'style'   => 'width:100%;height:180px;object-fit:cover;display:block;',
+                            'style' => 'width:100%;height:180px;object-fit:cover;display:block;',
                         ])
                         ->defaultImageUrl(fn (Media $record): ?string => $record->isImage()
                             ? Storage::disk('public')->url($record->path)
@@ -63,81 +75,80 @@ class MediaResource extends Resource
                             ->state(fn (Media $record): string => $record->title ?: $record->original_name)
                             ->limit(24)
                             ->weight(FontWeight::Medium)
-                            ->alignment(\Filament\Support\Enums\Alignment::Center)
+                            ->alignment(Alignment::Center)
                             ->extraAttributes(['class' => 'truncate w-full text-center block'])
                             ->searchable(query: function (Builder $query, string $search): Builder {
                                 return $query->where(function (Builder $q) use ($search) {
                                     $q->where('title', 'like', "%{$search}%")
-                                      ->orWhere('original_name', 'like', "%{$search}%");
+                                        ->orWhere('original_name', 'like', "%{$search}%");
                                 });
                             }),
 
                         TextColumn::make('size')
                             ->formatStateUsing(fn (?int $state): string => $state
                                 ? ($state >= 1_048_576
-                                    ? number_format($state / 1_048_576, 1) . ' MB'
-                                    : number_format($state / 1024, 1) . ' KB')
+                                    ? number_format($state / 1_048_576, 1).' MB'
+                                    : number_format($state / 1024, 1).' KB')
                                 : '—'
                             )
-                            ->alignment(\Filament\Support\Enums\Alignment::Center)
+                            ->alignment(Alignment::Center)
                             ->color('gray'),
                     ])->extraAttributes(['class' => 'px-3 py-2 space-y-0.5 text-center overflow-hidden']),
                 ])->extraAttributes(['class' => 'h-full']),
             ])
             ->filters([
                 SelectFilter::make('type')
-                    ->label('Loại file')
+                    ->label(__('admin.media.fields.file_type'))
                     ->options([
-                        'image'    => 'Hình ảnh',
-                        'video'    => 'Video',
+                        'image' => 'Hình ảnh',
+                        'video' => 'Video',
                         'document' => 'Tài liệu',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['value'] ?? null) {
-                            'image'    => $query->where('mime_type', 'like', 'image/%'),
-                            'video'    => $query->where('mime_type', 'like', 'video/%'),
+                            'image' => $query->where('mime_type', 'like', 'image/%'),
+                            'video' => $query->where('mime_type', 'like', 'video/%'),
                             'document' => $query->where('mime_type', 'not like', 'image/%')
-                                               ->where('mime_type', 'not like', 'video/%'),
-                            default    => $query,
+                                ->where('mime_type', 'not like', 'video/%'),
+                            default => $query,
                         };
                     }),
             ])
             ->actions([
                 // Copy URL — opens modal with readonly URL input for easy copy
                 Action::make('copyLink')
-                    ->label('Copy link')
+                    ->label(__('admin.media.actions.copy_link'))
                     ->icon('heroicon-o-link')
                     ->color('gray')
                     ->fillForm(fn (Media $record): array => ['url' => $record->url])
                     ->form([
                         TextInput::make('url')
-                            ->label('URL')
+                            ->label(__('admin.media.fields.url'))
                             ->readOnly()
                             ->extraInputAttributes([
-                                'x-ref'         => 'urlInput',
-                                'x-on:click'    => 'navigator.clipboard.writeText($el.value)',
+                                'x-ref' => 'urlInput',
+                                'x-on:click' => 'navigator.clipboard.writeText($el.value)',
                             ])
-                            ->helperText('Click vào URL để copy'),
+                            ->helperText(__('admin.media.fields.url_help')),
                     ])
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Đóng'),
+                    ->modalCancelActionLabel(__('admin.media.actions.close')),
 
                 // Delete — check usage before removing from disk
                 Action::make('delete')
-                    ->label('Xóa')
+                    ->label(__('admin.media.actions.delete'))
                     ->icon('heroicon-o-trash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->modalHeading('Xóa file')
-                    ->modalDescription(fn (Media $record): string =>
-                        "Xóa \"{$record->original_name}\"? Hành động này không thể hoàn tác."
+                    ->modalHeading(__('admin.media.actions.delete_modal_heading'))
+                    ->modalDescription(fn (Media $record): string => __('admin.media.actions.delete_modal_description', ['name' => $record->original_name])
                     )
                     ->action(function (Media $record): void {
                         if (static::isInUse($record)) {
                             Notification::make()
                                 ->danger()
-                                ->title('Không thể xóa')
-                                ->body('File đang được sử dụng trong nội dung. Vui lòng xóa khỏi nội dung trước.')
+                                ->title(__('admin.media.notifications.cannot_delete_title'))
+                                ->body(__('admin.media.notifications.cannot_delete_body'))
                                 ->persistent()
                                 ->send();
 
@@ -154,28 +165,28 @@ class MediaResource extends Resource
 
                         Notification::make()
                             ->success()
-                            ->title('Đã xóa file')
+                            ->title(__('admin.media.notifications.deleted'))
                             ->send();
                     }),
             ])
             ->headerActions([
                 // Upload new files through MediaUploadService (hash dedup)
                 Action::make('upload')
-                    ->label('Upload')
+                    ->label(__('admin.media.actions.upload'))
                     ->icon('heroicon-o-arrow-up-tray')
                     ->form([
                         FileUpload::make('files')
-                            ->label('Chọn file')
+                            ->label(__('admin.media.fields.choose_file'))
                             ->multiple()
                             ->storeFiles(false)
                             ->acceptedFileTypes(['image/*', 'video/*', 'application/pdf'])
                             ->maxSize(20480)
-                            ->helperText('Tối đa 20MB/file. Chấp nhận: hình ảnh, video, PDF.')
+                            ->helperText(__('admin.media.fields.choose_file_help'))
                             ->required(),
                     ])
                     ->action(function (array $data): void {
                         $service = app(MediaUploadService::class);
-                        $count   = 0;
+                        $count = 0;
 
                         foreach (Arr::wrap($data['files']) as $file) {
                             if ($file instanceof TemporaryUploadedFile) {
@@ -186,23 +197,24 @@ class MediaResource extends Resource
 
                         Notification::make()
                             ->success()
-                            ->title("Upload thành công {$count} file")
+                            ->title(__('admin.media.notifications.upload_success', ['count' => $count]))
                             ->send();
                     }),
             ])
             ->bulkActions([
                 BulkAction::make('deleteSelected')
-                    ->label('Xóa đã chọn')
+                    ->label(__('admin.media.actions.delete_selected'))
                     ->icon('heroicon-o-trash')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->action(function (\Illuminate\Support\Collection $records): void {
+                    ->action(function (Collection $records): void {
                         $blocked = 0;
                         $deleted = 0;
 
                         foreach ($records as $record) {
                             if (static::isInUse($record)) {
                                 $blocked++;
+
                                 continue;
                             }
 
@@ -215,10 +227,10 @@ class MediaResource extends Resource
                         }
 
                         if ($deleted > 0) {
-                            Notification::make()->success()->title("Đã xóa {$deleted} file")->send();
+                            Notification::make()->success()->title(__('admin.media.notifications.deleted_count', ['count' => $deleted]))->send();
                         }
                         if ($blocked > 0) {
-                            Notification::make()->warning()->title("{$blocked} file đang được dùng, không thể xóa")->send();
+                            Notification::make()->warning()->title(__('admin.media.notifications.blocked_count', ['count' => $blocked]))->send();
                         }
                     })
                     ->deselectRecordsAfterCompletion(),
@@ -240,8 +252,8 @@ class MediaResource extends Resource
     {
         $path = $record->path;
 
-        return \App\Models\BlogPostTranslation::where('body', 'like', "%{$path}%")->exists()
-            || \App\Models\CategoryTranslation::where('rich_content', 'like', "%{$path}%")->exists()
-            || \App\Models\ProductTranslation::where('description', 'like', "%{$path}%")->exists();
+        return BlogPostTranslation::where('body', 'like', "%{$path}%")->exists()
+            || CategoryTranslation::where('rich_content', 'like', "%{$path}%")->exists()
+            || ProductTranslation::where('description', 'like', "%{$path}%")->exists();
     }
 }

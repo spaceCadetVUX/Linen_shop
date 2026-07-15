@@ -23,13 +23,19 @@ class JsonldSchemaResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-code-bracket';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'SEO & GEO';
-
     protected static ?int $navigationSort = 30;
 
-    protected static ?string $navigationLabel = 'JSON-LD Schemas';
-
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.seo_geo');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.jsonld_schema');
+    }
 
     // ── Form ──────────────────────────────────────────────────────────────────
 
@@ -165,7 +171,7 @@ class JsonldSchemaResource extends Resource
     {
         return [
             'index' => Pages\ListJsonldSchemas::route('/'),
-            'edit'  => Pages\EditJsonldSchema::route('/{record}/edit'),
+            'edit' => Pages\EditJsonldSchema::route('/{record}/edit'),
         ];
     }
 }

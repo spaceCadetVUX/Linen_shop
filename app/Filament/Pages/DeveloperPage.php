@@ -18,13 +18,19 @@ class DeveloperPage extends Page
 {
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-code-bracket';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'System';
-
-    protected static ?string $navigationLabel = 'Developer';
-
     protected static ?int $navigationSort = 40;
 
     protected string $view = 'filament.pages.developer';
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.system');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.developer_page');
+    }
 
     public static function canAccess(): bool
     {

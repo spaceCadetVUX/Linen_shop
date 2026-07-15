@@ -6,15 +6,15 @@ use App\Filament\Resources\AuthorResource\Pages;
 use App\Models\Author;
 use App\Models\User;
 use BackedEnum;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 
@@ -24,21 +24,29 @@ class AuthorResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-user-circle';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Blog';
-
     protected static ?int $navigationSort = 40;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.blog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.author');
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
 
             // ── Identity ──────────────────────────────────────────────────────
-            Section::make('Identity')
-                ->description('Basic author information shown on the blog and used in JSON-LD Person schema.')
+            Section::make(__('admin.author.sections.identity'))
+                ->description(__('admin.author.sections.identity_desc'))
                 ->icon('heroicon-o-user')
                 ->schema([
                     Forms\Components\FileUpload::make('avatar')
-                        ->label('Profile Photo')
+                        ->label(__('admin.author.fields.profile_photo'))
                         ->disk('public')
                         ->directory('authors')
                         ->image()
@@ -50,8 +58,7 @@ class AuthorResource extends Resource
                     Forms\Components\TextInput::make('name')
                         ->required()
                         ->live(debounce: 500)
-                        ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                            $set('slug', Str::slug($state ?? ''))
+                        ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                         )
                         ->columnSpan(2),
 
@@ -59,82 +66,82 @@ class AuthorResource extends Resource
                         ->required()
                         ->unique(table: Author::class, column: 'slug', ignoreRecord: true)
                         ->rules(['regex:/^[a-z0-9]+(-[a-z0-9]+)*$/'])
-                        ->helperText('URL: /authors/{slug}')
+                        ->helperText(__('admin.author.fields.slug_help'))
                         ->columnSpan(1),
 
                     Forms\Components\TextInput::make('title')
-                        ->label('Job Title')
-                        ->placeholder('e.g. Senior Editor, KNX Systems Engineer')
-                        ->helperText('Shown on author page and in JSON-LD jobTitle')
+                        ->label(__('admin.author.fields.job_title'))
+                        ->placeholder(__('admin.author.fields.job_title_placeholder'))
+                        ->helperText(__('admin.author.fields.job_title_help'))
                         ->columnSpan(2),
                 ])
                 ->columns(3),
 
             // ── Bio ───────────────────────────────────────────────────────────
-            Section::make('Bio')
+            Section::make(__('admin.author.sections.bio'))
                 ->icon('heroicon-o-document-text')
                 ->schema([
                     Forms\Components\Textarea::make('bio')
-                        ->label('Short Bio')
+                        ->label(__('admin.author.fields.short_bio'))
                         ->rows(4)
-                        ->helperText('Displayed on the author page. Injected into Article JSON-LD as author description.')
+                        ->helperText(__('admin.author.fields.short_bio_help'))
                         ->columnSpanFull(),
 
                     Forms\Components\TagsInput::make('expertise')
-                        ->label('Areas of Expertise')
-                        ->placeholder('Add topic and press Enter')
-                        ->helperText('e.g. Smart Home, KNX, DALI, IoT — helps Google understand author authority')
+                        ->label(__('admin.author.fields.expertise'))
+                        ->placeholder(__('admin.author.fields.expertise_placeholder'))
+                        ->helperText(__('admin.author.fields.expertise_help'))
                         ->columnSpanFull(),
                 ]),
 
             // ── Social presence ───────────────────────────────────────────────
-            Section::make('Social & Web Presence')
-                ->description('These URLs are used in JSON-LD Person.sameAs — helps Google link this author to their verified identity.')
+            Section::make(__('admin.author.sections.social'))
+                ->description(__('admin.author.sections.social_desc'))
                 ->icon('heroicon-o-globe-alt')
                 ->schema([
                     Forms\Components\TextInput::make('website')
-                        ->label('Personal Website')
+                        ->label(__('admin.author.fields.website'))
                         ->url()
-                        ->placeholder('https://...')
+                        ->placeholder(__('admin.author.fields.website_placeholder'))
                         ->prefixIcon('heroicon-o-globe-alt'),
 
                     Forms\Components\TextInput::make('linkedin')
-                        ->label('LinkedIn')
+                        ->label(__('admin.author.fields.linkedin'))
                         ->url()
-                        ->placeholder('https://linkedin.com/in/...')
+                        ->placeholder(__('admin.author.fields.linkedin_placeholder'))
                         ->prefixIcon('heroicon-o-link'),
 
                     Forms\Components\TextInput::make('twitter')
-                        ->label('X / Twitter')
+                        ->label(__('admin.author.fields.twitter'))
                         ->url()
-                        ->placeholder('https://x.com/...')
+                        ->placeholder(__('admin.author.fields.twitter_placeholder'))
                         ->prefixIcon('heroicon-o-at-symbol'),
 
                     Forms\Components\TextInput::make('facebook')
-                        ->label('Facebook')
+                        ->label(__('admin.author.fields.facebook'))
                         ->url()
-                        ->placeholder('https://facebook.com/...')
+                        ->placeholder(__('admin.author.fields.facebook_placeholder'))
                         ->prefixIcon('heroicon-o-link'),
                 ])
                 ->columns(2),
 
             // ── Account link ──────────────────────────────────────────────────
-            Section::make('Admin Account')
-                ->description('Optional — link this author profile to an admin user account. Guest authors (external contributors) do not need an account.')
+            Section::make(__('admin.author.sections.admin_account'))
+                ->description(__('admin.author.sections.admin_account_desc'))
                 ->icon('heroicon-o-key')
                 ->schema([
                     Forms\Components\Select::make('user_id')
-                        ->label('Linked Account')
+                        ->label(__('admin.author.fields.linked_account'))
                         ->options(User::query()->pluck('name', 'id'))
                         ->searchable()
                         ->nullable()
                         ->native(false)
-                        ->placeholder('— Guest author (no account) —'),
+                        ->placeholder(__('admin.author.fields.linked_account_placeholder')),
 
                     Forms\Components\Toggle::make('is_active')
-                        ->label('Active')
+                        ->label(__('admin.author.fields.active'))
                         ->default(true)
-                        ->helperText('Inactive authors are hidden from the storefront'),
+                        ->helperText(__('admin.author.fields.active_help')),
                 ])
                 ->columns(2),
         ]);
@@ -157,29 +164,29 @@ class AuthorResource extends Resource
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Job Title')
+                    ->label(__('admin.author.fields.job_title_column'))
                     ->searchable()
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('blog_posts_count')
-                    ->label('Posts')
+                    ->label(__('admin.author.fields.posts'))
                     ->counts('blogPosts')
                     ->sortable()
                     ->badge()
                     ->color('info'),
 
                 Tables\Columns\IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('admin.author.fields.active'))
                     ->boolean(),
 
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Updated')
+                    ->label(__('admin.author.fields.updated'))
                     ->dateTime('d M Y')
                     ->sortable()
                     ->color('gray'),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')->label('Active'),
+                Tables\Filters\TernaryFilter::make('is_active')->label(__('admin.author.fields.active')),
             ])
             ->recordActions([
                 EditAction::make(),
@@ -193,9 +200,9 @@ class AuthorResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListAuthors::route('/'),
+            'index' => Pages\ListAuthors::route('/'),
             'create' => Pages\CreateAuthor::route('/create'),
-            'edit'   => Pages\EditAuthor::route('/{record}/edit'),
+            'edit' => Pages\EditAuthor::route('/{record}/edit'),
         ];
     }
 }

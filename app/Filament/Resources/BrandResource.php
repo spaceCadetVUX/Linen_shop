@@ -31,9 +31,17 @@ class BrandResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-bookmark-square';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 30;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.brand');
+    }
 
     public static function getNavigationBadge(): ?string
     {

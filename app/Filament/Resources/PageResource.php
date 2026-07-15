@@ -29,18 +29,26 @@ class PageResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Content';
-
     protected static ?int $navigationSort = 20;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.content');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.page');
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
             Forms\Components\TextInput::make('page_key')
-                ->label('Page Key')
+                ->label(__('admin.page.fields.page_key'))
                 ->required()
                 ->unique(table: Page::class, column: 'page_key', ignoreRecord: true)
-                ->helperText('Internal identifier — e.g. privacy-policy, terms, faq. Not shown publicly.')
+                ->helperText(__('admin.page.fields.page_key_help'))
                 ->columnSpan(1),
 
             Forms\Components\Toggle::make('is_active')
@@ -50,7 +58,7 @@ class PageResource extends Resource
             Tabs::make('Tabs')
                 ->tabs([
 
-                    Tab::make('🇻🇳 Tiếng Việt')
+                    Tab::make(__('admin.page.tabs.locale_vi'))
                         ->schema([
                             Group::make()
                                 ->relationship('translationVi')
@@ -59,14 +67,14 @@ class PageResource extends Resource
                                 )
                                 ->schema([
                                     Forms\Components\TextInput::make('title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Tiêu đề (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.page.fields.title_vi').'</span>'))
                                         ->required()
                                         ->live(onBlur: true)
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('slug', Str::slug($state ?? '')))
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('slug')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Slug (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.page.fields.slug_vi').'</span>'))
                                         ->required()
                                         ->unique(
                                             table: PageTranslation::class,
@@ -77,23 +85,23 @@ class PageResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\RichEditor::make('body')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Nội dung (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.page.fields.body_vi').'</span>'))
                                         ->plugins([MediaRichEditorPlugin::make()])
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('meta_title')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Title (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.page.fields.meta_title_vi').'</span>'))
                                         ->columnSpanFull(),
 
                                     Forms\Components\Textarea::make('meta_description')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Meta Description (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.page.fields.meta_description_vi').'</span>'))
                                         ->rows(2)
                                         ->columnSpanFull(),
                                 ])
                                 ->columns(2),
                         ]),
 
-                    Tab::make('🇬🇧 English')
+                    Tab::make(__('admin.page.tabs.locale_en'))
                         ->schema([
                             Group::make()
                                 ->relationship('translationEn')
@@ -102,14 +110,14 @@ class PageResource extends Resource
                                 )
                                 ->schema([
                                     Forms\Components\TextInput::make('title')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Title (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.page.fields.title_en').'</span>'))
                                         ->required()
                                         ->live(onBlur: true)
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('slug', Str::slug($state ?? '')))
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('slug')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Slug (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.page.fields.slug_en').'</span>'))
                                         ->required()
                                         ->unique(
                                             table: PageTranslation::class,
@@ -120,16 +128,16 @@ class PageResource extends Resource
                                         ->columnSpanFull(),
 
                                     Forms\Components\RichEditor::make('body')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Body (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.page.fields.body_en').'</span>'))
                                         ->plugins([MediaRichEditorPlugin::make()])
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('meta_title')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Title (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.page.fields.meta_title_en').'</span>'))
                                         ->columnSpanFull(),
 
                                     Forms\Components\Textarea::make('meta_description')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Meta Description (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.page.fields.meta_description_en').'</span>'))
                                         ->rows(2)
                                         ->columnSpanFull(),
                                 ])
@@ -149,14 +157,14 @@ class PageResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('translationVi.title')
-                    ->label('Title (vi)')
+                    ->label(__('admin.page.fields.title_vi_column'))
                     ->color('success')
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.page.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('translationEn.title')
-                    ->label('Title (en)')
+                    ->label(__('admin.page.fields.title_en_column'))
                     ->color('info')
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.page.fields.dash_placeholder')),
 
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
@@ -169,7 +177,7 @@ class PageResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.page.fields.active')),
             ])
             ->actions([
                 EditAction::make(),
@@ -185,9 +193,9 @@ class PageResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListPages::route('/'),
+            'index' => Pages\ListPages::route('/'),
             'create' => Pages\CreatePage::route('/create'),
-            'edit'   => Pages\EditPage::route('/{record}/edit'),
+            'edit' => Pages\EditPage::route('/{record}/edit'),
         ];
     }
 }

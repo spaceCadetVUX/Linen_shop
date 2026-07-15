@@ -25,11 +25,17 @@ class RedirectResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'SEO & GEO';
-
     protected static ?int $navigationSort = 70;
 
-    protected static ?string $navigationLabel = 'Redirects';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.seo_geo');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.redirect');
+    }
 
     // ── Form ──────────────────────────────────────────────────────────────────
 
@@ -38,22 +44,22 @@ class RedirectResource extends Resource
         return $schema->schema([
 
             Forms\Components\TextInput::make('from_path')
-                ->label('From Path')
+                ->label(__('admin.redirect.fields.from_path'))
                 ->required()
-                ->placeholder('/old-slug')
+                ->placeholder(__('admin.redirect.fields.from_path_placeholder'))
                 ->unique(table: Redirect::class, column: 'from_path', ignoreRecord: true)
                 ->rules(['regex:/^\//'])
-                ->validationMessages(['regex' => 'The from path must start with /.'])
-                ->helperText('Must start with /. This is the path being redirected away from.'),
+                ->validationMessages(['regex' => __('admin.redirect.validation.from_path_regex')])
+                ->helperText(__('admin.redirect.fields.from_path_help')),
 
             Forms\Components\TextInput::make('to_path')
-                ->label('To Path')
+                ->label(__('admin.redirect.fields.to_path'))
                 ->required()
-                ->placeholder('/products/new-slug')
-                ->helperText('Destination path or full URL.'),
+                ->placeholder(__('admin.redirect.fields.to_path_placeholder'))
+                ->helperText(__('admin.redirect.fields.to_path_help')),
 
             Forms\Components\Select::make('type')
-                ->label('Redirect Type')
+                ->label(__('admin.redirect.fields.type'))
                 ->options([
                     RedirectType::Permanent->value => '301 — Permanent',
                     RedirectType::Temporary->value => '302 — Temporary',
@@ -62,17 +68,17 @@ class RedirectResource extends Resource
                 ->required(),
 
             Forms\Components\Select::make('locale')
-                ->label('Locale')
+                ->label(__('admin.redirect.fields.locale'))
                 ->options([
                     'vi' => '🇻🇳 Tiếng Việt (vi)',
                     'en' => '🇬🇧 English (en)',
                 ])
-                ->placeholder('— All locales —')
+                ->placeholder(__('admin.redirect.fields.locale_placeholder'))
                 ->nullable()
-                ->helperText('Để trống = match mọi locale. Chọn để giới hạn theo ngôn ngữ cụ thể.'),
+                ->helperText(__('admin.redirect.fields.locale_help')),
 
             Forms\Components\Toggle::make('is_active')
-                ->label('Active')
+                ->label(__('admin.redirect.fields.active'))
                 ->default(true)
                 ->columnSpanFull(),
 
@@ -87,42 +93,42 @@ class RedirectResource extends Resource
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('from_path')
-                    ->label('From')
+                    ->label(__('admin.redirect.fields.from_column'))
                     ->searchable()
                     ->copyable()
                     ->copyMessage('Path copied'),
 
                 TextColumn::make('to_path')
-                    ->label('To')
+                    ->label(__('admin.redirect.fields.to_column'))
                     ->searchable()
                     ->limit(60),
 
                 TextColumn::make('locale')
-                    ->label('Locale')
+                    ->label(__('admin.redirect.fields.locale_column'))
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => $state ?? 'all')
                     ->color(fn (?string $state): string => match ($state) {
-                        'vi'  => 'success',
-                        'en'  => 'info',
+                        'vi' => 'success',
+                        'en' => 'info',
                         default => 'gray',
                     }),
 
                 TextColumn::make('type')
-                    ->label('Type')
+                    ->label(__('admin.redirect.fields.type_column'))
                     ->badge()
-                    ->formatStateUsing(fn (RedirectType $state): string => $state->value . ' ' . ($state === RedirectType::Permanent ? 'Permanent' : 'Temporary'))
+                    ->formatStateUsing(fn (RedirectType $state): string => $state->value.' '.($state === RedirectType::Permanent ? 'Permanent' : 'Temporary'))
                     ->color(fn (RedirectType $state): string => match ($state) {
                         RedirectType::Permanent => 'warning',
                         RedirectType::Temporary => 'info',
                     }),
 
                 TextColumn::make('hits')
-                    ->label('Hits')
+                    ->label(__('admin.redirect.fields.hits'))
                     ->numeric()
                     ->sortable(),
 
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('admin.redirect.fields.active'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('danger'),
@@ -133,14 +139,14 @@ class RedirectResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.redirect.fields.active')),
 
                 Tables\Filters\SelectFilter::make('locale')
                     ->options([
                         'vi' => '🇻🇳 vi',
                         'en' => '🇬🇧 en',
                     ])
-                    ->placeholder('All locales'),
+                    ->placeholder(__('admin.redirect.fields.locale_filter_placeholder')),
 
                 Tables\Filters\SelectFilter::make('type')
                     ->options([
@@ -155,7 +161,7 @@ class RedirectResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('toggleActive')
-                        ->label('Toggle active')
+                        ->label(__('admin.redirect.actions.toggle_active'))
                         ->icon('heroicon-o-arrow-path')
                         ->color('warning')
                         ->action(function ($records): void {
@@ -174,9 +180,9 @@ class RedirectResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListRedirects::route('/'),
+            'index' => Pages\ListRedirects::route('/'),
             'create' => Pages\CreateRedirect::route('/create'),
-            'edit'   => Pages\EditRedirect::route('/{record}/edit'),
+            'edit' => Pages\EditRedirect::route('/{record}/edit'),
         ];
     }
 }

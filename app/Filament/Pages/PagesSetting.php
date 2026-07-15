@@ -15,15 +15,21 @@ class PagesSetting extends Page
 {
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-group';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Setting';
-
-    protected static ?string $navigationLabel = 'Pages Setting';
-
     protected static ?string $title = 'Pages Setting';
 
     protected static ?int $navigationSort = 20;
 
     protected string $view = 'filament.pages.pages-setting';
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.setting');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.pages_setting');
+    }
 
     /**
      * @return array<int, array{label: string, description: string, icon: string, url: string, newTab?: bool}>

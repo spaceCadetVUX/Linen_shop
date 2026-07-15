@@ -26,11 +26,17 @@ class ActivityLogResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'System';
-
     protected static ?int $navigationSort = 30;
 
-    protected static ?string $navigationLabel = 'Activity Log';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.system');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.activity_log');
+    }
 
     public static function canAccess(): bool
     {
@@ -51,14 +57,14 @@ class ActivityLogResource extends Resource
             ->paginationPageOptions([25, 50, 100])
             ->columns([
                 TextColumn::make('log_name')
-                    ->label('Log')
+                    ->label(__('admin.activity_log.fields.log'))
                     ->badge()
                     ->color('primary')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('description')
-                    ->label('Event')
+                    ->label(__('admin.activity_log.fields.event'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'created' => 'success',
@@ -69,7 +75,7 @@ class ActivityLogResource extends Resource
                     ->searchable(),
 
                 TextColumn::make('subject_type')
-                    ->label('Subject')
+                    ->label(__('admin.activity_log.fields.subject'))
                     ->formatStateUsing(fn (?string $state): string => $state
                         ? class_basename($state)
                         : '—'
@@ -77,18 +83,18 @@ class ActivityLogResource extends Resource
                     ->color('gray'),
 
                 TextColumn::make('causer.name')
-                    ->label('By')
-                    ->placeholder('System')
+                    ->label(__('admin.activity_log.fields.by'))
+                    ->placeholder(__('admin.activity_log.fields.by_placeholder'))
                     ->searchable(),
 
                 TextColumn::make('created_at')
-                    ->label('When')
+                    ->label(__('admin.activity_log.fields.when'))
                     ->dateTime()
                     ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('log_name')
-                    ->label('Log Channel')
+                    ->label(__('admin.activity_log.fields.log_channel'))
                     ->options(fn (): array => Activity::query()
                         ->distinct()
                         ->pluck('log_name', 'log_name')
@@ -97,12 +103,12 @@ class ActivityLogResource extends Resource
                     ),
 
                 Filter::make('created_at')
-                    ->label('Date Range')
+                    ->label(__('admin.activity_log.fields.date_range'))
                     ->form([
                         DatePicker::make('from')
-                            ->label('From'),
+                            ->label(__('admin.activity_log.fields.from')),
                         DatePicker::make('until')
-                            ->label('Until'),
+                            ->label(__('admin.activity_log.fields.until')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -116,38 +122,38 @@ class ActivityLogResource extends Resource
             ])
             ->actions([
                 ViewAction::make()
-                    ->modalHeading('Activity Detail')
+                    ->modalHeading(__('admin.activity_log.actions.activity_detail_modal_heading'))
                     ->infolist(fn (Schema $schema): Schema => $schema->schema([
-                        Section::make('Info')->schema([
-                            TextEntry::make('log_name')->label('Log')->badge()->color('primary'),
-                            TextEntry::make('description')->label('Event')->badge()
+                        Section::make(__('admin.activity_log.sections.info'))->schema([
+                            TextEntry::make('log_name')->label(__('admin.activity_log.fields.log'))->badge()->color('primary'),
+                            TextEntry::make('description')->label(__('admin.activity_log.fields.event'))->badge()
                                 ->color(fn (string $state): string => match ($state) {
                                     'created' => 'success',
                                     'updated' => 'warning',
                                     'deleted' => 'danger',
                                     default => 'gray',
                                 }),
-                            TextEntry::make('subject_type')->label('Subject')
+                            TextEntry::make('subject_type')->label(__('admin.activity_log.fields.subject'))
                                 ->formatStateUsing(fn (?string $state): string => $state ? class_basename($state) : '—'),
-                            TextEntry::make('causer.name')->label('By')->placeholder('System'),
-                            TextEntry::make('created_at')->label('When')->dateTime(),
+                            TextEntry::make('causer.name')->label(__('admin.activity_log.fields.by'))->placeholder(__('admin.activity_log.fields.by_placeholder')),
+                            TextEntry::make('created_at')->label(__('admin.activity_log.fields.when'))->dateTime(),
                         ])->columns(3),
 
-                        Section::make('Old values')
+                        Section::make(__('admin.activity_log.sections.old_values'))
                             ->schema([
-                                KeyValueEntry::make('attribute_changes.old')->label('')->placeholder('—'),
+                                KeyValueEntry::make('attribute_changes.old')->label('')->placeholder(__('admin.activity_log.fields.dash_placeholder')),
                             ])
                             ->visible(fn (Activity $record): bool => filled($record->attribute_changes['old'] ?? null)),
 
-                        Section::make('New values')
+                        Section::make(__('admin.activity_log.sections.new_values'))
                             ->schema([
-                                KeyValueEntry::make('attribute_changes.attributes')->label('')->placeholder('—'),
+                                KeyValueEntry::make('attribute_changes.attributes')->label('')->placeholder(__('admin.activity_log.fields.dash_placeholder')),
                             ])
                             ->visible(fn (Activity $record): bool => filled($record->attribute_changes['attributes'] ?? null)),
                     ])),
             ])
             ->bulkActions([
-                DeleteBulkAction::make()->label('Xóa đã chọn'),
+                DeleteBulkAction::make()->label(__('admin.activity_log.actions.delete_selected')),
             ]);
     }
 

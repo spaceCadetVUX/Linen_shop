@@ -28,13 +28,19 @@ class LlmsDocumentResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'SEO & GEO';
-
     protected static ?int $navigationSort = 60;
 
-    protected static ?string $navigationLabel = 'LLMs Documents';
-
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.seo_geo');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.llms_document');
+    }
 
     // ── Infolist ──────────────────────────────────────────────────────────────
 
@@ -56,7 +62,7 @@ class LlmsDocumentResource extends Resource
                         ->formatStateUsing(fn (LlmsScope $state): string => ucfirst($state->value))
                         ->color(fn (LlmsScope $state): string => match ($state) {
                             LlmsScope::Index => 'primary',
-                            LlmsScope::Full  => 'info',
+                            LlmsScope::Full => 'info',
                         }),
 
                     TextEntry::make('model_type')
@@ -122,7 +128,7 @@ class LlmsDocumentResource extends Resource
                     ->formatStateUsing(fn (LlmsScope $state): string => ucfirst($state->value))
                     ->color(fn (LlmsScope $state): string => match ($state) {
                         LlmsScope::Index => 'primary',
-                        LlmsScope::Full  => 'info',
+                        LlmsScope::Full => 'info',
                     }),
 
                 TextColumn::make('model_type')
@@ -155,7 +161,7 @@ class LlmsDocumentResource extends Resource
                 Tables\Filters\SelectFilter::make('scope')
                     ->options([
                         LlmsScope::Index->value => 'Index',
-                        LlmsScope::Full->value  => 'Full',
+                        LlmsScope::Full->value => 'Full',
                     ]),
             ])
             ->actions([
@@ -172,7 +178,7 @@ class LlmsDocumentResource extends Resource
                         $service->generateDocument($record);
 
                         Notification::make()
-                            ->title(__('admin.llms_document.notifications.regenerated', ['file' => $record->slug . '.txt']))
+                            ->title(__('admin.llms_document.notifications.regenerated', ['file' => $record->slug.'.txt']))
                             ->success()
                             ->send();
                     }),
@@ -202,7 +208,7 @@ class LlmsDocumentResource extends Resource
     {
         return [
             'index' => Pages\ListLlmsDocuments::route('/'),
-            'view'  => Pages\ViewLlmsDocument::route('/{record}'),
+            'view' => Pages\ViewLlmsDocument::route('/{record}'),
         ];
     }
 }

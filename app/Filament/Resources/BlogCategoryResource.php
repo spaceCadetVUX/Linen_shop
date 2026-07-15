@@ -4,14 +4,23 @@ namespace App\Filament\Resources;
 
 use App\Enums\OgType;
 use App\Filament\Resources\BlogCategoryResource\Pages;
-use App\Models\BlogCategory;
 use App\Forms\Components\MediaFileUpload;
 use App\Forms\Plugins\MediaRichEditorPlugin;
+use App\Models\BlogCategory;
+use App\Services\Seo\JsonldService;
 use App\Support\LocaleUrl;
-use Filament\Forms\Components\RichEditor;
 use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\RichEditor;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
@@ -19,14 +28,7 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Actions\BulkAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Table;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\Placeholder;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -36,9 +38,17 @@ class BlogCategoryResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-folder';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Blog';
-
     protected static ?int $navigationSort = 20;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.blog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.blog_category');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -56,8 +66,7 @@ class BlogCategoryResource extends Resource
                 ->helperText(__('admin.blog_category.fields.internal_name_help'))
                 ->required()
                 ->live(debounce: 500)
-                ->afterStateUpdated(fn (Set $set, ?string $state) =>
-                    $set('slug', Str::slug($state ?? ''))
+                ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
                 ),
 
             Forms\Components\TextInput::make('slug')
@@ -99,8 +108,7 @@ class BlogCategoryResource extends Resource
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->live(onBlur: true)
-                                        ->afterStateUpdated(fn ($state, Set $set) =>
-                                            $set('translations.vi.slug', Str::slug($state ?? '')))
+                                        ->afterStateUpdated(fn ($state, Set $set) => $set('translations.vi.slug', Str::slug($state ?? '')))
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.vi.slug')
@@ -136,8 +144,7 @@ class BlogCategoryResource extends Resource
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->live(onBlur: true)
-                                        ->afterStateUpdated(fn ($state, Set $set) =>
-                                            $set('translations.en.slug', Str::slug($state ?? '')))
+                                        ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.en.slug')
@@ -361,7 +368,7 @@ class BlogCategoryResource extends Resource
                 ->schema([
                     Tabs::make('SeoLocaleTabs')
                         ->tabs([
-                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_vi'))
+                            Tab::make(__('admin.blog_category.tabs.locale_vi'))
                                 ->schema([
                                     Group::make()
                                         ->relationship('seoMetaVi')
@@ -376,7 +383,7 @@ class BlogCategoryResource extends Resource
                                                         ->placeholder(__('admin.blog_category.fields.meta_title_placeholder'))
                                                         ->helperText(__('admin.blog_category.fields.meta_title_help'))
                                                         ->live(debounce: 500)
-                                                        ->hint(fn ($state): string => mb_strlen($state ?? '') . '/60')
+                                                        ->hint(fn ($state): string => mb_strlen($state ?? '').'/60')
                                                         ->hintColor(fn ($state): string => static::charCounterColor($state, 50, 60))
                                                         ->columnSpanFull(),
 
@@ -386,7 +393,7 @@ class BlogCategoryResource extends Resource
                                                         ->helperText(__('admin.blog_category.fields.meta_description_help'))
                                                         ->rows(3)
                                                         ->live(debounce: 500)
-                                                        ->hint(fn ($state): string => mb_strlen($state ?? '') . '/155')
+                                                        ->hint(fn ($state): string => mb_strlen($state ?? '').'/155')
                                                         ->hintColor(fn ($state): string => static::charCounterColor($state, 120, 155))
                                                         ->columnSpanFull(),
 
@@ -415,8 +422,8 @@ class BlogCategoryResource extends Resource
                                                     Forms\Components\Select::make('robots')
                                                         ->label(__('admin.blog_category.fields.robots_vi'))
                                                         ->options([
-                                                            'index,follow'     => 'index, follow — Default',
-                                                            'noindex,follow'   => 'noindex, follow — Exclude from index',
+                                                            'index,follow' => 'index, follow — Default',
+                                                            'noindex,follow' => 'noindex, follow — Exclude from index',
                                                             'noindex,nofollow' => 'noindex, nofollow — Block completely',
                                                         ])
                                                         ->default('index,follow')
@@ -478,7 +485,7 @@ class BlogCategoryResource extends Resource
                                                     Forms\Components\Select::make('twitter_card')
                                                         ->label(__('admin.blog_category.fields.twitter_card_type'))
                                                         ->options([
-                                                            'summary'             => 'Summary',
+                                                            'summary' => 'Summary',
                                                             'summary_large_image' => 'Summary Large Image',
                                                         ])
                                                         ->default('summary_large_image')
@@ -517,7 +524,7 @@ class BlogCategoryResource extends Resource
                                         ]),
                                 ]),
 
-                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_en'))
+                            Tab::make(__('admin.blog_category.tabs.locale_en'))
                                 ->schema([
                                     Group::make()
                                         ->relationship('seoMetaEn')
@@ -532,7 +539,7 @@ class BlogCategoryResource extends Resource
                                                         ->placeholder(__('admin.blog_category.fields.meta_title_placeholder'))
                                                         ->helperText(__('admin.blog_category.fields.meta_title_help'))
                                                         ->live(debounce: 500)
-                                                        ->hint(fn ($state): string => mb_strlen($state ?? '') . '/60')
+                                                        ->hint(fn ($state): string => mb_strlen($state ?? '').'/60')
                                                         ->hintColor(fn ($state): string => static::charCounterColor($state, 50, 60))
                                                         ->columnSpanFull(),
 
@@ -542,7 +549,7 @@ class BlogCategoryResource extends Resource
                                                         ->helperText(__('admin.blog_category.fields.meta_description_help'))
                                                         ->rows(3)
                                                         ->live(debounce: 500)
-                                                        ->hint(fn ($state): string => mb_strlen($state ?? '') . '/155')
+                                                        ->hint(fn ($state): string => mb_strlen($state ?? '').'/155')
                                                         ->hintColor(fn ($state): string => static::charCounterColor($state, 120, 155))
                                                         ->columnSpanFull(),
 
@@ -571,8 +578,8 @@ class BlogCategoryResource extends Resource
                                                     Forms\Components\Select::make('robots')
                                                         ->label(__('admin.blog_category.fields.robots_en'))
                                                         ->options([
-                                                            'index,follow'     => 'index, follow — Default',
-                                                            'noindex,follow'   => 'noindex, follow — Exclude from index',
+                                                            'index,follow' => 'index, follow — Default',
+                                                            'noindex,follow' => 'noindex, follow — Exclude from index',
                                                             'noindex,nofollow' => 'noindex, nofollow — Block completely',
                                                         ])
                                                         ->default('index,follow')
@@ -634,7 +641,7 @@ class BlogCategoryResource extends Resource
                                                     Forms\Components\Select::make('twitter_card')
                                                         ->label(__('admin.blog_category.fields.twitter_card_type'))
                                                         ->options([
-                                                            'summary'             => 'Summary',
+                                                            'summary' => 'Summary',
                                                             'summary_large_image' => 'Summary Large Image',
                                                         ])
                                                         ->default('summary_large_image')
@@ -693,7 +700,7 @@ class BlogCategoryResource extends Resource
 
                     Tabs::make('JsonldLocaleTabs')
                         ->tabs([
-                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_vi'))
+                            Tab::make(__('admin.blog_category.tabs.locale_vi'))
                                 ->schema([
                                     Forms\Components\Repeater::make('jsonldSchemasVi')
                                         ->relationship()
@@ -702,13 +709,16 @@ class BlogCategoryResource extends Resource
                                             Placeholder::make('schema_header')
                                                 ->label('')
                                                 ->content(function ($record): HtmlString {
-                                                    if (! $record) { return new HtmlString(''); }
-                                                    $type  = $record->schema_type?->value ?? '—';
+                                                    if (! $record) {
+                                                        return new HtmlString('');
+                                                    }
+                                                    $type = $record->schema_type?->value ?? '—';
                                                     $label = e($record->label ?? '');
-                                                    $auto  = $record->is_auto_generated
+                                                    $auto = $record->is_auto_generated
                                                         ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                         : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
-                                                    return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>" . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "{$auto}</div>");
+
+                                                    return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."{$auto}</div>");
                                                 })
                                                 ->columnSpanFull(),
                                             Placeholder::make('payload_preview')
@@ -718,7 +728,8 @@ class BlogCategoryResource extends Resource
                                                         return new HtmlString('<em class="text-gray-400">No payload yet — save to generate.</em>');
                                                     }
                                                     $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                                                    return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">' . e($json) . '</pre>');
+
+                                                    return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'.e($json).'</pre>');
                                                 })
                                                 ->columnSpanFull(),
                                             Forms\Components\Toggle::make('is_active')
@@ -727,12 +738,11 @@ class BlogCategoryResource extends Resource
                                             Placeholder::make('schema_updated_at')
                                                 ->label(__('admin.blog_category.fields.jsonld_last_generated'))
                                                 ->content(fn ($record) => $record?->updated_at
-                                                    ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                    ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                     : '—'
                                                 ),
                                         ])
-                                        ->itemLabel(fn (array $state): ?string =>
-                                            filled($state['schema_type'] ?? '')
+                                        ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                 ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                 : null
                                         )
@@ -743,8 +753,8 @@ class BlogCategoryResource extends Resource
                                         ->defaultItems(0)
                                         ->columnSpanFull(),
 
-                                    \Filament\Schemas\Components\Actions::make([
-                                        \Filament\Actions\Action::make('regenerate_jsonld_vi')
+                                    Actions::make([
+                                        Action::make('regenerate_jsonld_vi')
                                             ->label(__('admin.blog_category.actions.regenerate_jsonld_vi'))
                                             ->icon('heroicon-o-arrow-path')
                                             ->color('gray')
@@ -753,15 +763,17 @@ class BlogCategoryResource extends Resource
                                             ->modalDescription(__('admin.blog_category.actions.regenerate_jsonld_vi_modal_description'))
                                             ->action(function ($livewire): void {
                                                 $category = $livewire->record;
-                                                if (! $category?->exists) { return; }
-                                                app(\App\Services\Seo\JsonldService::class)->syncForModel($category, 'vi');
+                                                if (! $category?->exists) {
+                                                    return;
+                                                }
+                                                app(JsonldService::class)->syncForModel($category, 'vi');
                                                 Notification::make()->title(__('admin.blog_category.notifications.jsonld_regenerated_vi'))->success()->send();
                                                 redirect(BlogCategoryResource::getUrl('edit', ['record' => $category]));
                                             }),
                                     ]),
                                 ]),
 
-                            Tabs\Tab::make(__('admin.blog_category.tabs.locale_en'))
+                            Tab::make(__('admin.blog_category.tabs.locale_en'))
                                 ->schema([
                                     Forms\Components\Repeater::make('jsonldSchemasEn')
                                         ->relationship()
@@ -770,13 +782,16 @@ class BlogCategoryResource extends Resource
                                             Placeholder::make('schema_header')
                                                 ->label('')
                                                 ->content(function ($record): HtmlString {
-                                                    if (! $record) { return new HtmlString(''); }
-                                                    $type  = $record->schema_type?->value ?? '—';
+                                                    if (! $record) {
+                                                        return new HtmlString('');
+                                                    }
+                                                    $type = $record->schema_type?->value ?? '—';
                                                     $label = e($record->label ?? '');
-                                                    $auto  = $record->is_auto_generated
+                                                    $auto = $record->is_auto_generated
                                                         ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#fef9c3;color:#854d0e;">⚡ Auto</span>'
                                                         : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:9999px;font-size:0.7rem;font-weight:600;background:#dcfce7;color:#166534;">✎ Manual</span>';
-                                                    return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>" . (filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '') . "{$auto}</div>");
+
+                                                    return new HtmlString("<div style='display:flex;align-items:center;gap:10px;flex-wrap:wrap;'><span style='font-weight:700;font-size:0.95rem;color:#1e293b;'>{$type}</span>".(filled($label) ? "<span style='color:#64748b;font-size:0.85rem;'>— {$label}</span>" : '')."{$auto}</div>");
                                                 })
                                                 ->columnSpanFull(),
                                             Placeholder::make('payload_preview')
@@ -786,7 +801,8 @@ class BlogCategoryResource extends Resource
                                                         return new HtmlString('<em class="text-gray-400">No payload yet — save to generate.</em>');
                                                     }
                                                     $json = json_encode($record->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                                                    return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">' . e($json) . '</pre>');
+
+                                                    return new HtmlString('<pre style="white-space:pre-wrap;font-size:0.75rem;line-height:1.6;background:#0f172a;border-radius:6px;padding:14px;color:#e2e8f0;overflow-x:auto;">'.e($json).'</pre>');
                                                 })
                                                 ->columnSpanFull(),
                                             Forms\Components\Toggle::make('is_active')
@@ -795,12 +811,11 @@ class BlogCategoryResource extends Resource
                                             Placeholder::make('schema_updated_at')
                                                 ->label(__('admin.blog_category.fields.jsonld_last_generated'))
                                                 ->content(fn ($record) => $record?->updated_at
-                                                    ? $record->updated_at->diffForHumans() . ' (' . $record->updated_at->format('d/m/Y H:i') . ')'
+                                                    ? $record->updated_at->diffForHumans().' ('.$record->updated_at->format('d/m/Y H:i').')'
                                                     : '—'
                                                 ),
                                         ])
-                                        ->itemLabel(fn (array $state): ?string =>
-                                            filled($state['schema_type'] ?? '')
+                                        ->itemLabel(fn (array $state): ?string => filled($state['schema_type'] ?? '')
                                                 ? (is_object($state['schema_type']) ? $state['schema_type']->value : (string) $state['schema_type'])
                                                 : null
                                         )
@@ -811,8 +826,8 @@ class BlogCategoryResource extends Resource
                                         ->defaultItems(0)
                                         ->columnSpanFull(),
 
-                                    \Filament\Schemas\Components\Actions::make([
-                                        \Filament\Actions\Action::make('regenerate_jsonld_en')
+                                    Actions::make([
+                                        Action::make('regenerate_jsonld_en')
                                             ->label(__('admin.blog_category.actions.regenerate_jsonld_en'))
                                             ->icon('heroicon-o-arrow-path')
                                             ->color('gray')
@@ -821,8 +836,10 @@ class BlogCategoryResource extends Resource
                                             ->modalDescription(__('admin.blog_category.actions.regenerate_jsonld_en_modal_description'))
                                             ->action(function ($livewire): void {
                                                 $category = $livewire->record;
-                                                if (! $category?->exists) { return; }
-                                                app(\App\Services\Seo\JsonldService::class)->syncForModel($category, 'en');
+                                                if (! $category?->exists) {
+                                                    return;
+                                                }
+                                                app(JsonldService::class)->syncForModel($category, 'en');
                                                 Notification::make()->title(__('admin.blog_category.notifications.jsonld_regenerated_en'))->success()->send();
                                                 redirect(BlogCategoryResource::getUrl('edit', ['record' => $category]));
                                             }),
@@ -885,17 +902,22 @@ class BlogCategoryResource extends Resource
     private static function charCounterColor(?string $state, int $min, int $max): string
     {
         $len = mb_strlen($state ?? '');
-        if ($len === 0) return 'gray';
-        if ($len < $min || $len > $max) return 'warning';
+        if ($len === 0) {
+            return 'gray';
+        }
+        if ($len < $min || $len > $max) {
+            return 'warning';
+        }
+
         return 'success';
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListBlogCategories::route('/'),
+            'index' => Pages\ListBlogCategories::route('/'),
             'create' => Pages\CreateBlogCategory::route('/create'),
-            'edit'   => Pages\EditBlogCategory::route('/{record}/edit'),
+            'edit' => Pages\EditBlogCategory::route('/{record}/edit'),
         ];
     }
 }

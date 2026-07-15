@@ -5,15 +5,15 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\BlogCommentResource\Pages;
 use App\Models\BlogComment;
 use BackedEnum;
-use Filament\Forms;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Tables;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables;
 use Filament\Tables\Table;
 
 class BlogCommentResource extends Resource
@@ -22,9 +22,17 @@ class BlogCommentResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-chat-bubble-left-right';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Blog';
-
     protected static ?int $navigationSort = 50;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.blog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.blog_comment');
+    }
 
     public static function getNavigationBadge(): ?string
     {
@@ -105,7 +113,7 @@ class BlogCommentResource extends Resource
     {
         return [
             'index' => Pages\ListBlogComments::route('/'),
-            'edit'  => Pages\EditBlogComment::route('/{record}/edit'),
+            'edit' => Pages\EditBlogComment::route('/{record}/edit'),
         ];
     }
 }

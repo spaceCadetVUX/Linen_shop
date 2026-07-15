@@ -24,13 +24,19 @@ class SeoMetaResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-magnifying-glass';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'SEO & GEO';
-
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $navigationLabel = 'SEO Meta';
-
     protected static bool $shouldRegisterNavigation = false;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.seo_geo');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.seo_meta');
+    }
 
     // ── Form ──────────────────────────────────────────────────────────────────
 
@@ -57,7 +63,7 @@ class SeoMetaResource extends Resource
                                 ->label(__('admin.seo_meta.fields.meta_title'))
                                 ->maxLength(160)
                                 ->live(debounce: 300)
-                                ->suffix(fn ($state) => strlen($state ?? '') . ' / 160')
+                                ->suffix(fn ($state) => strlen($state ?? '').' / 160')
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('meta_description')
@@ -65,7 +71,7 @@ class SeoMetaResource extends Resource
                                 ->maxLength(320)
                                 ->rows(3)
                                 ->live(debounce: 300)
-                                ->hint(fn ($state) => strlen($state ?? '') . ' / 320')
+                                ->hint(fn ($state) => strlen($state ?? '').' / 320')
                                 ->columnSpanFull(),
 
                             Forms\Components\TextInput::make('meta_keywords')
@@ -81,9 +87,9 @@ class SeoMetaResource extends Resource
                             Forms\Components\Select::make('robots')
                                 ->label(__('admin.seo_meta.fields.robots'))
                                 ->options([
-                                    'index,follow'     => 'index,follow',
+                                    'index,follow' => 'index,follow',
                                     'noindex,nofollow' => 'noindex,nofollow',
-                                    'noindex,follow'   => 'noindex,follow',
+                                    'noindex,follow' => 'noindex,follow',
                                 ])
                                 ->default('index,follow'),
                         ])
@@ -96,7 +102,7 @@ class SeoMetaResource extends Resource
                                 ->label(__('admin.seo_meta.fields.og_title'))
                                 ->maxLength(160)
                                 ->live(debounce: 300)
-                                ->suffix(fn ($state) => strlen($state ?? '') . ' / 160')
+                                ->suffix(fn ($state) => strlen($state ?? '').' / 160')
                                 ->columnSpanFull(),
 
                             Forms\Components\Textarea::make('og_description')
@@ -125,10 +131,10 @@ class SeoMetaResource extends Resource
                             Forms\Components\Select::make('twitter_card')
                                 ->label(__('admin.seo_meta.fields.twitter_card'))
                                 ->options([
-                                    'summary'             => 'Summary',
+                                    'summary' => 'Summary',
                                     'summary_large_image' => 'Summary Large Image',
-                                    'app'                 => 'App',
-                                    'player'              => 'Player',
+                                    'app' => 'App',
+                                    'player' => 'Player',
                                 ])
                                 ->default('summary_large_image'),
 
@@ -164,7 +170,7 @@ class SeoMetaResource extends Resource
                 TextColumn::make('model_id')
                     ->label(__('admin.seo_meta.fields.model_id'))
                     ->formatStateUsing(fn ($state) => is_string($state) && strlen($state) > 12
-                        ? strtoupper(substr($state, 0, 8)) . '…'
+                        ? strtoupper(substr($state, 0, 8)).'…'
                         : $state
                     )
                     ->copyable(),
@@ -179,10 +185,10 @@ class SeoMetaResource extends Resource
                     ->label(__('admin.seo_meta.fields.robots'))
                     ->badge()
                     ->color(fn ($state) => match ($state) {
-                        'index,follow'     => 'success',
+                        'index,follow' => 'success',
                         'noindex,nofollow' => 'danger',
-                        'noindex,follow'   => 'warning',
-                        default             => 'gray',
+                        'noindex,follow' => 'warning',
+                        default => 'gray',
                     }),
 
                 TextColumn::make('updated_at')
@@ -212,7 +218,7 @@ class SeoMetaResource extends Resource
     {
         return [
             'index' => Pages\ListSeoMeta::route('/'),
-            'edit'  => Pages\EditSeoMeta::route('/{record}/edit'),
+            'edit' => Pages\EditSeoMeta::route('/{record}/edit'),
         ];
     }
 }

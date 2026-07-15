@@ -24,9 +24,17 @@ class ReviewResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-star';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
-
     protected static ?int $navigationSort = 60;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.review');
+    }
 
     public static function getNavigationBadge(): ?string
     {

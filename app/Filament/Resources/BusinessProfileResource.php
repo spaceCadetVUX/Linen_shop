@@ -29,11 +29,17 @@ class BusinessProfileResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Setting';
-
     protected static ?int $navigationSort = 10;
 
-    protected static ?string $navigationLabel = 'Business Profile';
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.setting');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.business_profile');
+    }
 
     // ── Form ──────────────────────────────────────────────────────────────────
 

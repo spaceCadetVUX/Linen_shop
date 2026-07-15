@@ -34,12 +34,12 @@ class EntriesRelationManager extends RelationManager
                     ->color('gray'),
 
                 TextColumn::make('model_type')
-                    ->label('Type')
+                    ->label(__('admin.llms_document.fields.type_column'))
                     ->badge()
                     ->color('primary'),
 
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('admin.llms_document.fields.active'))
                     ->boolean()
                     ->trueColor('success')
                     ->falseColor('danger'),
@@ -49,7 +49,7 @@ class EntriesRelationManager extends RelationManager
                     ->sortable(),
             ])
             ->filters([
-                TernaryFilter::make('is_active')->label('Active'),
+                TernaryFilter::make('is_active')->label(__('admin.llms_document.fields.active')),
             ])
             ->actions([])
             ->bulkActions([]);

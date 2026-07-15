@@ -21,11 +21,17 @@ class OrderInquiryResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-phone-arrow-up-right';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Catalog';
-
-    protected static ?string $navigationLabel = 'Order Inquiries';
-
     protected static ?int $navigationSort = 65;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.catalog');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.order_inquiry');
+    }
 
     public static function getNavigationBadge(): ?string
     {

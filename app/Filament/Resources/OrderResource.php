@@ -27,9 +27,17 @@ class OrderResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Commerce';
-
     protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.commerce');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.order');
+    }
 
     public static function getNavigationBadge(): ?string
     {

@@ -20,11 +20,14 @@ class ShopSetting extends Page
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static ?string $navigationLabel = 'Shop Page';
-
     protected static ?string $title = 'Shop Page Setting';
 
     protected string $view = 'filament.pages.shop-setting';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.shop_setting');
+    }
 
     public ?array $data = [];
 

@@ -134,7 +134,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->label(__('admin.user.fields.email'))
                     ->copyable()
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.user.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('role')
                     ->label(__('admin.user.fields.role'))

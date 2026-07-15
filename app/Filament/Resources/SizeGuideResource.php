@@ -26,23 +26,29 @@ class SizeGuideResource extends Resource
 
     protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-table-cells';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Content';
-
-    protected static ?string $navigationLabel = 'Size Guides';
-
     protected static ?int $navigationSort = 21;
+
+    public static function getNavigationGroup(): string|\UnitEnum|null
+    {
+        return __('admin.nav.content');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.nav.labels.size_guide');
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->schema([
             Forms\Components\TextInput::make('key')
-                ->label('Key')
+                ->label(__('admin.size_guide.fields.key'))
                 ->required()
                 ->unique(table: SizeGuide::class, column: 'key', ignoreRecord: true)
-                ->helperText('Internal identifier — e.g. ao-nu, quan-nu, dam. Not shown publicly.'),
+                ->helperText(__('admin.size_guide.fields.key_help')),
 
             Forms\Components\TextInput::make('sort_order')
-                ->label('Sort Order')
+                ->label(__('admin.size_guide.fields.sort_order'))
                 ->numeric()
                 ->default(0),
 
@@ -50,14 +56,14 @@ class SizeGuideResource extends Resource
                 ->default(true),
 
             Forms\Components\Toggle::make('is_default')
-                ->label('Đặt làm fallback')
-                ->helperText('Guide dùng cho sản phẩm CHƯA gán "Hướng dẫn size" riêng ở tab General. Chỉ 1 guide được đặt làm fallback — chọn cái này sẽ tự bỏ chọn guide fallback cũ.')
+                ->label(__('admin.size_guide.fields.is_default'))
+                ->helperText(__('admin.size_guide.fields.is_default_help'))
                 ->default(false),
 
             Tabs::make('Tabs')
                 ->tabs([
 
-                    Tab::make('🇻🇳 Tiếng Việt')
+                    Tab::make(__('admin.size_guide.tabs.locale_vi'))
                         ->schema([
                             Group::make()
                                 ->relationship('translationVi')
@@ -66,20 +72,20 @@ class SizeGuideResource extends Resource
                                 )
                                 ->schema([
                                     Forms\Components\TextInput::make('name')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Tên hướng dẫn (vi)</span>'))
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.size_guide.fields.name_vi').'</span>'))
                                         ->required()
                                         ->columnSpanFull(),
 
                                     Forms\Components\RichEditor::make('body')
-                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">Nội dung (vi)</span>'))
-                                        ->helperText('Dùng nút Table trên toolbar để chèn bảng số đo. Có thể chèn hình minh họa cách đo.')
+                                        ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.size_guide.fields.body_vi').'</span>'))
+                                        ->helperText(__('admin.size_guide.fields.body_vi_help'))
                                         ->plugins([MediaRichEditorPlugin::make()])
                                         ->columnSpanFull(),
                                 ])
                                 ->columns(2),
                         ]),
 
-                    Tab::make('🇬🇧 English')
+                    Tab::make(__('admin.size_guide.tabs.locale_en'))
                         ->schema([
                             Group::make()
                                 ->relationship('translationEn')
@@ -88,13 +94,13 @@ class SizeGuideResource extends Resource
                                 )
                                 ->schema([
                                     Forms\Components\TextInput::make('name')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Name (en)</span>'))
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.size_guide.fields.name_en').'</span>'))
                                         ->required()
                                         ->columnSpanFull(),
 
                                     Forms\Components\RichEditor::make('body')
-                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">Body (en)</span>'))
-                                        ->helperText('Use the Table toolbar button to insert the measurement table.')
+                                        ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.size_guide.fields.body_en').'</span>'))
+                                        ->helperText(__('admin.size_guide.fields.body_en_help'))
                                         ->plugins([MediaRichEditorPlugin::make()])
                                         ->columnSpanFull(),
                                 ])
@@ -114,17 +120,17 @@ class SizeGuideResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('translationVi.name')
-                    ->label('Name (vi)')
+                    ->label(__('admin.size_guide.fields.name_vi_column'))
                     ->color('success')
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.size_guide.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('translationEn.name')
-                    ->label('Name (en)')
+                    ->label(__('admin.size_guide.fields.name_en_column'))
                     ->color('info')
-                    ->placeholder('—'),
+                    ->placeholder(__('admin.size_guide.fields.dash_placeholder')),
 
                 Tables\Columns\TextColumn::make('products_count')
-                    ->label('Products')
+                    ->label(__('admin.size_guide.fields.products'))
                     ->counts('products'),
 
                 Tables\Columns\TextColumn::make('sort_order')
@@ -136,7 +142,7 @@ class SizeGuideResource extends Resource
                     ->falseColor('danger'),
 
                 Tables\Columns\IconColumn::make('is_default')
-                    ->label('Fallback')
+                    ->label(__('admin.size_guide.fields.fallback_column'))
                     ->boolean()
                     ->trueColor('warning')
                     ->falseColor('gray'),
@@ -148,7 +154,7 @@ class SizeGuideResource extends Resource
             ->defaultSort('sort_order')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active'),
+                    ->label(__('admin.size_guide.fields.active')),
             ])
             ->actions([
                 EditAction::make(),
@@ -164,9 +170,9 @@ class SizeGuideResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListSizeGuides::route('/'),
+            'index' => Pages\ListSizeGuides::route('/'),
             'create' => Pages\CreateSizeGuide::route('/create'),
-            'edit'   => Pages\EditSizeGuide::route('/{record}/edit'),
+            'edit' => Pages\EditSizeGuide::route('/{record}/edit'),
         ];
     }
 }
