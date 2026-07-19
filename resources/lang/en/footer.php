@@ -2,6 +2,11 @@
 
 return [
 
+    'collections' => [
+        'title' => 'Collections',
+        'view_all' => 'View all products',
+    ],
+
     'info' => [
         'title' => 'Information',
         'about' => 'About CacyLinen',

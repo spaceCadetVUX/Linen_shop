@@ -4,12 +4,12 @@
   <div class="footer-main">
 
     <div class="footer-col footer-col--left">
-      <h4 class="footer-col-title">Bộ sưu tập</h4>
+      <h4 class="footer-col-title">{{ __('footer.collections.title') }}</h4>
       <nav class="footer-nav">
         @forelse($footerCategories as $cat)
           <a href="{{ $cat['url'] }}">{{ $cat['name'] }}</a>
         @empty
-          <a href="{{ $footerShopUrl }}">Xem tất cả sản phẩm</a>
+          <a href="{{ $footerShopUrl }}">{{ __('footer.collections.view_all') }}</a>
         @endforelse
       </nav>
     </div>

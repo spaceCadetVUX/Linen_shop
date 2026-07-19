@@ -2,6 +2,11 @@
 
 return [
 
+    'collections' => [
+        'title' => 'Bộ sưu tập',
+        'view_all' => 'Xem tất cả sản phẩm',
+    ],
+
     'info' => [
         'title' => 'Thông tin',
         'about' => 'Về CacyLinen',
