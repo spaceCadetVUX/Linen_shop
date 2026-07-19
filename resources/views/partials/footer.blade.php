@@ -19,12 +19,13 @@
     </div>
 
     <div class="footer-col footer-col--right">
-      <h4 class="footer-col-title">Thông tin</h4>
+      <h4 class="footer-col-title">{{ __('footer.info.title') }}</h4>
       <nav class="footer-nav">
-        <a href="{{ url('/about') }}">Về CacyLinen</a>
-        <a href="{{ url('/contact') }}">Liên hệ</a>
-        <a href="{{ url('/privacy-policy') }}">Chính sách bảo mật</a>
-        <a href="{{ route(app()->getLocale() . '.size-guide') }}">Hướng dẫn size</a>
+        <a href="{{ route(app()->getLocale() . '.about') }}">{{ __('footer.info.about') }}</a>
+        <a href="{{ route(app()->getLocale() . '.size-guide') }}">{{ __('footer.info.size_guide') }}</a>
+        @foreach($footerPages as $page)
+          <a href="{{ $page['url'] }}">{{ $page['name'] }}</a>
+        @endforeach
       </nav>
     </div>
 
@@ -179,11 +180,11 @@
     @endif
     <p>
       &copy; {{ date('Y') }}, CacyLinen &nbsp;&middot;&nbsp;
-      <a href="{{ url('/privacy-policy') }}">Chính sách bảo mật</a>
+      <a href="{{ route(app()->getLocale() . '.page.show', ['slug' => 'privacy-policy']) }}">{{ __('footer.legal.privacy') }}</a>
       &nbsp;&middot;&nbsp;
-      <a href="{{ url('/terms') }}">Điều khoản dịch vụ</a>
+      <a href="{{ route(app()->getLocale() . '.page.show', ['slug' => 'terms']) }}">{{ __('footer.legal.terms') }}</a>
       &nbsp;&middot;&nbsp;
-      <a href="{{ url('/contact') }}">Liên hệ</a>
+      <a href="{{ route(app()->getLocale() . '.page.show', ['slug' => 'contact']) }}">{{ __('footer.legal.contact') }}</a>
     </p>
   </div>
 

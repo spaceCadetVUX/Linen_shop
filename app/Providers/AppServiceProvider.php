@@ -39,6 +39,9 @@ use App\Observers\ProductTranslationObserver;
 use App\Observers\ProductVariantObserver;
 use App\Observers\RedirectObserver;
 use App\Observers\ReviewObserver;
+use App\Services\Category\CategoryService;
+use App\Services\Page\PageService;
+use App\Services\Product\ProductService;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -140,7 +143,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('megaMenuBlogUrl', route("{$locale}.blog.index"));
 
             // Column 2 groups/links + column 3 hover-preview products, from real Category data.
-            $megaMenuGroups = app(\App\Services\Category\CategoryService::class)->getMegaMenuData($locale);
+            $megaMenuGroups = app(CategoryService::class)->getMegaMenuData($locale);
             $view->with('megaMenuGroups', $megaMenuGroups);
 
             $productsByCat = [];
@@ -153,7 +156,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('megaMenuProductsByCat', $productsByCat);
 
             // Column 1 slider — admin-curated products (Mega Menu Setting), falls back to 4 newest active.
-            $view->with('megaMenuNewProducts', app(\App\Services\Product\ProductService::class)->getLatestForMegaMenu($locale));
+            $view->with('megaMenuNewProducts', app(ProductService::class)->getLatestForMegaMenu($locale));
         });
 
         // Footer "Bộ sưu tập" column — real Category data, same rule as the
@@ -163,12 +166,19 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with(
                 'footerCategories',
-                app(\App\Services\Category\CategoryService::class)->getFooterCategories($locale)
+                app(CategoryService::class)->getFooterCategories($locale)
             );
 
             // Fallback link while no category is active yet — same reasoning as
             // megaMenuCollectionUrl above.
             $view->with('footerShopUrl', route("{$locale}.product.shop"));
+
+            // Footer "Thông tin" column — About + Size Guide are fixed links;
+            // everything else comes from active static Pages (Filament: Content → Page).
+            $view->with(
+                'footerPages',
+                app(PageService::class)->getFooterPages($locale)
+            );
         });
     }
 

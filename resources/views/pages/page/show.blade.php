@@ -11,12 +11,16 @@
     ['label' => $translation->title, 'url' => null],
 ]" />
 
-<section class="static-page">
-  <h1 class="static-page-title">{{ $translation->title }}</h1>
+<div class="jnl-post-page">
 
-  <div class="static-page-body">
+  <header class="jnl-post-hd">
+    <h1 class="jnl-post-title">{{ $translation->title }}</h1>
+  </header>
+
+  <div class="jnl-post-body">
     {!! $translation->body !!}
   </div>
-</section>
+
+</div>
 
 @endsection
