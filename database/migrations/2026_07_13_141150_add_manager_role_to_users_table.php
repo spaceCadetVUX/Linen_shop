@@ -23,6 +23,10 @@ return new class extends Migration
      */
     private function swapRoleCheckConstraint(string $checkClause): void
     {
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
         $constraint = DB::selectOne(<<<'SQL'
             select conname from pg_constraint
             where conrelid = 'users'::regclass

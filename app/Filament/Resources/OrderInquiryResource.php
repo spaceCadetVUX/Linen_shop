@@ -7,7 +7,9 @@ use App\Filament\Resources\OrderInquiryResource\Pages;
 use App\Models\OrderInquiry;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -139,8 +141,8 @@ class OrderInquiryResource extends Resource
                         Notification::make()->title(__('admin.order_inquiry.notifications.marked_closed'))->success()->send();
                     }),
 
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 DeleteBulkAction::make(),
