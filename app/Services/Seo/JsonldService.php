@@ -10,6 +10,7 @@ use App\Models\Seo\JsonldTemplate;
 use App\Models\Setting;
 use App\Support\ImageDimensions;
 use App\Support\LocaleUrl;
+use App\Support\SeoVisibility;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -163,7 +164,7 @@ class JsonldService
                 [
                     'label' => $template->label,
                     'payload' => $resolved,
-                    'is_active' => true,
+                    'is_active' => SeoVisibility::isActive($model),
                     'is_auto_generated' => true,
                     'sort_order' => self::SORT_ORDER[$schemaType->value] ?? 50,
                 ]
@@ -1191,7 +1192,7 @@ class JsonldService
                     'mainEntityOfPage' => ['@type' => $primaryType, '@id' => $pageUrl],
                     'mainEntity' => $mainEntity,
                 ],
-                'is_active' => true,
+                'is_active' => SeoVisibility::isActive($model),
                 'is_auto_generated' => true,
                 'sort_order' => self::SORT_ORDER[JsonldSchemaType::FaqPage->value] ?? 50,
             ]
@@ -1412,7 +1413,7 @@ class JsonldService
                 [
                     'label' => 'Video: '.$video->title,
                     'payload' => $payload,
-                    'is_active' => true,
+                    'is_active' => SeoVisibility::isActive($model),
                     'is_auto_generated' => true,
                     'sort_order' => self::SORT_ORDER[$schemaKey] ?? 60,
                 ]

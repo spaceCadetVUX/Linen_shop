@@ -10,36 +10,33 @@ class SitemapIndexSeeder extends Seeder
     public function run(): void
     {
         $appUrl = rtrim(config('app.url'), '/');
-        $now    = now();
+        $now = now();
 
-        $locales = [
-            'vi' => 'App\\Models\\Category',
-            'en' => 'App\\Models\\Category',
-        ];
-
+        // model_type stores the morphMap alias — must match SitemapEntry.model_type
+        // and Relation::morphMap() in AppServiceProvider, never a full class name.
         $types = [
-            'products'           => ['model_type' => 'App\\Models\\Product'],
-            'product-categories' => ['model_type' => 'App\\Models\\Category'],
-            'blog'               => ['model_type' => 'App\\Models\\BlogPost'],
-            'blog-categories'    => ['model_type' => 'App\\Models\\BlogCategory'],
+            'products' => ['model_type' => 'product'],
+            'product-categories' => ['model_type' => 'category'],
+            'blog' => ['model_type' => 'blog_post'],
+            'blog-categories' => ['model_type' => 'blog_category'],
         ];
 
         $indexes = [];
         foreach (['vi', 'en'] as $locale) {
             foreach ($types as $typeSlug => $meta) {
-                $name     = "{$locale}-{$typeSlug}";
+                $name = "{$locale}-{$typeSlug}";
                 $filename = "sitemap-{$locale}-{$typeSlug}.xml";
                 $indexes[] = [
-                    'name'              => $name,
-                    'filename'          => $filename,
-                    'url'               => "{$appUrl}/{$filename}",
-                    'entry_count'       => 0,
+                    'name' => $name,
+                    'filename' => $filename,
+                    'url' => "{$appUrl}/{$filename}",
+                    'entry_count' => 0,
                     'last_generated_at' => null,
-                    'is_active'         => true,
-                    'locale'            => $locale,
-                    'model_type'        => $meta['model_type'],
-                    'created_at'        => $now,
-                    'updated_at'        => $now,
+                    'is_active' => true,
+                    'locale' => $locale,
+                    'model_type' => $meta['model_type'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
             }
         }

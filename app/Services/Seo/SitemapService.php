@@ -3,11 +3,13 @@
 namespace App\Services\Seo;
 
 use App\Enums\SitemapChangefreq;
+use App\Models\BlogPost;
 use App\Models\Seo\SitemapEntry;
 use App\Models\Seo\SitemapIndex;
 use App\Support\LocaleUrl;
+use App\Support\SeoVisibility;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class SitemapService
 {
@@ -24,84 +26,33 @@ class SitemapService
      * the sitemap. Add once the Web show page ships.
      */
     private const MODEL_CONFIG = [
-        'product'       => ['changefreq' => SitemapChangefreq::Daily,  'priority' => 0.8],
-        'blog_post'     => ['changefreq' => SitemapChangefreq::Weekly, 'priority' => 0.6],
-        'category'      => ['changefreq' => SitemapChangefreq::Weekly, 'priority' => 0.7],
+        'product' => ['changefreq' => SitemapChangefreq::Daily,  'priority' => 0.8],
+        'blog_post' => ['changefreq' => SitemapChangefreq::Weekly, 'priority' => 0.6],
+        'category' => ['changefreq' => SitemapChangefreq::Weekly, 'priority' => 0.7],
         'blog_category' => ['changefreq' => SitemapChangefreq::Weekly, 'priority' => 0.5],
     ];
 
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
-     * Regenerate all active child sitemaps.
-     * Called by the artisan command `php artisan sitemap:generate`.
-     */
-    public function generateAll(): void
-    {
-        SitemapIndex::where('is_active', true)->each(
-            fn (SitemapIndex $index) => $this->generateChild($index)
-        );
-    }
-
-    /**
-     * Generate the XML file for a single child sitemap and write it to disk.
-     * Updates entry_count and last_generated_at on the index row.
+     * Refresh entry_count and last_generated_at from active sitemap_entries.
      *
-     * Output: storage/app/public/sitemaps/{filename}
-     * Public URL: /storage/sitemaps/{filename}
+     * The sitemap is served live from the DB (SitemapController::child()
+     * renders resources/views/sitemap/child.blade.php on every request), so
+     * this does NOT write an XML file to disk — a prior version did, but
+     * nothing ever read that file (the controller queries the DB directly),
+     * making the write pure overhead on every entry upsert. Kept as the one
+     * place that recomputes these two stat columns, called by
+     * `sitemap:generate`, the Filament "Regenerate" action, and upsertEntry().
      */
     public function generateChild(SitemapIndex $index): void
     {
-        $entries = SitemapEntry::where('sitemap_index_id', $index->id)
-            ->where('is_active', true)
-            ->orderBy('url')
-            ->get();
-
-        $xml = $this->buildUrlset($entries);
-
-        Storage::disk('public')->makeDirectory('sitemaps');
-        Storage::disk('public')->put('sitemaps/' . $index->filename, $xml);
-
         $index->update([
-            'entry_count'       => $entries->count(),
+            'entry_count' => SitemapEntry::where('sitemap_index_id', $index->id)
+                ->where('is_active', true)
+                ->count(),
             'last_generated_at' => now(),
         ]);
-    }
-
-    /**
-     * Build the master sitemap index XML string.
-     * Lists every active child sitemap with its URL and last-modified date.
-     * Served dynamically — not written to disk.
-     */
-    public function generateIndex(): string
-    {
-        $indexes = SitemapIndex::where('is_active', true)
-            ->orderBy('name')
-            ->get();
-
-        $dom = new \DOMDocument('1.0', 'UTF-8');
-        $dom->formatOutput = true;
-
-        $sitemapIndex = $dom->createElementNS(
-            'http://www.sitemaps.org/schemas/sitemap/0.9',
-            'sitemapindex'
-        );
-        $dom->appendChild($sitemapIndex);
-
-        foreach ($indexes as $index) {
-            $sitemap = $dom->createElement('sitemap');
-            $sitemapIndex->appendChild($sitemap);
-
-            $sitemap->appendChild($dom->createElement('loc', htmlspecialchars((string) $index->url, ENT_XML1)));
-
-            if ($index->last_generated_at) {
-                $sitemap->appendChild(
-                    $dom->createElement('lastmod', $index->last_generated_at->toDateString())
-                );
-            }
-        }
-
-        return $dom->saveXML();
     }
 
     /**
@@ -113,30 +64,37 @@ class SitemapService
     public function upsertEntry(Model $model, ?SitemapIndex $index = null, string $locale = 'vi'): void
     {
         $morphAlias = $model->getMorphClass();
-        $config     = self::MODEL_CONFIG[$morphAlias] ?? null;
+        $config = self::MODEL_CONFIG[$morphAlias] ?? null;
 
         if ($config === null) {
             return;
         }
 
-        $index ??= SitemapIndex::where('model_type', get_class($model))
+        $index ??= SitemapIndex::where('model_type', $morphAlias)
             ->where('locale', $locale)
             ->first();
 
         if ($index === null) {
+            Log::warning('SitemapService: no active sitemap_indexes row for model_type/locale — entry not synced.', [
+                'model_type' => $morphAlias,
+                'locale' => $locale,
+                'model_id' => $model->getKey(),
+            ]);
+
             return;
         }
 
         // For translated models: require a locale translation — missing = remove stale entry.
         // For non-translated models (Brand, Manufacturer): fall through using model slug directly.
         $hasTranslations = method_exists($model, 'translation');
-        $translation     = $hasTranslations ? $model->translation($locale) : null;
+        $translation = $hasTranslations ? $model->translation($locale) : null;
 
         if ($hasTranslations && $translation === null) {
             SitemapEntry::where('sitemap_index_id', $index->id)
                 ->where('model_type', $morphAlias)
                 ->where('model_id', $model->getKey())
                 ->delete();
+
             return;
         }
 
@@ -146,9 +104,9 @@ class SitemapService
             return;
         }
 
-        $isBlogPost = $morphAlias === 'blog_post' && $model instanceof \App\Models\BlogPost;
+        $isBlogPost = $morphAlias === 'blog_post' && $model instanceof BlogPost;
         $url = $isBlogPost
-            ? \App\Support\LocaleUrl::forBlogPost($model, $locale)
+            ? LocaleUrl::forBlogPost($model, $locale)
             : LocaleUrl::for($morphAlias, $slug, $locale);
 
         if ($url === '') {
@@ -159,7 +117,7 @@ class SitemapService
         $alternateUrls = [];
         foreach (config('app.supported_locales') as $altLocale) {
             if ($isBlogPost) {
-                $altUrl = \App\Support\LocaleUrl::forBlogPost($model, $altLocale);
+                $altUrl = LocaleUrl::forBlogPost($model, $altLocale);
                 if ($altUrl !== '') {
                     $alternateUrls[$altLocale] = $altUrl;
                 }
@@ -173,110 +131,25 @@ class SitemapService
             }
         }
 
-        $isActive = (bool) ($model->getAttribute('is_active') ?? true);
+        $isActive = SeoVisibility::isActive($model);
 
         SitemapEntry::updateOrCreate(
             [
                 'sitemap_index_id' => $index->id,
-                'model_type'       => $morphAlias,
-                'model_id'         => $model->getKey(),
+                'model_type' => $morphAlias,
+                'model_id' => $model->getKey(),
             ],
             [
-                'locale'        => $locale,
-                'url'           => $url,
+                'locale' => $locale,
+                'url' => $url,
                 'alternate_urls' => $alternateUrls ?: null,
-                'changefreq'    => $config['changefreq'],
-                'priority'      => $config['priority'],
+                'changefreq' => $config['changefreq'],
+                'priority' => $config['priority'],
                 'last_modified' => $model->updated_at ?? now(),
-                'is_active'     => $isActive,
+                'is_active' => $isActive,
             ]
         );
 
-        $this->syncEntryCount($index);
         $this->generateChild($index);
-    }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
-
-    /**
-     * Build a <urlset> XML document from a collection of SitemapEntry rows.
-     */
-    private function buildUrlset(\Illuminate\Database\Eloquent\Collection $entries): string
-    {
-        $dom = new \DOMDocument('1.0', 'UTF-8');
-        $dom->formatOutput = true;
-
-        $dom->appendChild($dom->createProcessingInstruction('xml-stylesheet', 'type="text/xsl" href="/sitemap.xsl"'));
-
-        $urlset = $dom->createElementNS(
-            'http://www.sitemaps.org/schemas/sitemap/0.9',
-            'urlset'
-        );
-        $urlset->setAttributeNS(
-            'http://www.w3.org/2000/xmlns/',
-            'xmlns:xhtml',
-            'http://www.w3.org/1999/xhtml'
-        );
-        $dom->appendChild($urlset);
-
-        $defaultLocale = config('app.fallback_locale', 'vi');
-
-        foreach ($entries as $entry) {
-            $url = $dom->createElement('url');
-            $urlset->appendChild($url);
-
-            $url->appendChild($dom->createElement('loc', htmlspecialchars((string) $entry->url, ENT_XML1)));
-
-            if ($entry->last_modified) {
-                $url->appendChild(
-                    $dom->createElement('lastmod', $entry->last_modified->toDateString())
-                );
-            }
-
-            if ($entry->changefreq) {
-                $url->appendChild(
-                    $dom->createElement('changefreq', $entry->changefreq->value)
-                );
-            }
-
-            if ($entry->priority !== null) {
-                $url->appendChild(
-                    $dom->createElement('priority', number_format((float) $entry->priority, 1))
-                );
-            }
-
-            // ── hreflang alternate links ──────────────────────────────────────
-            $alternateUrls = (array) ($entry->alternate_urls ?? []);
-            if (! empty($alternateUrls)) {
-                foreach ($alternateUrls as $hreflang => $href) {
-                    $link = $dom->createElementNS('http://www.w3.org/1999/xhtml', 'xhtml:link');
-                    $link->setAttribute('rel', 'alternate');
-                    $link->setAttribute('hreflang', (string) $hreflang);
-                    $link->setAttribute('href', htmlspecialchars((string) $href, ENT_XML1));
-                    $url->appendChild($link);
-                }
-
-                $defaultHref = $alternateUrls[$defaultLocale] ?? reset($alternateUrls);
-                $xdefault = $dom->createElementNS('http://www.w3.org/1999/xhtml', 'xhtml:link');
-                $xdefault->setAttribute('rel', 'alternate');
-                $xdefault->setAttribute('hreflang', 'x-default');
-                $xdefault->setAttribute('href', htmlspecialchars((string) $defaultHref, ENT_XML1));
-                $url->appendChild($xdefault);
-            }
-        }
-
-        return $dom->saveXML();
-    }
-
-    /**
-     * Recalculate and persist the active entry count on a sitemap index.
-     */
-    private function syncEntryCount(SitemapIndex $index): void
-    {
-        $index->update([
-            'entry_count' => SitemapEntry::where('sitemap_index_id', $index->id)
-                ->where('is_active', true)
-                ->count(),
-        ]);
     }
 }

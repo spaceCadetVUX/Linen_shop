@@ -1529,7 +1529,7 @@ return [
             'view' => 'Xem',
             'regenerate' => 'Regenerate',
             'regenerate_modal_heading' => 'Tạo lại Sitemap',
-            'regenerate_modal_description' => 'Thao tác này sẽ tạo lại file sitemap ngay lập tức. Entry count và last_generated_at sẽ được cập nhật.',
+            'regenerate_modal_description' => 'Sitemap được render trực tiếp từ dữ liệu (không dùng file tĩnh). Thao tác này chỉ làm mới entry count và last_generated_at ngay lập tức.',
             'deactivate' => 'Ngừng hoạt động',
             'activate' => 'Kích hoạt',
         ],

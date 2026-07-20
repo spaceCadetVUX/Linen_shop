@@ -2,7 +2,6 @@
 
 namespace App\Observers;
 
-use App\Enums\BlogPostStatus;
 use App\Enums\RedirectType;
 use App\Jobs\Seo\SyncJsonldSchema;
 use App\Jobs\Seo\SyncLlmsEntry;
@@ -66,8 +65,9 @@ class BlogPostObserver
      */
     public function saved(BlogPost $blogPost): void
     {
-        if ($blogPost->status !== BlogPostStatus::Published) {
-            // Post is no longer published — deactivate ALL SEO entries.
+        if (! $blogPost->isPubliclyVisible()) {
+            // Draft/archived, or Published with a future published_at (scheduled)
+            // — deactivate ALL SEO entries until it actually goes live.
             $morphClass = $blogPost->getMorphClass();
 
             SitemapEntry::where('model_type', $morphClass)
@@ -87,6 +87,16 @@ class BlogPostObserver
             return;
         }
 
+        $this->activate($blogPost);
+    }
+
+    /**
+     * Dispatch SEO sync jobs for every locale the post has a translation for.
+     * Shared by saved()/restored() and by the blog-post:activate-scheduled
+     * command, which re-checks posts whose published_at has just arrived.
+     */
+    public function activate(BlogPost $blogPost): void
+    {
         $blogPost->loadMissing('translations');
         $loadedLocales = $blogPost->translations->pluck('locale')->all();
 
@@ -124,20 +134,11 @@ class BlogPostObserver
 
     public function restored(BlogPost $blogPost): void
     {
-        if ($blogPost->status !== BlogPostStatus::Published) {
+        if (! $blogPost->isPubliclyVisible()) {
             return;
         }
 
-        $blogPost->loadMissing('translations');
-        $loadedLocales = $blogPost->translations->pluck('locale')->all();
-
-        foreach (config('app.supported_locales') as $locale) {
-            if (in_array($locale, $loadedLocales, true)) {
-                dispatch(new SyncJsonldSchema($blogPost, $locale))->onQueue('seo');
-                dispatch(new SyncSitemapEntry($blogPost, $locale))->onQueue('seo');
-                dispatch(new SyncLlmsEntry($blogPost, $locale))->onQueue('seo');
-            }
-        }
+        $this->activate($blogPost);
     }
 
     /**

@@ -3,11 +3,15 @@
 namespace App\Services\Seo;
 
 use App\Enums\LlmsScope;
+use App\Models\BlogPost;
 use App\Models\BusinessProfile;
 use App\Models\Seo\LlmsDocument;
 use App\Models\Seo\LlmsEntry;
+use App\Support\LocaleUrl;
+use App\Support\SeoVisibility;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 class LlmsGeneratorService
@@ -16,12 +20,12 @@ class LlmsGeneratorService
      * Morph alias → route name for locale-aware URL generation.
      */
     private const ROUTE_NAMES = [
-        'product'       => 'product.show',
-        'blog_post'     => 'blog.show',
-        'category'      => 'category.show',
+        'product' => 'product.show',
+        'blog_post' => 'blog.show',
+        'category' => 'category.show',
         'blog_category' => 'blog.category',
-        'brand'         => 'brand.show',
-        'manufacturer'  => 'manufacturer.show',
+        'brand' => 'brand.show',
+        'manufacturer' => 'manufacturer.show',
     ];
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -92,6 +96,7 @@ class LlmsGeneratorService
         // Business document has no llms_entries — generated directly from BusinessProfile.
         if ($document->slug === 'business' || str_starts_with($document->slug, 'business-')) {
             $this->generateBusinessDocument($document);
+
             return;
         }
 
@@ -103,7 +108,7 @@ class LlmsGeneratorService
         $lines = [];
 
         // ── File header ───────────────────────────────────────────────────────
-        $lines[] = '# ' . ($document->title ?? $document->slug);
+        $lines[] = '# '.($document->title ?? $document->slug);
 
         if (filled($document->description)) {
             $lines[] = '';
@@ -130,10 +135,10 @@ class LlmsGeneratorService
         $content = implode("\n", $lines);
 
         Storage::disk('public')->makeDirectory('llms');
-        Storage::disk('public')->put('llms/' . $document->slug . '.txt', $content);
+        Storage::disk('public')->put('llms/'.$document->slug.'.txt', $content);
 
         $document->update([
-            'entry_count'       => $entries->count(),
+            'entry_count' => $entries->count(),
             'last_generated_at' => now(),
         ]);
     }
@@ -183,17 +188,17 @@ class LlmsGeneratorService
         // ── Core fields ───────────────────────────────────────────────────────
         $title = (string) ($translation?->name ?? $translation?->title
             ?? $model->getAttribute('title') ?? $model->getAttribute('name') ?? '');
-        $slug  = (string) ($translation?->slug ?? $model->getAttribute('slug') ?? '');
+        $slug = (string) ($translation?->slug ?? $model->getAttribute('slug') ?? '');
 
-        if ($morphAlias === 'blog_post' && $model instanceof \App\Models\BlogPost) {
-            $url = \App\Support\LocaleUrl::forBlogPost($model, $locale)
-                ?: rtrim((string) config('app.url'), '/') . '/' . $locale . '/' . $slug;
+        if ($morphAlias === 'blog_post' && $model instanceof BlogPost) {
+            $url = LocaleUrl::forBlogPost($model, $locale)
+                ?: rtrim((string) config('app.url'), '/').'/'.$locale.'/'.$slug;
         } else {
             $routeSuffix = self::ROUTE_NAMES[$morphAlias] ?? null;
-            $fullRoute   = $routeSuffix ? $locale . '.' . $routeSuffix : null;
-            $url         = $fullRoute && $slug && \Illuminate\Support\Facades\Route::has($fullRoute)
+            $fullRoute = $routeSuffix ? $locale.'.'.$routeSuffix : null;
+            $url = $fullRoute && $slug && Route::has($fullRoute)
                 ? route($fullRoute, ['slug' => $slug])
-                : rtrim((string) config('app.url'), '/') . '/' . $locale . '/' . $slug;
+                : rtrim((string) config('app.url'), '/').'/'.$locale.'/'.$slug;
         }
 
         // ── Summary block ─────────────────────────────────────────────────────
@@ -201,9 +206,9 @@ class LlmsGeneratorService
         // Appended: use_cases, target_audience, llm_context_hint (if filled)
         $summaryParts = [];
 
-        $aiSummary        = trim((string) ($geoProfile?->ai_summary ?? ''));
+        $aiSummary = trim((string) ($geoProfile?->ai_summary ?? ''));
         $shortDescription = trim((string) ($translation?->short_description ?? $model->getAttribute('short_description') ?? ''));
-        $excerpt          = trim((string) ($translation?->excerpt ?? ''));
+        $excerpt = trim((string) ($translation?->excerpt ?? ''));
 
         // Blog posts use `excerpt`, not `short_description` — fall through both.
         $baseSummary = filled($aiSummary) ? $aiSummary
@@ -212,15 +217,15 @@ class LlmsGeneratorService
         $summaryParts[] = $baseSummary;
 
         if (filled($geoProfile?->use_cases)) {
-            $summaryParts[] = 'Use Cases: ' . trim($geoProfile->use_cases);
+            $summaryParts[] = 'Use Cases: '.trim($geoProfile->use_cases);
         }
 
         if (filled($geoProfile?->target_audience)) {
-            $summaryParts[] = 'Target Audience: ' . trim($geoProfile->target_audience);
+            $summaryParts[] = 'Target Audience: '.trim($geoProfile->target_audience);
         }
 
         if (filled($geoProfile?->llm_context_hint)) {
-            $summaryParts[] = 'Additional Context: ' . trim($geoProfile->llm_context_hint);
+            $summaryParts[] = 'Additional Context: '.trim($geoProfile->llm_context_hint);
         }
 
         $summary = implode("\n\n", array_filter($summaryParts));
@@ -325,7 +330,7 @@ class LlmsGeneratorService
                         fn ($attr): string => "  - {$attr->name}: {$attr->value}"
                     )->all();
 
-                    $keyFactsSections[] = "Technical Specs:\n" . implode("\n", $specLines);
+                    $keyFactsSections[] = "Technical Specs:\n".implode("\n", $specLines);
                 }
             } catch (\Throwable) {
                 // Silently skip — not all models have an attributes relationship.
@@ -341,9 +346,9 @@ class LlmsGeneratorService
                 $model->loadMissing('author');
                 $author = $model->getRelationValue('author');
                 if ($author) {
-                    $authorName  = trim((string) ($author->name ?? ''));
+                    $authorName = trim((string) ($author->name ?? ''));
                     $authorTitle = trim((string) ($author->title ?? ''));
-                    $authorLine  = "  - Author: {$authorName}";
+                    $authorLine = "  - Author: {$authorName}";
                     if (filled($authorTitle)) {
                         $authorLine .= " ({$authorTitle})";
                     }
@@ -356,7 +361,7 @@ class LlmsGeneratorService
             // Category
             if (method_exists($model, 'blogCategory')) {
                 $model->loadMissing('blogCategory');
-                $category     = $model->getRelationValue('blogCategory');
+                $category = $model->getRelationValue('blogCategory');
                 $categoryName = trim((string) ($category?->name ?? ''));
                 if (filled($categoryName)) {
                     $blogContextLines[] = "  - Category: {$categoryName}";
@@ -366,7 +371,7 @@ class LlmsGeneratorService
             // Tags
             if (method_exists($model, 'blogTags')) {
                 $model->loadMissing('blogTags');
-                $tags     = $model->getRelationValue('blogTags');
+                $tags = $model->getRelationValue('blogTags');
                 $tagNames = $tags?->pluck('name')->filter()->implode(', ');
                 if (filled($tagNames)) {
                     $blogContextLines[] = "  - Tags: {$tagNames}";
@@ -387,25 +392,28 @@ class LlmsGeneratorService
                     if (is_array($v)) {
                         $label = (string) ($v['label'] ?? $k);
                         $value = (string) ($v['value'] ?? '');
+
                         return "  - {$label}: {$value}";
                     }
+
                     return "  - {$k}: {$v}";
                 })
                 ->values()
                 ->all();
 
-            $keyFactsSections[] = "Key Facts:\n" . implode("\n", $factLines);
+            $keyFactsSections[] = "Key Facts:\n".implode("\n", $factLines);
         }
 
         $keyFactsText = implode("\n\n", $keyFactsSections);
 
         // ── FAQ jsonb → indented Q&A plain text ──────────────────────────────
         // Stored as [{"question": "...", "answer": "..."}, ...] by Repeater.
-        $faq     = (array) ($geoProfile?->faq ?? []);
+        $faq = (array) ($geoProfile?->faq ?? []);
         $faqText = collect($faq)
             ->map(function (array $item): string {
                 $q = trim((string) ($item['question'] ?? ''));
                 $a = trim((string) ($item['answer'] ?? ''));
+
                 return "  Q: {$q}\n  A: {$a}";
             })
             ->implode("\n\n");
@@ -414,22 +422,22 @@ class LlmsGeneratorService
         LlmsEntry::updateOrCreate(
             [
                 'llms_document_id' => $document->id,
-                'model_type'       => $morphAlias,
-                'model_id'         => $model->getKey(),
+                'model_type' => $morphAlias,
+                'model_id' => $model->getKey(),
             ],
             [
-                'locale'         => $locale,
-                'title'          => $title,
-                'url'            => $url,
-                'summary'        => $summary,
+                'locale' => $locale,
+                'title' => $title,
+                'url' => $url,
+                'summary' => $summary,
                 'key_facts_text' => $keyFactsText,
-                'faq_text'       => $faqText,
-                'is_active'      => $this->resolveIsActive($model, $morphAlias),
+                'faq_text' => $faqText,
+                'is_active' => SeoVisibility::isActive($model),
             ]
         );
 
         $document->update([
-            'entry_count'       => LlmsEntry::where('llms_document_id', $document->id)
+            'entry_count' => LlmsEntry::where('llms_document_id', $document->id)
                 ->where('is_active', true)
                 ->count(),
             'last_generated_at' => now(),
@@ -443,11 +451,11 @@ class LlmsGeneratorService
     private function generateBusinessDocument(LlmsDocument $document): void
     {
         $profile = BusinessProfile::instance();
-        $locale  = $document->locale ?? 'vi';
-        $vi      = $locale === 'vi';
-        $lines   = [];
+        $locale = $document->locale ?? 'vi';
+        $vi = $locale === 'vi';
+        $lines = [];
 
-        $lines[] = '# ' . $profile->name;
+        $lines[] = '# '.$profile->name;
 
         $intro = $vi
             ? ($profile->description ?? $profile->tagline ?? '')
@@ -462,10 +470,10 @@ class LlmsGeneratorService
         // Contact
         $contactLines = [];
         if (filled($profile->email)) {
-            $contactLines[] = '- Email: ' . $profile->email;
+            $contactLines[] = '- Email: '.$profile->email;
         }
         if (filled($profile->phone)) {
-            $contactLines[] = ($vi ? '- Điện thoại: ' : '- Phone: ') . $profile->phone;
+            $contactLines[] = ($vi ? '- Điện thoại: ' : '- Phone: ').$profile->phone;
         }
 
         $addressParts = array_filter([
@@ -475,7 +483,7 @@ class LlmsGeneratorService
             $profile->country,
         ]);
         if (! empty($addressParts)) {
-            $contactLines[] = ($vi ? '- Địa chỉ: ' : '- Address: ') . implode(', ', $addressParts);
+            $contactLines[] = ($vi ? '- Địa chỉ: ' : '- Address: ').implode(', ', $addressParts);
         }
 
         if (! empty($contactLines)) {
@@ -490,18 +498,24 @@ class LlmsGeneratorService
             $lines[] = $vi ? '## Giờ làm việc' : '## Business Hours';
             if (array_is_list($rawHours)) {
                 foreach ($rawHours as $h) {
-                    if (! is_array($h) || empty($h['day'])) { continue; }
-                    $slot = trim(($h['open'] ?? '') . '–' . ($h['close'] ?? ''), '–');
-                    if (! filled($slot)) { continue; }
-                    $lines[] = '- ' . ucfirst(strtolower($h['day'])) . ': ' . $slot;
+                    if (! is_array($h) || empty($h['day'])) {
+                        continue;
+                    }
+                    $slot = trim(($h['open'] ?? '').'–'.($h['close'] ?? ''), '–');
+                    if (! filled($slot)) {
+                        continue;
+                    }
+                    $lines[] = '- '.ucfirst(strtolower($h['day'])).': '.$slot;
                 }
             } else {
                 foreach ($rawHours as $day => $h) {
                     $slot = is_array($h)
-                        ? trim(($h['open'] ?? '') . '–' . ($h['close'] ?? ''), '–')
+                        ? trim(($h['open'] ?? '').'–'.($h['close'] ?? ''), '–')
                         : (string) ($h ?? '');
-                    if (! filled($slot)) { continue; }
-                    $lines[] = '- ' . ucfirst(strtolower($day)) . ': ' . $slot;
+                    if (! filled($slot)) {
+                        continue;
+                    }
+                    $lines[] = '- '.ucfirst(strtolower($day)).': '.$slot;
                 }
             }
             $lines[] = '';
@@ -519,28 +533,34 @@ class LlmsGeneratorService
         // Business Details
         $detailLines = [];
         if (filled($profile->founded_year)) {
-            $detailLines[] = ($vi ? '- Năm thành lập: ' : '- Founded: ') . $profile->founded_year;
+            $detailLines[] = ($vi ? '- Năm thành lập: ' : '- Founded: ').$profile->founded_year;
         }
         if (filled($profile->currency)) {
-            $detailLines[] = ($vi ? '- Tiền tệ: ' : '- Currency: ') . $profile->currency;
+            $detailLines[] = ($vi ? '- Tiền tệ: ' : '- Currency: ').$profile->currency;
         }
         if (filled($profile->vat_number)) {
-            $detailLines[] = ($vi ? '- Mã số thuế: ' : '- VAT Number: ') . $profile->vat_number;
+            $detailLines[] = ($vi ? '- Mã số thuế: ' : '- VAT Number: ').$profile->vat_number;
         }
 
         $extraSkip = ['faq', 'faq_en', 'favicon', 'og_image', 'description', 'description_en', 'description_vi'];
         foreach ((array) ($profile->extra ?? []) as $key => $value) {
-            if (in_array($key, $extraSkip, true)) { continue; }
+            if (in_array($key, $extraSkip, true)) {
+                continue;
+            }
             // Skip locale-specific variants that don't match current locale
-            if ($vi && str_ends_with($key, '_en')) { continue; }
-            if (! $vi && str_ends_with($key, '_vi')) { continue; }
+            if ($vi && str_ends_with($key, '_en')) {
+                continue;
+            }
+            if (! $vi && str_ends_with($key, '_vi')) {
+                continue;
+            }
             // Strip _en suffix for display label in EN doc
             $baseKey = (! $vi && str_ends_with($key, '_en')) ? substr($key, 0, -3) : $key;
-            $label   = ucfirst($baseKey);
+            $label = ucfirst($baseKey);
             if (is_array($value)) {
                 $flat = array_filter($value, fn ($v) => ! is_array($v));
                 if (! empty($flat)) {
-                    $detailLines[] = "- {$label}: " . implode(', ', $flat);
+                    $detailLines[] = "- {$label}: ".implode(', ', $flat);
                 }
             } else {
                 $detailLines[] = "- {$label}: {$value}";
@@ -560,10 +580,12 @@ class LlmsGeneratorService
         if (! empty($faq)) {
             $lines[] = $vi ? '## Câu hỏi thường gặp' : '## FAQ';
             foreach ($faq as $item) {
-                if (! is_array($item) || empty($item['question'])) { continue; }
+                if (! is_array($item) || empty($item['question'])) {
+                    continue;
+                }
                 $lines[] = '';
-                $lines[] = '**Q: ' . $item['question'] . '**';
-                $lines[] = 'A: ' . ($item['answer'] ?? '');
+                $lines[] = '**Q: '.$item['question'].'**';
+                $lines[] = 'A: '.($item['answer'] ?? '');
             }
             $lines[] = '';
         }
@@ -571,10 +593,10 @@ class LlmsGeneratorService
         $content = implode("\n", $lines);
 
         Storage::disk('public')->makeDirectory('llms');
-        Storage::disk('public')->put('llms/' . $document->slug . '.txt', $content);
+        Storage::disk('public')->put('llms/'.$document->slug.'.txt', $content);
 
         $document->update([
-            'entry_count'       => 1,
+            'entry_count' => 1,
             'last_generated_at' => now(),
         ]);
     }
@@ -596,8 +618,8 @@ class LlmsGeneratorService
     {
         $lines = [];
 
-        $lines[] = '## ' . $entry->title;
-        $lines[] = 'URL: ' . $entry->url;
+        $lines[] = '## '.$entry->title;
+        $lines[] = 'URL: '.$entry->url;
 
         if (filled($entry->summary)) {
             $lines[] = '';
@@ -625,11 +647,11 @@ class LlmsGeneratorService
      */
     public function buildIndexLine(LlmsEntry $entry): string
     {
-        $line = '- [' . $entry->title . '](' . $entry->url . ')';
+        $line = '- ['.$entry->title.']('.$entry->url.')';
 
         $note = $this->firstParagraph($entry->summary);
         if (filled($note)) {
-            $line .= ': ' . $note;
+            $line .= ': '.$note;
         }
 
         return $line;
@@ -672,13 +694,13 @@ class LlmsGeneratorService
      */
     private function buildLocaleContent(string $locale): string
     {
-        $vi      = $locale === 'vi';
-        $profile = \App\Models\BusinessProfile::instance();
-        $base    = rtrim((string) config('app.url'), '/');
-        $lines   = [];
+        $vi = $locale === 'vi';
+        $profile = BusinessProfile::instance();
+        $base = rtrim((string) config('app.url'), '/');
+        $lines = [];
 
         // ── 1. H1 (required by spec) ──────────────────────────────────────────
-        $lines[] = '# ' . ($profile->name ?: config('app.name'));
+        $lines[] = '# '.($profile->name ?: config('app.name'));
         $lines[] = '';
 
         // ── 2. Blockquote summary ─────────────────────────────────────────────
@@ -686,7 +708,7 @@ class LlmsGeneratorService
             ? ($profile->description ?? $profile->tagline ?? '')
             : ($profile->extra['description_en'] ?? $profile->extra['tagline_en'] ?? '');
         if (filled($summary)) {
-            $lines[] = '> ' . $summary;
+            $lines[] = '> '.$summary;
             $lines[] = '';
         }
 
@@ -694,10 +716,10 @@ class LlmsGeneratorService
         $lines[] = $vi ? '## Trang chính' : '## Key Pages';
         $lines[] = '';
         try {
-            $lines[] = '- [' . ($vi ? 'Trang chủ' : 'Home') . '](' . route($locale . '.index') . ')';
-            $lines[] = '- [' . ($vi ? 'Bài viết' : 'Blog') . '](' . route($locale . '.blog.index') . ')';
+            $lines[] = '- ['.($vi ? 'Trang chủ' : 'Home').']('.route($locale.'.index').')';
+            $lines[] = '- ['.($vi ? 'Bài viết' : 'Blog').']('.route($locale.'.blog.index').')';
         } catch (\Throwable) {
-            $lines[] = '- [' . ($vi ? 'Trang chủ' : 'Home') . '](' . $base . '/' . $locale . '/)';
+            $lines[] = '- ['.($vi ? 'Trang chủ' : 'Home').']('.$base.'/'.$locale.'/)';
         }
         $lines[] = '';
 
@@ -718,7 +740,7 @@ class LlmsGeneratorService
                 continue;
             }
 
-            $lines[] = '## ' . ($document->title ?? $document->slug);
+            $lines[] = '## '.($document->title ?? $document->slug);
             $lines[] = '';
 
             // Every section here is a link list (llmstxt.org spec: one bullet
@@ -748,7 +770,7 @@ class LlmsGeneratorService
             ->first();
 
         if ($businessDoc) {
-            $path = 'llms/' . $businessDoc->slug . '.txt';
+            $path = 'llms/'.$businessDoc->slug.'.txt';
             if (! Storage::disk('public')->exists($path)) {
                 $this->generateBusinessDocument($businessDoc);
             }
@@ -756,34 +778,11 @@ class LlmsGeneratorService
             if (Storage::disk('public')->exists($path)) {
                 $lines[] = $vi ? '## Doanh nghiệp' : '## Business';
                 $lines[] = '';
-                $lines[] = '- [' . ($vi ? 'Hồ sơ doanh nghiệp đầy đủ (giới thiệu, FAQ, liên hệ)' : 'Full business profile (about, FAQ, contact)') . '](' . $base . '/llms-' . $businessDoc->slug . '.txt)';
+                $lines[] = '- ['.($vi ? 'Hồ sơ doanh nghiệp đầy đủ (giới thiệu, FAQ, liên hệ)' : 'Full business profile (about, FAQ, contact)').']('.$base.'/llms-'.$businessDoc->slug.'.txt)';
                 $lines[] = '';
             }
         }
 
         return implode("\n", $lines);
-    }
-
-    /**
-     * Determine whether the LlmsEntry should be active.
-     *
-     * - blog_post  → active only when status === 'published'
-     *               (blog_posts has no is_active column — uses a status enum)
-     * - all others → reads is_active column, defaults true when absent
-     */
-    private function resolveIsActive(Model $model, string $morphAlias): bool
-    {
-        if ($morphAlias === 'blog_post') {
-            $status = $model->getAttribute('status');
-
-            // Support both backed enum and raw string value.
-            if ($status instanceof \BackedEnum) {
-                $status = $status->value;
-            }
-
-            return $status === 'published';
-        }
-
-        return (bool) ($model->getAttribute('is_active') ?? true);
     }
 }

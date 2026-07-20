@@ -1529,7 +1529,7 @@ return [
             'view' => 'View',
             'regenerate' => 'Regenerate',
             'regenerate_modal_heading' => 'Regenerate Sitemap',
-            'regenerate_modal_description' => 'This will regenerate the sitemap file synchronously. The table entry count and last_generated_at will be updated.',
+            'regenerate_modal_description' => 'The sitemap is rendered live from data (no static file involved). This will refresh the entry count and last_generated_at immediately.',
             'deactivate' => 'Deactivate',
             'activate' => 'Activate',
         ],

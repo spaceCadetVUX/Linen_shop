@@ -22,6 +22,13 @@ Schedule::command('llms:generate')
     ->withoutOverlapping()
     ->runInBackground();
 
+// Activates scheduled blog posts (status=Published, future published_at) once
+// their publish time arrives — the observer only re-checks on save, so posts
+// left untouched after scheduling need this tick to go live in the sitemap.
+Schedule::command('blog-post:activate-scheduled')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
 // ── Maintenance ───────────────────────────────────────────────────────────────
 Schedule::command('cart:prune')
     ->dailyAt('03:00')

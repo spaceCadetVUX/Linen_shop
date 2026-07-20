@@ -96,6 +96,19 @@ class BlogPost extends Model
             ->where('published_at', '<=', now());
     }
 
+    /**
+     * True only once the scheduled publish time has actually passed — mirrors
+     * scopePublished(). Status alone is not enough: a post can be marked
+     * Published with a future published_at (scheduled) and must stay hidden
+     * from search/sitemap/JSON-LD until that instant.
+     */
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === BlogPostStatus::Published
+            && $this->published_at !== null
+            && $this->published_at->lte(now());
+    }
+
     // ── Scout — Meilisearch ───────────────────────────────────────────────────
 
     public function searchableAs(): string
@@ -122,7 +135,7 @@ class BlogPost extends Model
      */
     public function shouldBeSearchable(): bool
     {
-        return $this->status === BlogPostStatus::Published && ! $this->trashed();
+        return $this->isPubliclyVisible() && ! $this->trashed();
     }
 
     // ── Relationships ─────────────────────────────────────────────────────────

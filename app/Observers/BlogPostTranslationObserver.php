@@ -15,7 +15,17 @@ class BlogPostTranslationObserver
     public function saved(BlogPostTranslation $translation): void
     {
         $blogPost = $translation->blogPost;
-        $locale   = $translation->locale;
+
+        // Mirrors ProductTranslationObserver/CategoryTranslationObserver's
+        // is_active gate — BlogPost has no is_active column, so visibility is
+        // status + published_at (see BlogPost::isPubliclyVisible()). Without
+        // this, editing a translation on a scheduled/draft post would
+        // reactivate its sitemap/JSON-LD/LLMs entries regardless of status.
+        if (! $blogPost->isPubliclyVisible()) {
+            return;
+        }
+
+        $locale = $translation->locale;
 
         dispatch(new SyncJsonldSchema($blogPost, $locale))->onQueue('seo');
         dispatch(new SyncSitemapEntry($blogPost, $locale))->onQueue('seo');
@@ -30,7 +40,7 @@ class BlogPostTranslationObserver
 
         $oldSlug = $translation->getOriginal('slug');
         $newSlug = $translation->slug;
-        $locale  = $translation->locale;
+        $locale = $translation->locale;
 
         if (! $oldSlug || ! $newSlug || $oldSlug === $newSlug) {
             return;
@@ -38,23 +48,23 @@ class BlogPostTranslationObserver
 
         $blogPost = $translation->blogPost->load(['blogCategory.translations']);
         $catTrans = $blogPost->blogCategory?->translations->where('locale', $locale)->first();
-        $catSlug  = $catTrans?->slug ?? $blogPost->blogCategory?->slug;
+        $catSlug = $catTrans?->slug ?? $blogPost->blogCategory?->slug;
 
         if ($catSlug) {
             $localePath = $locale === 'vi' ? 'vi/bai-viet' : 'en/blog';
-            $fromPath   = "/{$localePath}/{$catSlug}/{$oldSlug}";
-            $toPath     = "/{$localePath}/{$catSlug}/{$newSlug}";
+            $fromPath = "/{$localePath}/{$catSlug}/{$oldSlug}";
+            $toPath = "/{$localePath}/{$catSlug}/{$newSlug}";
         } else {
             $fromPath = parse_url(LocaleUrl::for('blog_post', $oldSlug, $locale), PHP_URL_PATH);
-            $toPath   = parse_url(LocaleUrl::for('blog_post', $newSlug, $locale), PHP_URL_PATH);
+            $toPath = parse_url(LocaleUrl::for('blog_post', $newSlug, $locale), PHP_URL_PATH);
         }
 
         Redirect::updateOrCreate(
             ['from_path' => $fromPath],
             [
-                'to_path'   => $toPath,
-                'type'      => RedirectType::Permanent,
-                'locale'    => $locale,
+                'to_path' => $toPath,
+                'type' => RedirectType::Permanent,
+                'locale' => $locale,
                 'is_active' => true,
             ]
         );
