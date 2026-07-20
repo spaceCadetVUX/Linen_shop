@@ -1501,6 +1501,22 @@ img    { display: block; }
 }
 
 /* ============================================
+   Responsive — Small Desktop (≤ 1200px)
+   Nav-only: nội dung desktop đầy đủ (quick-link + lang +
+   search label + icon) cần ~1200px mới đủ chỗ — dưới mốc
+   này thu gọn nav trước khi chạm breakpoint tablet 1024px,
+   tránh vùng "kẹt" 1025-1199px bị chen chúc.
+============================================ */
+@media (max-width: 1200px) {
+  .navbar { --pad-x: 40px; }
+
+  .nav-contact { display: none; }
+  .nav-lang { display: none; }
+  .nav-quick { display: none; }
+  .nav-search-btn { border-left: none; padding-left: 0; }
+}
+
+/* ============================================
    Responsive — Tablet (≤ 1024px)
 ============================================ */
 @media (max-width: 1024px) {
@@ -1508,10 +1524,6 @@ img    { display: block; }
     --pad-x: 40px;
   }
 
-  .nav-contact { display: none; }
-  .nav-lang { display: none; }
-  .nav-quick { display: none; }
-  .nav-search-btn { border-left: none; padding-left: 0; }
   .hero-caption { bottom: 72px; }
   .cat-label-inner { padding-bottom: 22px; }
   .hero-logo-text { font-size: clamp(52px, 9vw, 110px); }
