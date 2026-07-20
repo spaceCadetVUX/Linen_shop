@@ -3375,6 +3375,17 @@ img    { display: block; }
 .pd-accordions--faq .pd-accordion.pd-open .pd-acc-body {
   max-height: 2000px;
 }
+
+/* FAQ accordion (blog post) — same rationale as .category-faq/.pd-accordions--faq:
+   full sentences shouldn't be uppercased like a short PDP spec label. Weight
+   bumped to 600 (vs 500 elsewhere) per request for a bolder question line. */
+.jnl-post-faq .pd-acc-trigger {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
 .pd-faq-list {
   display: flex;
   flex-direction: column;
@@ -6893,10 +6904,14 @@ a.shop-card-name:hover { color: var(--ash); }
   padding-bottom: 16px;
 }
 
-/* Hero image */
+/* Hero image — aspect-ratio instead of a viewport-height frame: on a narrow
+   mobile viewport 80vh produces a taller-than-wide box (~0.58 ratio) that
+   crops a landscape image down to a thin vertical sliver. Sizing off width
+   keeps the frame landscape-shaped at any viewport width. */
 .jnl-post-hero {
   width: 100%;
-  height: 80vh;
+  aspect-ratio: 16 / 9;
+  max-height: 80vh;
   overflow: hidden;
 }
 
@@ -7130,6 +7145,29 @@ a.jnl-post-author-name {
   line-height: 1.9;
   letter-spacing: 0.015em;
   color: var(--ink);
+}
+
+/* Tiptap list/quote output — the global `* { margin:0; padding:0; }` reset
+   (line 38) zeroes the UA default padding-left that positions bullets/
+   numbers/blockquote indent, so without this they render flush against
+   the container edge instead of aligned under the paragraph text above. */
+.jnl-post-body ul,
+.jnl-post-body ol {
+  padding-left: 22px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.9;
+  letter-spacing: 0.015em;
+  color: var(--ink);
+}
+.jnl-post-body li + li { margin-top: 6px; }
+.jnl-post-body blockquote {
+  margin: 0;
+  padding-left: 20px;
+  border-left: 1.5px solid var(--pebble);
+  font-style: italic;
+  color: var(--graphite);
 }
 
 /* Tiptap table output (category rich_content, blog body) — same border
@@ -7378,6 +7416,7 @@ a.jnl-post-author-name {
   .jnl-post-body { padding: 48px var(--pad-x); gap: 22px; }
   .jnl-post-pull { padding: 24px 0 24px 20px; }
   .jnl-post-figure-duo { grid-template-columns: 1fr; gap: 4px; }
+  .jnl-post-hero { aspect-ratio: 4 / 3; max-height: 60vh; }
 }
 
 /* ============================================
