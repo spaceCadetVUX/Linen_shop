@@ -270,8 +270,11 @@ class McpBatchService
         }
 
         if ($changed) {
+            if (filled($seoMeta->robots)) {
+                $seoMeta->robots = str_replace(', ', ',', $seoMeta->robots);
+            }
             if (blank($seoMeta->robots)) {
-                $seoMeta->robots = 'index, follow';
+                $seoMeta->robots = 'index,follow';
             }
             $seoMeta->model_type = $modelType;
             $seoMeta->model_id   = $modelId;
@@ -379,7 +382,8 @@ class McpBatchService
             } else {
                 $changed = $this->copyFields($seoFields, $sourceSeo, $targetSeo, $overwrite, $copied, $skipped);
                 if ($changed > 0) {
-                    if (blank($targetSeo->robots)) $targetSeo->robots = 'index, follow';
+                    if (filled($targetSeo->robots)) $targetSeo->robots = str_replace(', ', ',', $targetSeo->robots);
+                    if (blank($targetSeo->robots)) $targetSeo->robots = 'index,follow';
                     $targetSeo->model_type = 'product';
                     $targetSeo->model_id   = (string) $product->id;
                     $targetSeo->locale     = $toLocale;
@@ -465,7 +469,8 @@ class McpBatchService
             } else {
                 $changed = $this->copyFields($seoFields, $sourceSeo, $targetSeo, $overwrite, $copied, $skipped);
                 if ($changed > 0) {
-                    if (blank($targetSeo->robots)) $targetSeo->robots = 'index, follow';
+                    if (filled($targetSeo->robots)) $targetSeo->robots = str_replace(', ', ',', $targetSeo->robots);
+                    if (blank($targetSeo->robots)) $targetSeo->robots = 'index,follow';
                     $targetSeo->model_type = 'blog_post';
                     $targetSeo->model_id   = (string) $post->id;
                     $targetSeo->locale     = $toLocale;
@@ -518,7 +523,8 @@ class McpBatchService
             } else {
                 $changed = $this->copyFields($seoFields, $sourceSeo, $targetSeo, $overwrite, $copied, $skipped);
                 if ($changed > 0) {
-                    if (blank($targetSeo->robots)) $targetSeo->robots = 'index, follow';
+                    if (filled($targetSeo->robots)) $targetSeo->robots = str_replace(', ', ',', $targetSeo->robots);
+                    if (blank($targetSeo->robots)) $targetSeo->robots = 'index,follow';
                     $targetSeo->model_type = 'blog_category';
                     $targetSeo->model_id   = (string) $bc->id;
                     $targetSeo->locale     = $toLocale;
@@ -556,7 +562,8 @@ class McpBatchService
 
         $changed = $this->copyFields($seoFields, $sourceSeo, $targetSeo, $overwrite, $copied, $skipped);
         if ($changed > 0) {
-            if (blank($targetSeo->robots)) $targetSeo->robots = 'index, follow';
+            if (filled($targetSeo->robots)) $targetSeo->robots = str_replace(', ', ',', $targetSeo->robots);
+            if (blank($targetSeo->robots)) $targetSeo->robots = 'index,follow';
             $targetSeo->model_type = $modelType;
             $targetSeo->model_id   = (string) $entity->id;
             $targetSeo->locale     = $toLocale;

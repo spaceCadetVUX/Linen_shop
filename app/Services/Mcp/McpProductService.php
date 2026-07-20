@@ -435,8 +435,11 @@ class McpProductService
             }
 
             // Default robots
+            if (filled($seoMeta->robots)) {
+                $seoMeta->robots = str_replace(', ', ',', $seoMeta->robots);
+            }
             if (blank($seoMeta->robots)) {
-                $seoMeta->robots = 'index, follow';
+                $seoMeta->robots = 'index,follow';
             }
 
             $seoMeta->model_type = 'product';

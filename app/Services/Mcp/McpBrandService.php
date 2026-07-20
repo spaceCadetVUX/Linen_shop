@@ -221,8 +221,11 @@ class McpBrandService
                 $seoMeta->$field = $data[$field];
             }
 
+            if (filled($seoMeta->robots)) {
+                $seoMeta->robots = str_replace(', ', ',', $seoMeta->robots);
+            }
             if (blank($seoMeta->robots)) {
-                $seoMeta->robots = 'index, follow';
+                $seoMeta->robots = 'index,follow';
             }
 
             $seoMeta->model_type = 'brand';
