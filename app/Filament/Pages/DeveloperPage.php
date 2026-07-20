@@ -131,6 +131,48 @@ class DeveloperPage extends Page
         ];
     }
 
+    /**
+     * MCP server connection details for the "Add to Claude Desktop" guide.
+     * URL is derived from APP_URL's host (mcp.{domain}/mcp) rather than
+     * hardcoded, so it follows if the domain ever changes.
+     */
+    public function getMcpConfig(): array
+    {
+        $host = parse_url(config('app.url'), PHP_URL_HOST) ?? 'cacylinen.com';
+
+        return [
+            'url' => "https://mcp.{$host}/mcp",
+            'api_key' => (string) config('services.mcp.api_key'),
+        ];
+    }
+
+    /**
+     * Ready-to-paste claude_desktop_config.json snippet for the MCP guide —
+     * built once via json_encode() so the display block and the "Copy JSON"
+     * button always show the exact same, correctly-escaped text.
+     */
+    public function getMcpConfigJson(): string
+    {
+        $mcp = $this->getMcpConfig();
+
+        return json_encode([
+            'mcpServers' => [
+                'cacylinen-mcp' => [
+                    'command' => 'npx',
+                    'args' => [
+                        '-y',
+                        'mcp-remote',
+                        $mcp['url'],
+                        '--transport',
+                        'http-only',
+                        '--header',
+                        "X-API-Key: {$mcp['api_key']}",
+                    ],
+                ],
+            ],
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
     public function getStack(): array
     {
         return [

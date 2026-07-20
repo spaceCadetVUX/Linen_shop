@@ -41,9 +41,20 @@ return [
     |--------------------------------------------------------------------------
     */
     'google' => [
-        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect'      => env('GOOGLE_REDIRECT_URI'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MCP Server — front-door key for the TypeScript mcp-server container
+    |--------------------------------------------------------------------------
+    | Same value as MCP_API_KEY in the docker-compose .env — read here only to
+    | display it on the admin Developer page's integration guide.
+    */
+    'mcp' => [
+        'api_key' => env('MCP_API_KEY'),
     ],
 
 ];
