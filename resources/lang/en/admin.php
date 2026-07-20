@@ -1085,8 +1085,6 @@ return [
             'featured_desc' => 'Section showcasing featured products on the homepage.',
             'editorial_grid' => 'Editorial Grid',
             'editorial_grid_desc' => '3 category image tiles below the hero banner — image, name, and order are pulled directly from Category management.',
-            'newsletter' => 'Newsletter',
-            'newsletter_desc' => 'Newsletter email signup form.',
         ],
         'fieldsets' => [
             'cta1' => 'Left Link',
@@ -1116,9 +1114,6 @@ return [
             'featured_title_en' => 'Section Title (English)',
             'featured_title_en_placeholder' => 'Featured products',
             'editorial_scope' => 'Displayed Categories',
-            'newsletter_heading' => 'Heading',
-            'newsletter_heading_placeholder' => 'Nhận ưu đãi mỗi tuần',
-            'newsletter_body' => 'Short Description',
         ],
         'actions' => [
             'save' => 'Save Settings',

@@ -39,7 +39,7 @@ class PagesSetting extends Page
         return [
             [
                 'label' => 'Landing Page',
-                'description' => 'Hero, sản phẩm nổi bật, promo banner, newsletter và editorial grid của trang chủ.',
+                'description' => 'Hero, sản phẩm nổi bật, promo banner và editorial grid của trang chủ.',
                 'icon' => 'heroicon-o-home',
                 'url' => LandingSetup::getUrl(),
             ],

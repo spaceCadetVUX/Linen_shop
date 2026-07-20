@@ -1085,8 +1085,6 @@ return [
             'featured_desc' => 'Section giới thiệu sản phẩm nổi bật trên homepage.',
             'editorial_grid' => 'Editorial Grid',
             'editorial_grid_desc' => '3 ô ảnh danh mục nằm dưới hero banner — ảnh, tên, thứ tự lấy trực tiếp từ Category management.',
-            'newsletter' => 'Newsletter',
-            'newsletter_desc' => 'Form đăng ký nhận email newsletter.',
         ],
         'fieldsets' => [
             'cta1' => 'Link trái',
@@ -1116,9 +1114,6 @@ return [
             'featured_title_en' => 'Tiêu đề section English',
             'featured_title_en_placeholder' => 'Featured products',
             'editorial_scope' => 'Danh mục hiển thị',
-            'newsletter_heading' => 'Tiêu đề',
-            'newsletter_heading_placeholder' => 'Nhận ưu đãi mỗi tuần',
-            'newsletter_body' => 'Mô tả ngắn',
         ],
         'actions' => [
             'save' => 'Lưu cài đặt',

@@ -157,6 +157,10 @@ class AppServiceProvider extends ServiceProvider
 
             // Column 1 slider — admin-curated products (Mega Menu Setting), falls back to 4 newest active.
             $view->with('megaMenuNewProducts', app(ProductService::class)->getLatestForMegaMenu($locale));
+
+            // Col 4 sub 2 — same "Thông tin" links as the footer's right column
+            // (About + Size Guide are fixed, rest are active static Pages).
+            $view->with('footerPages', app(PageService::class)->getFooterPages($locale));
         });
 
         // Footer "Bộ sưu tập" column — real Category data, same rule as the

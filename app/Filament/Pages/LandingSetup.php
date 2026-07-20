@@ -53,10 +53,6 @@ class LandingSetup extends Page
             'featured_title' => $landing['featured_title'] ?? 'Sản phẩm nổi bật',
             'featured_title_en' => $landing['featured_title_en'] ?? 'Featured products',
 
-            'newsletter_enabled' => (bool) ($landing['newsletter_enabled'] ?? true),
-            'newsletter_heading' => $landing['newsletter_heading'] ?? 'Nhận ưu đãi mỗi tuần',
-            'newsletter_body' => $landing['newsletter_body'] ?? null,
-
             'editorial_scope' => $landing['editorial_scope'] ?? HomeEditorialScope::Parents->value,
         ]);
     }
@@ -191,27 +187,6 @@ class LandingSetup extends Page
                             ->columnSpanFull(),
                     ]),
 
-                Section::make(__('admin.landing_setup.sections.newsletter'))
-                    ->icon('heroicon-o-envelope')
-                    ->description(__('admin.landing_setup.sections.newsletter_desc'))
-                    ->schema([
-                        Toggle::make('newsletter_enabled')
-                            ->label(__('admin.landing_setup.fields.show_section'))
-                            ->columnSpanFull(),
-
-                        TextInput::make('newsletter_heading')
-                            ->label(__('admin.landing_setup.fields.newsletter_heading'))
-                            ->placeholder(__('admin.landing_setup.fields.newsletter_heading_placeholder'))
-                            ->maxLength(80)
-                            ->columnSpan(1),
-
-                        TextInput::make('newsletter_body')
-                            ->label(__('admin.landing_setup.fields.newsletter_body'))
-                            ->maxLength(160)
-                            ->columnSpan(1),
-                    ])
-                    ->columns(2),
-
             ])
             ->statePath('data');
     }
@@ -248,10 +223,6 @@ class LandingSetup extends Page
             'featured_enabled' => (bool) ($data['featured_enabled'] ?? true),
             'featured_title' => filled($data['featured_title']) ? trim($data['featured_title']) : null,
             'featured_title_en' => filled($data['featured_title_en']) ? trim($data['featured_title_en']) : null,
-            'newsletter_enabled' => (bool) ($data['newsletter_enabled'] ?? true),
-            'newsletter_heading' => filled($data['newsletter_heading']) ? trim($data['newsletter_heading']) : null,
-            'newsletter_body' => filled($data['newsletter_body']) ? trim($data['newsletter_body']) : null,
-
             'editorial_scope' => HomeEditorialScope::tryFrom((string) ($data['editorial_scope'] ?? ''))?->value
                 ?? HomeEditorialScope::Parents->value,
         ];

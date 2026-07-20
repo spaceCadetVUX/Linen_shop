@@ -881,6 +881,10 @@ img    { display: block; }
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
+/* The `hidden` attribute (set via grid.hidden in app.js) loses to the class
+   rule above at equal specificity — an explicit [hidden] override is needed
+   to actually collapse the grid instead of showing an empty 2-col box. */
+.mega-product-grid[hidden] { display: none; }
 .mega-products-empty {
   font-family: 'Be Vietnam Pro', system-ui, sans-serif;
   font-size: 13px;
@@ -926,9 +930,6 @@ img    { display: block; }
 .mega-product-card.is-entering:nth-child(2) { animation-delay: 0.10s; }
 .mega-product-card.is-entering:nth-child(3) { animation-delay: 0.20s; }
 .mega-product-card.is-entering:nth-child(4) { animation-delay: 0.30s; }
-
-/* ── Brand col footer: language + currency chip ── */
-.mega-brand-footer { margin-top: auto; padding-top: 24px; }
 
 .mega-intl-switch { position: relative; display: inline-block; }
 
@@ -1094,6 +1095,15 @@ img    { display: block; }
   color: var(--ash);
   padding: 4px 0;
   line-height: 1.5;
+}
+
+/* Social icon row in mega col 4 sub 1 — reuses .footer-social-link (color/hover
+   only, no positioning), just needs its own left-aligned row instead of
+   .footer-social's centered one. */
+.mega-social {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
 }
 
 /* ── Close button ── */
@@ -1380,11 +1390,6 @@ img    { display: block; }
   }
   .mega-link::after { display: none; }
   .mega-link:last-child { border-bottom: none; }
-
-  .mega-brand-footer {
-    padding: 16px 24px;
-    margin-top: 0;
-  }
 }
 
 /* ============================================
