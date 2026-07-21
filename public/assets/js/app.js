@@ -175,7 +175,7 @@ updateNav();
     megaWrap.classList.add('open');
     navbar.classList.add('menu-open');
     menuBtn.setAttribute('aria-expanded', 'true');
-    menuLabel.textContent = 'Fermer';
+    menuLabel.textContent = document.documentElement.lang === 'vi' ? 'Đóng' : 'Close';
   }
 
   function closeMenu() {
@@ -226,6 +226,11 @@ updateNav();
   } catch (e) {
     DATA = {};
   }
+
+  /* Locale-aware fallback for when a category link has no data-mega-label
+     (shouldn't happen with real category data, but stays consistent with
+     the page's language instead of hardcoding Vietnamese either way). */
+  var defaultLabel = megaWrap.dataset.megaDefaultLabel || 'Sản phẩm tiêu biểu';
 
   var currentCat = null;
   var swapTimer  = null;
@@ -279,7 +284,7 @@ updateNav();
 
   /* Lần load đầu (trước khi hover bất kỳ category nào): render ngay category
      đầu tiên ở cột 2 để cột 3 không còn để trống placeholder rỗng. */
-  if (catLinks.length) render(catLinks[0].dataset.megaCat, catLinks[0].dataset.megaLabel || 'Sản phẩm tiêu biểu');
+  if (catLinks.length) render(catLinks[0].dataset.megaCat, catLinks[0].dataset.megaLabel || defaultLabel);
 
   /* Auto-cycle lần lượt qua các category (top-to-bottom như cột 2) mỗi 5s —
      giống pattern megaNewSlider ở cột 1. Dừng vĩnh viễn ngay khi user hover
@@ -290,13 +295,13 @@ updateNav();
     if (!megaWrap.classList.contains('open')) return;
     autoIndex = (autoIndex + 1) % catLinks.length;
     var link = catLinks[autoIndex];
-    swap(link.dataset.megaCat, link.dataset.megaLabel || 'Sản phẩm tiêu biểu');
+    swap(link.dataset.megaCat, link.dataset.megaLabel || defaultLabel);
   }, 5000) : null;
 
   catLinks.forEach(function (link) {
     link.addEventListener('mouseenter', function () {
       clearInterval(autoTimer);
-      swap(link.dataset.megaCat, link.dataset.megaLabel || 'Sản phẩm tiêu biểu');
+      swap(link.dataset.megaCat, link.dataset.megaLabel || defaultLabel);
     });
   });
 }());

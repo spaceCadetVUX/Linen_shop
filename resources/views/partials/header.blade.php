@@ -17,7 +17,7 @@
       <nav class="nav-quick" aria-label="Quick navigation">
         <a href="{{ $megaMenuCollectionUrl }}" class="nav-quick-link">{{ $megaMenuCollectionLabel }}</a>
         <a href="{{ $megaMenuBlogUrl }}" class="nav-quick-link">Journal</a>
-        <a href="{{ $megaMenuAboutUrl }}" class="nav-quick-link">Về CacyLinen</a>
+        <a href="{{ $megaMenuAboutUrl }}" class="nav-quick-link">{{ app()->getLocale() === 'vi' ? 'Về CacyLinen' : 'About CacyLinen' }}</a>
       </nav>
     </div>
 
@@ -107,12 +107,12 @@
      Col 3 product grid swaps dynamically via JS when hovering
      .mega-link[data-mega-cat] links in col 2.
      ============================================================ --}}
-<div class="mega-wrap" id="megaWrap" data-mega-products="{{ json_encode($megaMenuProductsByCat, JSON_UNESCAPED_UNICODE) }}">
+<div class="mega-wrap" id="megaWrap" data-mega-products="{{ json_encode($megaMenuProductsByCat, JSON_UNESCAPED_UNICODE) }}" data-mega-default-label="{{ $currentLocale === 'vi' ? 'Sản phẩm tiêu biểu' : 'Featured products' }}">
   <div class="mega-panel">
 
     {{-- Col 1: Mới — editorial image + featured links --}}
     <div class="mega-col mega-col--new">
-      <h3 class="mega-col-title">Mới</h3>
+      <h3 class="mega-col-title">{{ $currentLocale === 'vi' ? 'Mới' : 'New' }}</h3>
 
       <div class="mega-group mega-group--img">
         <div class="mega-group-hd">
@@ -131,7 +131,7 @@
             <a href="{{ url('/collections/new') }}" class="mega-new-slide is-active">
               <img
                 src="{{ asset('assets/images/collections/new-arrivals.jpg') }}"
-                alt="Sản phẩm mới - CacyLinen"
+                alt="{{ $currentLocale === 'vi' ? 'Sản phẩm mới - CacyLinen' : 'New arrivals - CacyLinen' }}"
                 class="mega-feature-img"
               >
             </a>
@@ -141,7 +141,7 @@
 
       <div class="mega-group">
         <div class="mega-group-hd">
-          <span class="mega-group-name">Nổi bật</span>
+          <span class="mega-group-name">{{ $currentLocale === 'vi' ? 'Nổi bật' : 'Featured' }}</span>
           <span class="mega-group-plus" aria-hidden="true">
             <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
           </span>
@@ -184,7 +184,7 @@
 
     {{-- Col 3: Dynamic product grid — swapped by JS on col 2 hover --}}
     <div class="mega-col mega-col--products">
-      <span class="mega-group-name mega-products-eyebrow" id="megaProductsEyebrow">Sản phẩm tiêu biểu</span>
+      <span class="mega-group-name mega-products-eyebrow" id="megaProductsEyebrow">{{ $currentLocale === 'vi' ? 'Sản phẩm tiêu biểu' : 'Featured products' }}</span>
       <div class="mega-product-grid" id="megaProductGrid">
         <a href="#" class="mega-product-card">
           <div class="mega-product-img-wrap">
@@ -211,7 +211,7 @@
           <span class="mega-product-name"></span>
         </a>
       </div>
-      <p class="mega-products-empty" id="megaProductsEmpty" hidden>Chưa có sản phẩm trong danh mục này.</p>
+      <p class="mega-products-empty" id="megaProductsEmpty" hidden>{{ $currentLocale === 'vi' ? 'Chưa có sản phẩm trong danh mục này.' : 'No products in this category yet.' }}</p>
     </div>
 
     {{-- Col 4: Sub 1 = Business Setting (contact + social), Sub 2 = footer "Thông tin" column --}}
