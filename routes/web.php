@@ -21,9 +21,11 @@ use App\Support\LocaleUrl;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 // ── Sessionless public pages ──────────────────────────────────────────────────
@@ -78,15 +80,32 @@ Route::middleware('throttle:30,1')->group(function () {
 // browser and lists every param/response shape — free on local/staging, but
 // on production only an authenticated admin may load it (404, not 403, so an
 // anonymous scanner can't even confirm the route exists).
-Route::get('docs', function () {
-    $isDevEnvironment = app()->isLocal() || app()->environment('staging');
+//
+// config/scribe.php has `laravel.add_routes` OFF (Scribe's own auto-registered
+// `docs` route has no auth and would collide with / bypass this gate), so the
+// two extra named routes its generated Blade view depends on — `scribe.postman`
+// and `scribe.openapi` (download links) — are hand-registered here too, copied
+// from vendor/knuckleswtf/scribe/routes/laravel.php, behind the same gate.
+$scribeAuthorized = fn (): bool => (app()->isLocal() || app()->environment('staging'))
+    || auth()->user()?->role === UserRole::Admin;
 
-    if (! $isDevEnvironment && auth()->user()?->role !== UserRole::Admin) {
-        abort(404);
-    }
+Route::get('docs', function () use ($scribeAuthorized) {
+    abort_unless($scribeAuthorized(), 404);
 
     return view('scribe.index');
 });
+
+Route::get('docs.postman', function () use ($scribeAuthorized) {
+    abort_unless($scribeAuthorized(), 404);
+
+    return new JsonResponse(Storage::disk('local')->get('scribe/collection.json'), json: true);
+})->name('scribe.postman');
+
+Route::get('docs.openapi', function () use ($scribeAuthorized) {
+    abort_unless($scribeAuthorized(), 404);
+
+    return response()->file(Storage::disk('local')->path('scribe/openapi.yaml'));
+})->name('scribe.openapi');
 
 if (app()->isLocal() || app()->environment('staging')) {
     Route::get('test-seo-head', fn () => view('test-seo-head'));
