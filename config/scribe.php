@@ -55,7 +55,12 @@ return [
     // - "static" will generate a static HTMl page in the /public/docs folder,
     // - "laravel" will generate the documentation as a Blade view, so you can add routing and authentication.
     // - "external_static" and "external_laravel" do the same as above, but pass the OpenAPI spec as a URL to an external UI template
-    'type' => 'static',
+    //
+    // "laravel" — routes/web.php has its own `Route::get('docs', ...)` gating
+    // production to admins only (view('scribe.index') needs the Blade view
+    // this type produces). "static" would generate a plain public/docs/*.html
+    // file served straight from disk, bypassing that auth gate entirely.
+    'type' => 'laravel',
 
     // See https://scribe.knuckles.wtf/laravel/reference/config#theme for supported options
     'theme' => 'default',
@@ -67,8 +72,10 @@ return [
     ],
 
     'laravel' => [
-        // Whether to automatically create a docs route for you to view your generated docs. You can still set up routing manually.
-        'add_routes' => true,
+        // false: routes/web.php registers its own gated `docs` route (admin-only
+        // on production) — Scribe's own auto-route has no auth and would either
+        // conflict with or silently bypass that gate if left on.
+        'add_routes' => false,
 
         // URL path to use for the docs endpoint (if `add_routes` is true).
         // By default, `/docs` opens the HTML page, `/docs.postman` opens the Postman collection, and `/docs.openapi` the OpenAPI spec.
