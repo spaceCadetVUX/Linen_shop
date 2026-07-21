@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Web\AboutController;
 use App\Http\Controllers\Web\AuthorController;
 use App\Http\Controllers\Web\BlogController;
@@ -17,8 +18,13 @@ use App\Http\Controllers\Web\SizeGuideController;
 use App\Http\Controllers\Web\WishlistController;
 use App\Repositories\Eloquent\BlogPostRepository;
 use App\Support\LocaleUrl;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 // ── Sessionless public pages ──────────────────────────────────────────────────
 // Anonymous, GET-only, content pages (category/product/blog/...) never read
@@ -29,11 +35,11 @@ use Illuminate\Support\Facades\Route;
 // proxies refuse to cache the response no matter what Cache-Control says.
 // Cart/Wishlist/Search stay on the full 'web' stack — they're user-specific.
 $sessionless = [
-    \Illuminate\Cookie\Middleware\EncryptCookies::class,
-    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-    \Illuminate\Session\Middleware\StartSession::class,
-    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-    \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
+    EncryptCookies::class,
+    AddQueuedCookiesToResponse::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    PreventRequestForgery::class,
 ];
 
 // ── Root: detect preferred locale → redirect ─────────────────────────────────
@@ -67,9 +73,22 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::get('llms-{slug}.txt', [LlmsController::class, 'scoped']);
 });
 
-// ── API Docs: local + staging only ───────────────────────────────────────────
+// ── API Docs ──────────────────────────────────────────────────────────────────
+// Scribe's "Try It Out" calls live /api/v1/* endpoints straight from the
+// browser and lists every param/response shape — free on local/staging, but
+// on production only an authenticated admin may load it (404, not 403, so an
+// anonymous scanner can't even confirm the route exists).
+Route::get('docs', function () {
+    $isDevEnvironment = app()->isLocal() || app()->environment('staging');
+
+    if (! $isDevEnvironment && auth()->user()?->role !== UserRole::Admin) {
+        abort(404);
+    }
+
+    return view('scribe.index');
+});
+
 if (app()->isLocal() || app()->environment('staging')) {
-    Route::get('docs', fn () => view('scribe.index'));
     Route::get('test-seo-head', fn () => view('test-seo-head'));
 }
 
