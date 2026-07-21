@@ -1,8 +1,12 @@
 @props([
     'products',                                // LengthAwarePaginator of ProductTranslation — needs `product.thumbnail`, `product.categories` eager-loaded
-    'emptyMessage' => 'Chưa có sản phẩm nào.',
+    'emptyMessage' => null,                    // callers should always pass a locale-aware message; this default only covers a missed call site
     'autoLoad' => false,                       // true = auto-fetch next page on scroll (PLP); false = click "Xem thêm" (category)
 ])
+
+@php
+  $emptyMessage ??= app()->getLocale() === 'vi' ? 'Chưa có sản phẩm nào.' : 'No products yet.';
+@endphp
 
 @if($products->isEmpty())
   <p class="plp-empty">{{ $emptyMessage }}</p>
@@ -15,7 +19,7 @@
 
   @if($products->hasMorePages())
     <div class="plp-load-more" id="plpLoadMore" data-autoload="{{ $autoLoad ? '1' : '0' }}">
-      <a href="{{ $products->nextPageUrl() }}" class="plp-load-btn">Xem thêm <span>→</span></a>
+      <a href="{{ $products->nextPageUrl() }}" class="plp-load-btn">{{ app()->getLocale() === 'vi' ? 'Xem thêm' : 'Load more' }} <span>→</span></a>
     </div>
   @endif
 @endif

@@ -14,11 +14,11 @@
 
 <div class="plp-fmodal" id="plpFmodal" aria-hidden="true">
   <div class="plp-fmodal-overlay" id="plpFmodalOverlay"></div>
-  <div class="plp-fmodal-panel" role="dialog" aria-label="Bộ lọc sản phẩm">
+  <div class="plp-fmodal-panel" role="dialog" aria-label="{{ $locale === 'vi' ? 'Bộ lọc sản phẩm' : 'Product filters' }}">
 
     <div class="plp-fmodal-head">
-      <span class="plp-fmodal-title">Bộ lọc</span>
-      <button class="plp-fmodal-close" id="plpFmodalClose" aria-label="Đóng bộ lọc">
+      <span class="plp-fmodal-title">{{ $locale === 'vi' ? 'Bộ lọc' : 'Filters' }}</span>
+      <button class="plp-fmodal-close" id="plpFmodalClose" aria-label="{{ $locale === 'vi' ? 'Đóng bộ lọc' : 'Close filters' }}">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -74,7 +74,7 @@
       @endforeach
 
       <div class="plp-fmodal-group">
-        <p class="plp-fmodal-group-label">Giá</p>
+        <p class="plp-fmodal-group-label">{{ $locale === 'vi' ? 'Giá' : 'Price' }}</p>
         <div class="plp-price-range"
              id="plpPriceRange"
              data-bounds-min="{{ $priceBoundsMin }}"
@@ -84,8 +84,8 @@
           <div class="plp-price-track-wrap">
             <div class="plp-price-track"></div>
             <div class="plp-price-track-fill" id="plpPriceFill"></div>
-            <input type="range" id="plpPriceMin" class="plp-price-input plp-price-input--min" aria-label="Giá tối thiểu">
-            <input type="range" id="plpPriceMax" class="plp-price-input plp-price-input--max" aria-label="Giá tối đa">
+            <input type="range" id="plpPriceMin" class="plp-price-input plp-price-input--min" aria-label="{{ $locale === 'vi' ? 'Giá tối thiểu' : 'Minimum price' }}">
+            <input type="range" id="plpPriceMax" class="plp-price-input plp-price-input--max" aria-label="{{ $locale === 'vi' ? 'Giá tối đa' : 'Maximum price' }}">
           </div>
           <div class="plp-price-values">
             <span id="plpPriceMinLabel"></span>
@@ -98,8 +98,8 @@
     </div>
 
     <div class="plp-fmodal-foot">
-      <button class="plp-fmodal-btn-clear">Xóa tất cả</button>
-      <button class="plp-fmodal-btn-apply">Xem kết quả</button>
+      <button class="plp-fmodal-btn-clear">{{ $locale === 'vi' ? 'Xóa tất cả' : 'Clear all' }}</button>
+      <button class="plp-fmodal-btn-apply">{{ $locale === 'vi' ? 'Xem kết quả' : 'View results' }}</button>
     </div>
 
   </div>
@@ -148,7 +148,11 @@
   var priceMinInput, priceMaxInput;
 
   function formatVnd(value) {
-    return Math.round(value).toLocaleString('vi-VN') + ' ₫';
+    @if ($locale === 'vi')
+      return Math.round(value).toLocaleString('vi-VN') + ' ₫';
+    @else
+      return '₫' + Math.round(value).toLocaleString('en-US');
+    @endif
   }
 
   if (priceRangeEl) {

@@ -76,7 +76,7 @@
      PRODUCT GRID
      ============================================================ --}}
 <section class="plp-grid-section shop-section" id="plpGridSection">
-  <x-product.grid :products="$products" empty-message="Chưa có sản phẩm nào trong danh mục này." />
+  <x-product.grid :products="$products" :empty-message="$locale === 'vi' ? 'Chưa có sản phẩm nào trong danh mục này.' : 'No products in this category yet.'" />
 </section>
 
 {{-- ============================================================

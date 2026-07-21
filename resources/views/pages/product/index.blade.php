@@ -32,7 +32,7 @@
         <p class="plp-banner-desc">{{ $shopHero['intro'] }}</p>
       @endif
     @endif
-    <p class="plp-banner-sub">{{ $products->total() }} sản phẩm</p>
+    <p class="plp-banner-sub">{{ $products->total() }} {{ $locale === 'vi' ? 'sản phẩm' : 'products' }}</p>
   </div>
 </section>
 
@@ -63,25 +63,25 @@
         <svg width="14" height="10" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
           <line x1="0" y1="1" x2="20" y2="1"/><line x1="3" y1="7" x2="17" y2="7"/><line x1="7" y1="13" x2="13" y2="13"/>
         </svg>
-        Lọc{{ $activeFilterCount ? " ({$activeFilterCount})" : '' }}
+        {{ $locale === 'vi' ? 'Lọc' : 'Filter' }}{{ $activeFilterCount ? " ({$activeFilterCount})" : '' }}
       </button>
     </div>
 
     <div class="plp-toolbar-right">
-      <span class="plp-count" id="plpCount">{{ $products->total() }} sản phẩm</span>
+      <span class="plp-count" id="plpCount">{{ $products->total() }} {{ $locale === 'vi' ? 'sản phẩm' : 'products' }}</span>
       <div class="plp-sort-wrap">
-        <span class="plp-sort-label">Sắp xếp:</span>
+        <span class="plp-sort-label">{{ $locale === 'vi' ? 'Sắp xếp:' : 'Sort:' }}</span>
         <button class="plp-sort-btn" id="plpSortBtn">
-          <span class="plp-sort-label-text">Nổi bật</span>
+          <span class="plp-sort-label-text">{{ $locale === 'vi' ? 'Nổi bật' : 'Featured' }}</span>
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="plp-sort-chevron" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </button>
         <div class="plp-sort-dropdown" id="plpSortDropdown">
-          <button class="plp-sort-option active">Nổi bật</button>
-          <button class="plp-sort-option">Mới nhất</button>
-          <button class="plp-sort-option">Giá: Thấp → Cao</button>
-          <button class="plp-sort-option">Giá: Cao → Thấp</button>
+          <button class="plp-sort-option active">{{ $locale === 'vi' ? 'Nổi bật' : 'Featured' }}</button>
+          <button class="plp-sort-option">{{ $locale === 'vi' ? 'Mới nhất' : 'Newest' }}</button>
+          <button class="plp-sort-option">{{ $locale === 'vi' ? 'Giá: Thấp → Cao' : 'Price: Low → High' }}</button>
+          <button class="plp-sort-option">{{ $locale === 'vi' ? 'Giá: Cao → Thấp' : 'Price: High → Low' }}</button>
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@
      PRODUCT GRID — shared component, same as pages/category/show.blade.php
      ============================================================ --}}
 <section class="plp-grid-section shop-section" id="plpGridSection">
-  <x-product.grid :products="$products" empty-message="Chưa có sản phẩm nào." :auto-load="true" />
+  <x-product.grid :products="$products" :empty-message="$locale === 'vi' ? 'Chưa có sản phẩm nào.' : 'No products yet.'" :auto-load="true" />
 </section>
 
 {{-- ============================================================
