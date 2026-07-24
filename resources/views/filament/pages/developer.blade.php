@@ -98,8 +98,8 @@
         {{-- ── MCP integration guide ──────────────────────────────────────── --}}
         @php $mcp = $this->getMcpConfig(); @endphp
         <x-filament::section>
-            <x-slot name="heading">Tích hợp MCP vào Claude Desktop</x-slot>
-            <x-slot name="description">Cho phép Claude Desktop đọc/ghi content (product, category, blog...) qua bộ 31 MCP tool. Chỉ admin thấy được trang này.</x-slot>
+            <x-slot name="heading">Tích hợp MCP vào Claude</x-slot>
+            <x-slot name="description">Cho phép Claude đọc/ghi content (product, category, blog...) qua bộ 31 MCP tool. Xác thực bằng đăng nhập Google — chỉ 3 tài khoản trong allowlist mới vào được. Chỉ admin thấy được trang này.</x-slot>
 
             <div style="display:flex; flex-direction:column; gap:1rem;">
 
@@ -117,40 +117,18 @@
                             <span x-show="copied" style="display:none;">Đã copy!</span>
                         </x-filament::button>
                     </div>
-                </div>
-
-                {{-- API key --}}
-                <div x-data="{ show: false, copied: false }">
-                    <p class="dev-tile-label">MCP_API_KEY (X-Api-Key header)</p>
-                    <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.25rem;">
-                        <code
-                            style="font-family:ui-monospace,monospace; font-size:0.8125rem; background:var(--gray-50); padding:0.375rem 0.625rem; border-radius:0.375rem;"
-                            x-text="show ? '{{ $mcp['api_key'] }}' : '••••••••••••••••••••••••••••••••••••'"
-                        ></code>
-                        <x-filament::button size="xs" color="gray" x-on:click="show = !show">
-                            <span x-text="show ? 'Ẩn' : 'Hiện'"></span>
-                        </x-filament::button>
-                        <x-filament::button
-                            size="xs"
-                            color="gray"
-                            x-on:click="navigator.clipboard.writeText('{{ $mcp['api_key'] }}'); copied = true; setTimeout(() => copied = false, 1500)"
-                        >
-                            <span x-show="!copied">Copy</span>
-                            <span x-show="copied" style="display:none;">Đã copy!</span>
-                        </x-filament::button>
-                    </div>
-                    <p class="dev-feature-detail">Key dùng chung cho mọi máy tích hợp — không phải token cá nhân. Ai cầm key này gọi được cả tool ghi/publish (sửa product, blog... thật trên site), không chỉ đọc. Không chia sẻ ra ngoài công ty.</p>
+                    <p class="dev-feature-detail">Không còn API key thủ công — đăng nhập Google là bước xác thực duy nhất. Ai không nằm trong allowlist sẽ bị từ chối ngay ở bước login.</p>
                 </div>
 
                 {{-- Cách 1 --}}
                 <div>
-                    <p class="dev-feature-title">Cách 1 — Custom Connector (không cần cài gì thêm)</p>
-                    <p class="dev-feature-desc">Claude Desktop → Settings → Connectors → Browse connectors → Add custom connector. Điền URL ở trên, mở mục "Request headers", thêm header <code>x-api-key</code> = key ở trên. Lưu ý: tính năng này đang beta, có máy chưa thấy mục "Request headers" — dùng Cách 2 nếu vậy.</p>
+                    <p class="dev-feature-title">Cách 1 — claude.ai (web) / app mobile</p>
+                    <p class="dev-feature-desc">Settings → Connectors → Add custom connector → dán URL ở trên → Add → đăng nhập bằng tài khoản Google trong allowlist. Connector sẽ tự xuất hiện trên app mobile cùng tài khoản, không cần cấu hình thêm.</p>
                 </div>
 
                 {{-- Cách 2 --}}
                 <div>
-                    <p class="dev-feature-title">Cách 2 — File claude_desktop_config.json (cần Node.js)</p>
+                    <p class="dev-feature-title">Cách 2 — Claude Desktop (file claude_desktop_config.json)</p>
                     <p class="dev-feature-desc">Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code> — Mac: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
 
                     <div x-data="{ copied: false }" style="position:relative; margin-top:0.5rem;">
@@ -166,7 +144,7 @@
                         </x-filament::button>
                     </div>
 
-                    <p class="dev-feature-detail">Nếu PATH không nhận lệnh <code>npx</code> trực tiếp (thường gặp trên Windows), đổi <code>"command": "npx"</code> thành đường dẫn đầy đủ tới <code>npx.cmd</code>, ví dụ <code>C:\\PROGRA~1\\nodejs\\npx.cmd</code>. Sau khi sửa file, tắt hẳn và mở lại Claude Desktop để nó đọc config mới.</p>
+                    <p class="dev-feature-detail"><code>mcp-remote</code> tự phát hiện server yêu cầu OAuth và mở trình duyệt để đăng nhập Google — không cần nhập header hay key thủ công. Nếu PATH không nhận lệnh <code>npx</code> trực tiếp (thường gặp trên Windows), đổi <code>"command": "npx"</code> thành đường dẫn đầy đủ tới <code>npx.cmd</code>, ví dụ <code>C:\\PROGRA~1\\nodejs\\npx.cmd</code>. Sau khi sửa file, tắt hẳn và mở lại Claude Desktop để nó đọc config mới.</p>
                 </div>
 
             </div>
