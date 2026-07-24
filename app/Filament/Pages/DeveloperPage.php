@@ -134,9 +134,7 @@ class DeveloperPage extends Page
     /**
      * MCP server connection details for the "Add to Claude Desktop" guide.
      * URL is derived from APP_URL's host (mcp.{domain}/mcp) rather than
-     * hardcoded, so it follows if the domain ever changes. No API key here
-     * any more — mcp-auth-proxy in front of mcp-server handles auth via
-     * Google OAuth, so mcp-remote discovers it automatically.
+     * hardcoded, so it follows if the domain ever changes.
      */
     public function getMcpConfig(): array
     {
@@ -144,6 +142,7 @@ class DeveloperPage extends Page
 
         return [
             'url' => "https://mcp.{$host}/mcp",
+            'api_key' => (string) config('services.mcp.api_key'),
         ];
     }
 
@@ -166,6 +165,8 @@ class DeveloperPage extends Page
                         $mcp['url'],
                         '--transport',
                         'http-only',
+                        '--header',
+                        "X-API-Key: {$mcp['api_key']}",
                     ],
                 ],
             ],

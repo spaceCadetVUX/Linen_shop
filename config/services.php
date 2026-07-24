@@ -48,12 +48,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | MCP Server — internal docker-network key
+    | MCP Server — front-door key for the TypeScript mcp-server container
     |--------------------------------------------------------------------------
-    | Same value as MCP_API_KEY in the docker-compose .env. Used only by
-    | SystemHealthWidget for its internal health-check call to mcp-server
-    | over the docker network — no longer exposed on the Developer page
-    | (mcp-auth-proxy now handles public-facing auth via Google OAuth).
+    | Same value as MCP_API_KEY in the docker-compose .env — read here only to
+    | display it on the admin Developer page's integration guide.
     */
     'mcp' => [
         'api_key' => env('MCP_API_KEY'),

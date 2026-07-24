@@ -109,26 +109,6 @@ services:
       - nginx
     restart: unless-stopped
 
-  # ─── MCP Auth Proxy (OAuth 2.1 + Google login in front of mcp-server) ───────
-  mcp-auth-proxy:
-    image: ghcr.io/sigbit/mcp-auth-proxy:latest
-    ports:
-      - "127.0.0.1:3102:3102"
-    environment:
-      EXTERNAL_URL: "https://mcp.cacylinen.com"
-      LISTEN: ":3102"
-      NO_AUTO_TLS: "1"
-      GOOGLE_CLIENT_ID: ${MCP_AUTH_GOOGLE_CLIENT_ID:?MCP_AUTH_GOOGLE_CLIENT_ID is required}
-      GOOGLE_CLIENT_SECRET: ${MCP_AUTH_GOOGLE_CLIENT_SECRET:?MCP_AUTH_GOOGLE_CLIENT_SECRET is required}
-      GOOGLE_ALLOWED_USERS: ${MCP_AUTH_ALLOWED_EMAILS:?MCP_AUTH_ALLOWED_EMAILS is required}
-      PROXY_BEARER_TOKEN: ${MCP_API_KEY:?MCP_API_KEY is required}
-      DATA_PATH: "/data"
-    volumes:
-      - mcp_auth_proxy_data:/data
-    depends_on:
-      - mcp-server
-    restart: unless-stopped
-
   # ─── Scheduler (artisan schedule:run every 60s) ──────────────────────────────
   scheduler:
     build:
@@ -153,4 +133,3 @@ volumes:
   redis_data:
   meilisearch_data:
   vendor_data:
-  mcp_auth_proxy_data:
