@@ -42,11 +42,13 @@ mcp-auth-proxy:
     - mcp-server
   restart: unless-stopped
 ```
-Backend target: mcp-server chạy HTTP/SSE transport hiện có (`http://mcp-server:3101/mcp`) — theo docs, mcp-auth-proxy proxy nguyên path cho backend HTTP/SSE (không đổi path), nên client vẫn gọi đúng `/mcp` như cũ.
+Backend target: `command: ["http://mcp-server:3101"]` (root, không kèm `/mcp`) — mcp-auth-proxy proxy nguyên path client gọi sang backend.
 
 Thêm volume `mcp_auth_proxy_data` vào phần `volumes:` gốc của compose.
 
-**`mcp-server` giữ nguyên hoàn toàn** — không sửa `index.ts`, không thêm Express/Redis/ioredis, `MCP_API_KEY` vẫn hoạt động y như hôm nay, chỉ đổi vai trò: từ "key user phải tự nhập" thành "secret nội bộ giữa 2 container, mcp-auth-proxy tự nhét vào, user không cần biết".
+**Cập nhật sau khi test thật (2026-07-24):** ban đầu định giữ `mcp-server` nguyên xi, nhưng phát hiện bug upstream ở chính `mcp-auth-proxy` — [issue #177](https://github.com/sigbit/mcp-auth-proxy/issues/177) (open, chưa có fix): proxy luôn khai `resource` trong OAuth metadata là **root** của `EXTERNAL_URL`, bất kể client thật sự gọi path nào. claude.ai (web) enforce RFC 9728 exact-match nên clients nối vào `.../mcp` bị âm thầm từ chối **sau khi** OAuth login xong (token lấy được, nhưng Claude không gọi tool — báo "Authorization with the MCP server failed"). Claude Code (CLI) thì lenient, không bị.
+
+Fix: **`mcp-server/src/index.ts` giờ chấp nhận cả `/` lẫn `/mcp`** (backward-compatible — `SystemHealthWidget` gọi thẳng `/mcp` qua docker network vẫn không đổi). URL đưa cho client (claude.ai, `mcp-remote`) đổi thành root `https://mcp.{host}/` để khớp đúng `resource` mà proxy khai ra.
 
 ## 2. Env vars mới (chỉ 3 cái, không đụng gì của mcp-server)
 
@@ -60,17 +62,17 @@ MCP_AUTH_ALLOWED_EMAILS=tung.vu@knxstore.vn,thnga.co@gmail.com,vvtung84@gmail.co
 
 ## 3. Laravel — `DeveloperPage.php` / `config/services.php`
 
-`getMcpConfig()`: URL **không đổi** (`https://mcp.{host}/mcp` — proxy forward nguyên path). Bỏ field `api_key` khỏi output — key giờ là bí mật nội bộ, không hiển thị cho user nữa.
+`getMcpConfig()`: URL đổi thành **root** `https://mcp.{host}/` (không phải `/mcp` — xem "Cập nhật sau khi test thật" ở mục 1). Bỏ field `api_key` khỏi output — key giờ là bí mật nội bộ, không hiển thị cho user nữa.
 
 `getMcpConfigJson()`: bỏ `--header "X-API-Key: ..."`, chỉ còn `npx -y mcp-remote <url> --transport http-only` — `mcp-remote` tự phát hiện OAuth và mở trình duyệt đăng nhập Google.
 
-Thêm khối "Add to claude.ai" trong `resources/views/filament/pages/developer.blade.php`: Settings → Connectors → Add custom connector → dán `https://mcp.{host}/mcp` → đăng nhập Google (tài khoản trong allowlist).
+Thêm khối "Add to claude.ai" trong `resources/views/filament/pages/developer.blade.php`: Settings → Connectors → Add custom connector → dán `https://mcp.{host}/` (root) → đăng nhập Google (tài khoản trong allowlist).
 
 `config/services.php`: xóa block `'mcp' => ['api_key' => ...]` — không còn nơi nào trong Laravel cần đọc giá trị này nữa.
 
 ## 4. `SystemHealthWidget.php` — không cần sửa
 
-Widget hiện tại gọi thẳng `http://mcp-server:3101/mcp` qua **docker network nội bộ** (không qua `mcp-auth-proxy`, không qua internet) với `X-Api-Key` — cơ chế này không đổi vì `mcp-server` không đổi. Đây là điểm cộng của phương án này so với bản plan đầu tiên: **không cần thêm route `/health` hay viết lại widget.**
+Widget hiện tại gọi thẳng `http://mcp-server:3101/mcp` qua **docker network nội bộ** (không qua `mcp-auth-proxy`, không qua internet) với `X-Api-Key` — vẫn hoạt động sau khi thêm route root, vì `mcp-server` giờ chấp nhận **cả `/` lẫn `/mcp`** (backward-compatible, xem mục 1).
 
 (Tùy chọn, không bắt buộc: có thể thêm 1 check tồn tại/sống của container `mcp-auth-proxy` — nhưng vì đây chỉ là lớp proxy phía trước, không phải nguồn dữ liệu, không bắt buộc phải hiện trên System Health.)
 
@@ -85,7 +87,7 @@ Widget hiện tại gọi thẳng `http://mcp-server:3101/mcp` qua **docker netw
 
 1. Google OAuth cần redirect URI là domain thật (HTTPS) — khó test hoàn toàn local. Nếu muốn test an toàn trước khi cắt hẳn: dùng 1 subdomain phụ tạm (ví dụ `mcp-test.cacylinen.com` trỏ tạm vào 1 container `mcp-auth-proxy` test) hoặc chấp nhận downtime ngắn khi cutover thật (traffic thấp, chỉ 3 người dùng).
 2. Sau khi trỏ domain thật vào `mcp-auth-proxy`: test Claude Desktop trước (qua `getMcpConfigJson()` mới, không còn static header) — xác nhận popup đăng nhập Google, list/gọi tool được.
-3. Thêm `https://mcp.cacylinen.com/mcp` làm Custom Connector trên claude.ai thật, đăng nhập Google, thử 1 tool đọc + 1 tool ghi. Vì proxy đã verified với "Claude - Web", kỳ vọng ít phải debug hơn bản tự-viết-OAuth, nhưng vẫn nên thử thật trước khi coi là xong.
+3. Thêm `https://mcp.cacylinen.com/` (root, **không phải** `/mcp` — xem mục 1) làm Custom Connector trên claude.ai thật, đăng nhập Google, thử 1 tool đọc + 1 tool ghi.
 4. Mở app Claude mobile cùng tài khoản claude.ai — connector phải xuất hiện sẵn.
 5. Test với tài khoản Google **không** nằm trong `MCP_AUTH_ALLOWED_EMAILS` — phải bị từ chối.
 

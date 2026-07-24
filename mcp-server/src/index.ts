@@ -52,7 +52,12 @@ if (HTTP_MODE) {
       }
     }
 
-    if (req.url !== "/mcp") {
+    // Accept both "/" and "/mcp" — mcp-auth-proxy always advertises its
+    // OAuth "resource" identifier as its external URL's root (known upstream
+    // limitation: sigbit/mcp-auth-proxy#177), so claude.ai's strict RFC 9728
+    // resource-match check requires clients to connect at root. "/mcp" is
+    // kept for existing direct callers (SystemHealthWidget, old configs).
+    if (req.url !== "/mcp" && req.url !== "/") {
       res.writeHead(404);
       res.end("Not found");
       return;

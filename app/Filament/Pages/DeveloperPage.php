@@ -133,17 +133,23 @@ class DeveloperPage extends Page
 
     /**
      * MCP server connection details for the "Add to Claude Desktop" guide.
-     * URL is derived from APP_URL's host (mcp.{domain}/mcp) rather than
+     * URL is derived from APP_URL's host (mcp.{domain}/) rather than
      * hardcoded, so it follows if the domain ever changes. No API key here
      * any more — mcp-auth-proxy in front of mcp-server handles auth via
      * Google OAuth, so mcp-remote discovers it automatically.
+     *
+     * Root path, not /mcp: mcp-auth-proxy always advertises its OAuth
+     * "resource" identifier as its external URL's root (upstream bug,
+     * sigbit/mcp-auth-proxy#177 — still open, no fix). claude.ai enforces
+     * exact RFC 9728 resource matching, so the URL given to clients must be
+     * the root or the connector silently fails after a successful login.
      */
     public function getMcpConfig(): array
     {
         $host = parse_url(config('app.url'), PHP_URL_HOST) ?? 'cacylinen.com';
 
         return [
-            'url' => "https://mcp.{$host}/mcp",
+            'url' => "https://mcp.{$host}/",
         ];
     }
 
