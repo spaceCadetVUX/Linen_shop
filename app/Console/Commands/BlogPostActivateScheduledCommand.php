@@ -4,6 +4,9 @@ namespace App\Console\Commands;
 
 use App\Enums\BlogPostStatus;
 use App\Models\BlogPost;
+use App\Models\Seo\JsonldSchema;
+use App\Models\Seo\LlmsEntry;
+use App\Models\Seo\SitemapEntry;
 use App\Observers\BlogPostObserver;
 use Illuminate\Console\Command;
 
@@ -26,22 +29,42 @@ class BlogPostActivateScheduledCommand extends Command
      * after a Horizon restart, etc.). Checking only sitemapEntries would let
      * that post drop out of consideration forever the moment its sitemap
      * entry alone looks fine.
+     *
+     * Deliberately avoids whereHas()/whereDoesntHave() on these morphMany
+     * relations: Eloquent compiles them into a correlated EXISTS subquery
+     * that compares model_id (varchar(36), the CLAUDE.md polymorphic
+     * convention) directly against blog_posts.id (native Postgres uuid via
+     * HasUuids) — two already-typed columns with no implicit cast between
+     * them, so Postgres throws "operator does not exist: character varying
+     * = uuid". Fetching each surface's active model_id set separately (bound
+     * whereIn parameters, not a raw column comparison) and intersecting in
+     * PHP sidesteps that entirely.
      */
     public function handle(BlogPostObserver $observer): int
     {
-        $posts = BlogPost::query()
+        $candidates = BlogPost::query()
             ->where('status', BlogPostStatus::Published)
             ->where('published_at', '<=', now())
-            ->where(function ($query) {
-                $query->whereHas('sitemapEntries', fn ($q) => $q->where('is_active', false))
-                    ->orWhereDoesntHave('sitemapEntries')
-                    ->orWhereHas('jsonldSchemas', fn ($q) => $q->where('is_active', false))
-                    ->orWhereDoesntHave('jsonldSchemas')
-                    ->orWhereHas('llmsEntries', fn ($q) => $q->where('is_active', false))
-                    ->orWhereDoesntHave('llmsEntries');
-            })
-            ->with('translations')
             ->get();
+
+        $morphClass = (new BlogPost())->getMorphClass();
+        $candidateIds = $candidates->pluck('id')->map(fn ($id) => (string) $id)->all();
+
+        $activeIds = fn (string $model) => $model::query()
+            ->where('model_type', $morphClass)
+            ->where('is_active', true)
+            ->whereIn('model_id', $candidateIds)
+            ->pluck('model_id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+
+        $fullySyncedIds = array_intersect(
+            $activeIds(SitemapEntry::class),
+            $activeIds(JsonldSchema::class),
+            $activeIds(LlmsEntry::class),
+        );
+
+        $posts = $candidates->reject(fn (BlogPost $post) => in_array((string) $post->id, $fullySyncedIds, true));
 
         foreach ($posts as $post) {
             $observer->activate($post);
