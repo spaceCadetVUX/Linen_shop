@@ -112,6 +112,10 @@ services:
   # ─── MCP Auth Proxy (OAuth 2.1 + Google login in front of mcp-server) ───────
   mcp-auth-proxy:
     image: ghcr.io/sigbit/mcp-auth-proxy:latest
+    # Backend target (HTTP/SSE URL form, no trailing path — mcp-auth-proxy
+    # mirrors whatever path the client requests onto this origin, so /mcp
+    # must NOT be appended here or requests double up on the path).
+    command: ["http://mcp-server:3101"]
     ports:
       - "127.0.0.1:3102:3102"
     environment:
