@@ -1,4 +1,4 @@
-# TODO — Hoàn tất OAuth cho MCP server (mcp-auth-proxy)
+tạok# TODO — Hoàn tất OAuth cho MCP server (mcp-auth-proxy)
 
 > Đi kèm với `mcp-oauth-claude-ai-connector.md` (kế hoạch) và
 > `cacylinen-vps-deploy.md` (deploy chung). Code đã commit (`18df0bb`) và

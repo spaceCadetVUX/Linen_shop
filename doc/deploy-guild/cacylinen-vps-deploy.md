@@ -80,6 +80,11 @@ server {
     access_log /var/log/nginx/cacylinen-access.log;
     error_log  /var/log/nginx/cacylinen-error.log warn;
 
+    # Không set → nginx mặc định 1M, chặn upload ảnh blog post qua Livewire
+    # (413 Payload Too Large) dù nginx trong docker đã cho phép 30M.
+    # Fix 2026-07-27.
+    client_max_body_size 30M;
+
     location / {
         proxy_pass http://127.0.0.1:8081;
         proxy_http_version 1.1;
