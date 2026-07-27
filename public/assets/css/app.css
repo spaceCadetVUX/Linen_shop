@@ -7207,6 +7207,15 @@ a.jnl-post-author-name {
   color: var(--ink);
 }
 
+/* Tiptap image output — bare <img>, no width/height/class. Without this,
+   a native-resolution upload (e.g. straight from a phone) renders at full
+   pixel size inside the 680px column and blows out the layout. */
+.jnl-post-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 /* Drop cap on lead paragraph */
 .jnl-post-lead::first-letter {
   font-family: var(--font-serif);

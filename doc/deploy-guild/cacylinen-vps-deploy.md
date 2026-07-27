@@ -211,6 +211,13 @@ TLS terminate ở Nginx hệ thống, container Laravel chỉ thấy HTTP nội 
 1. `$middleware->trustProxies(at: '*')` trong `bootstrap/app.php`.
 2. `URL::forceScheme('https')` khi `app()->isProduction()` trong `AppServiceProvider::boot()` — bước 1 không đủ vì `url()` helper cache root URL rồi swap scheme không nhất quán trong 1 request; ép cứng scheme là cách chắc chắn nhất.
 
+**f) Upload ảnh trong Filament/blog post báo lỗi `413` (`.../livewire-xxx/upload-file` failed)** *(gặp thật, fix 2026-07-27)*
+Nginx trong docker (`docker/nginx/default.conf`) đã set `client_max_body_size 30M`, nhưng **Nginx hệ thống** (reverse proxy thật ở `/etc/nginx/sites-available/cacylinen.com.conf`, mục 3) đứng trước nó lại không set gì → mặc định nginx giới hạn 1M, chặn request trước khi tới container. Fix: thêm `client_max_body_size 30M;` vào block `server { listen 443 ssl; ... }` của config đó (đã cập nhật mẫu ở mục 3 phía trên), rồi:
+```bash
+nginx -t && systemctl reload nginx
+```
+Luôn `nginx -t` trước khi reload — sai syntax mà reload thẳng sẽ sập luôn các domain khác đang chạy chung Nginx hệ thống trên VPS này (flowise, n8n, mcp, sig...).
+
 ```bash
 # 4. Seed data ban đầu (roles + admin user + SEO scaffolding — KHÔNG seed demo products/categories)
 docker compose exec php-fpm php artisan db:seed
