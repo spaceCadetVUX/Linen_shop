@@ -4,7 +4,7 @@
   <div class="footer-main">
 
     <div class="footer-col footer-col--left">
-      <h4 class="footer-col-title">{{ __('footer.collections.title') }}</h4>
+      <p class="footer-col-title">{{ __('footer.collections.title') }}</p>
       <nav class="footer-nav">
         @forelse($footerCategories as $cat)
           <a href="{{ $cat['url'] }}">{{ $cat['name'] }}</a>
@@ -19,7 +19,7 @@
     </div>
 
     <div class="footer-col footer-col--right">
-      <h4 class="footer-col-title">{{ __('footer.info.title') }}</h4>
+      <p class="footer-col-title">{{ __('footer.info.title') }}</p>
       <nav class="footer-nav">
         <a href="{{ route(app()->getLocale() . '.about') }}">{{ __('footer.info.about') }}</a>
         <a href="{{ route(app()->getLocale() . '.size-guide') }}">{{ __('footer.info.size_guide') }}</a>

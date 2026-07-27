@@ -247,7 +247,14 @@ updateNav();
     cards.forEach(function (card, i) {
       var p = products[i];
       card.style.display = p ? '' : 'none';
-      if (!p) return;
+      if (!p) {
+        // No product for this slot (or window.innerWidth <= 768 bails before
+        // this ever runs) — keep the skeleton card out of the a11y tree
+        // instead of leaving a permanently empty, unlabeled link (#2xxx).
+        card.setAttribute('aria-hidden', 'true');
+        card.setAttribute('tabindex', '-1');
+        return;
+      }
 
       var img  = card.querySelector('.mega-product-img');
       var name = card.querySelector('.mega-product-name');
@@ -255,6 +262,8 @@ updateNav();
       img.alt  = p.name;
       name.textContent = p.name;
       card.href = p.url;
+      card.removeAttribute('aria-hidden');
+      card.removeAttribute('tabindex');
     });
     if (eyebrow) eyebrow.textContent = label;
   }

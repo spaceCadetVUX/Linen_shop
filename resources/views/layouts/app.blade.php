@@ -53,7 +53,9 @@
   @include('partials.header')
 
   <div id="smooth-wrap">
-    @yield('content')
+    <main>
+      @yield('content')
+    </main>
     @include('partials.footer')
   </div>
 

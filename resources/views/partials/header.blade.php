@@ -186,25 +186,25 @@
     <div class="mega-col mega-col--products">
       <span class="mega-group-name mega-products-eyebrow" id="megaProductsEyebrow">{{ $currentLocale === 'vi' ? 'Sản phẩm tiêu biểu' : 'Featured products' }}</span>
       <div class="mega-product-grid" id="megaProductGrid">
-        <a href="#" class="mega-product-card">
+        <a href="#" class="mega-product-card" aria-hidden="true" tabindex="-1">
           <div class="mega-product-img-wrap">
             <img src="" alt="" class="mega-product-img">
           </div>
           <span class="mega-product-name"></span>
         </a>
-        <a href="#" class="mega-product-card">
+        <a href="#" class="mega-product-card" aria-hidden="true" tabindex="-1">
           <div class="mega-product-img-wrap">
             <img src="" alt="" class="mega-product-img">
           </div>
           <span class="mega-product-name"></span>
         </a>
-        <a href="#" class="mega-product-card">
+        <a href="#" class="mega-product-card" aria-hidden="true" tabindex="-1">
           <div class="mega-product-img-wrap">
             <img src="" alt="" class="mega-product-img">
           </div>
           <span class="mega-product-name"></span>
         </a>
-        <a href="#" class="mega-product-card">
+        <a href="#" class="mega-product-card" aria-hidden="true" tabindex="-1">
           <div class="mega-product-img-wrap">
             <img src="" alt="" class="mega-product-img">
           </div>
