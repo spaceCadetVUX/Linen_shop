@@ -324,6 +324,14 @@ Route::fallback(function (Request $request) {
     );
 
     if ($isAlreadyLocalePrefixed || $looksLikeStaticAsset) {
+        // This route never goes through the set.locale middleware (it's not
+        // in the vi/en prefix groups), so a deep unmatched path like
+        // /en/foo/bar/baz would otherwise render the 404 view in the
+        // config default locale (vi) even though the URL says /en/.
+        if ($isAlreadyLocalePrefixed) {
+            app()->setLocale($firstSegment);
+        }
+
         abort(404);
     }
 

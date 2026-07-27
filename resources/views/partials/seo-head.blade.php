@@ -6,6 +6,7 @@
       $seoMeta, $fallbackTitle, $fallbackDescription, $fallbackImage, $ogType,
       $alternateUrls (view()->share), $jsonldSchemas, $businessSchemas (home),
       $canonicalUrl (optional override — PLP/category dùng để bỏ query filter),
+      $metaRobots (optional override — vd 'noindex, follow' cho errors/404),
       $articleMeta (optional, chỉ dùng khi $ogType === 'article' — array:
       published_time/modified_time/author/section/tags, xem BlogController::show())
 --}}
@@ -38,7 +39,7 @@
 @endphp
 
 <link rel="canonical" href="{{ $canonical }}">
-<meta name="robots" content="{{ $seoMeta?->robots ?? 'index,follow' }}">
+<meta name="robots" content="{{ $metaRobots ?? ($seoMeta?->robots ?? 'index,follow') }}">
 
 @if(!empty($alternateUrls))
   @foreach($alternateUrls as $hreflang => $url)
