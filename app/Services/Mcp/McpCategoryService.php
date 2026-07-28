@@ -58,13 +58,6 @@ class McpCategoryService
                         'is_active' => false,
                     ]);
 
-                    if (! empty($data['parent_slug'])) {
-                        $parent = Category::where('slug', $data['parent_slug'])->first();
-                        if ($parent) {
-                            $category->parent_id = $parent->id;
-                        }
-                    }
-
                     $category->save();
                 }
 
@@ -77,6 +70,23 @@ class McpCategoryService
 
                 if (array_key_exists('sort_order', $data)) {
                     $category->sort_order = $data['sort_order'];
+                }
+
+                // parent_slug — previously only applied inside the "create new"
+                // branch above, so re-parenting an EXISTING category silently
+                // no-op'd (this ran unconditionally now, for both new and
+                // existing). Explicit null/empty clears the parent (promotes to
+                // top-level); a slug that doesn't resolve to a real category is
+                // ignored rather than aborting the whole save.
+                if (array_key_exists('parent_slug', $data)) {
+                    if (filled($data['parent_slug'])) {
+                        $parent = Category::where('slug', $data['parent_slug'])->first();
+                        if ($parent) {
+                            $category->parent_id = $parent->id;
+                        }
+                    } else {
+                        $category->parent_id = null;
+                    }
                 }
 
                 // ── FAQ (legacy params → sync vào cả categories + geo_entity_profiles) ──
