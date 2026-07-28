@@ -61,4 +61,13 @@ export function registerSprint7Tools(server: McpServer) {
     },
     async ({ slug }) => ok(await api("PATCH", `/mcp/filter-groups/${slug}/activate`, {})),
   );
+
+  server.tool(
+    "deactivate_filter_group",
+    "Deactivate filter group — ẩn khỏi storefront (facet filter / variant option) ngay lập tức, không cần điều kiện gì. Để deactivate 1 value riêng lẻ, dùng save_filter_group với values: [{ name, is_active: false }].",
+    {
+      slug: z.string().describe("Filter group slug"),
+    },
+    async ({ slug }) => ok(await api("PATCH", `/mcp/filter-groups/${slug}/deactivate`, {})),
+  );
 }

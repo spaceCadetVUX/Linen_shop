@@ -22,6 +22,7 @@ use App\Http\Controllers\Mcp\Category\UpsertController as CategoryUpsertControll
 use App\Http\Controllers\Mcp\EntityListController;
 use App\Http\Controllers\Mcp\FilterGroup\ActivateController as FilterGroupActivateController;
 use App\Http\Controllers\Mcp\FilterGroup\ContextController as FilterGroupContextController;
+use App\Http\Controllers\Mcp\FilterGroup\DeactivateController as FilterGroupDeactivateController;
 use App\Http\Controllers\Mcp\FilterGroup\ListController as FilterGroupListController;
 use App\Http\Controllers\Mcp\FilterGroup\ReadinessController as FilterGroupReadinessController;
 use App\Http\Controllers\Mcp\FilterGroup\UpsertController as FilterGroupUpsertController;
@@ -132,7 +133,8 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
         Route::patch('brands/{slug}/activate', BrandActivateController::class);
         Route::patch('manufacturers/{slug}/activate', ManufacturerActivateController::class);
 
-        // Sprint 7: Filter Groups — activate
+        // Sprint 7: Filter Groups — activate / deactivate
         Route::patch('filter-groups/{slug}/activate', FilterGroupActivateController::class);
+        Route::patch('filter-groups/{slug}/deactivate', FilterGroupDeactivateController::class);
     });
 });

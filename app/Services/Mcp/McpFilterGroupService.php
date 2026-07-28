@@ -122,6 +122,17 @@ class McpFilterGroupService
         return ['data' => $this->buildContextResponse($group)];
     }
 
+    public function deactivate(string $slug): array
+    {
+        $group = $this->loadGroup($slug);
+
+        $group->update(['is_active' => false]);
+
+        $group->refresh()->load('values');
+
+        return ['data' => $this->buildContextResponse($group)];
+    }
+
     // ── Private: load ────────────────────────────────────────────────────────────
 
     private function loadGroup(string $slug): FilterGroup
