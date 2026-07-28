@@ -41,6 +41,7 @@ class FilterGroup extends Model
         'is_active' => 'boolean',
         'is_variant_dimension' => 'boolean',
         'sort_order' => 'integer',
+        'mcp_drafted_at' => 'datetime',
     ];
 
     public function values(): HasMany
