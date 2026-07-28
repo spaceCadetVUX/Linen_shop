@@ -11,6 +11,7 @@ import { registerSprint3Tools } from "./tools/sprint3.js";
 import { registerSprint4Tools } from "./tools/sprint4.js";
 import { registerSprint5Tools } from "./tools/sprint5.js";
 import { registerSprint6Tools } from "./tools/sprint6.js";
+import { registerSprint7Tools } from "./tools/sprint7.js";
 
 function buildServer() {
   const s = new McpServer({ name: "knxstore-mcp", version: "1.0.0" });
@@ -21,6 +22,7 @@ function buildServer() {
   registerSprint4Tools(s);
   registerSprint5Tools(s);
   registerSprint6Tools(s);
+  registerSprint7Tools(s);
   return s;
 }
 
