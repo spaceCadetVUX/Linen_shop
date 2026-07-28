@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CategoryResource\Pages;
 
 use App\Filament\Resources\CategoryResource;
 use App\Models\Category;
+use App\Support\RichContentHtml;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Str;
@@ -45,6 +46,11 @@ class EditCategory extends EditRecord
                     'og_title', 'og_description',
                     'twitter_title', 'twitter_description',
                 ]);
+
+                // rich_content is stored as a Tiptap JSON node-tree, but the
+                // RichEditor form field expects HTML — convert back for display
+                // (also tolerates legacy rows still holding a raw HTML string).
+                $data['translations'][$locale]['rich_content'] = RichContentHtml::toHtml($translation->rich_content);
             }
         }
 
@@ -97,6 +103,14 @@ class EditCategory extends EditRecord
 
             if (empty($localeData['name'])) {
                 continue;
+            }
+
+            // RichEditor dehydrates as HTML, but rich_content is an 'array'
+            // cast column storing a Tiptap JSON node-tree — saving the raw
+            // HTML string here silently breaks storefront rendering
+            // (CategoryController's is_array() guard never passes).
+            if (filled($localeData['rich_content'] ?? null)) {
+                $localeData['rich_content'] = RichContentHtml::toTiptapJson($localeData['rich_content']);
             }
 
             $this->record->translations()->updateOrCreate(

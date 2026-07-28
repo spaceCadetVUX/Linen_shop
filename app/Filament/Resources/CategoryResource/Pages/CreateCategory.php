@@ -4,6 +4,7 @@ namespace App\Filament\Resources\CategoryResource\Pages;
 
 use App\Filament\Resources\CategoryResource;
 use App\Models\Category;
+use App\Support\RichContentHtml;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Str;
 
@@ -64,6 +65,14 @@ class CreateCategory extends CreateRecord
 
             if (empty($localeData['name'])) {
                 continue;
+            }
+
+            // RichEditor dehydrates as HTML, but rich_content is an 'array'
+            // cast column storing a Tiptap JSON node-tree — saving the raw
+            // HTML string here silently breaks storefront rendering
+            // (CategoryController's is_array() guard never passes).
+            if (filled($localeData['rich_content'] ?? null)) {
+                $localeData['rich_content'] = RichContentHtml::toTiptapJson($localeData['rich_content']);
             }
 
             $this->record->translations()->updateOrCreate(

@@ -15,13 +15,6 @@ use App\Support\RichContentHtml;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Tiptap\Editor;
-use Tiptap\Extensions\StarterKit;
-use Tiptap\Nodes\Image as TiptapImage;
-use Tiptap\Nodes\Table;
-use Tiptap\Nodes\TableCell;
-use Tiptap\Nodes\TableHeader;
-use Tiptap\Nodes\TableRow;
 
 class CategoryController extends Controller
 {
@@ -203,28 +196,11 @@ class CategoryController extends Controller
         )));
 
         // ── Rich content HTML ─────────────────────────────────────────────────
-        $richContentHtml = null;
-        $rawContent = $translation->rich_content;
-        if (! empty($rawContent) && is_array($rawContent)) {
-            try {
-                $richContentHtml = (new Editor(['extensions' => [
-                    new StarterKit,
-                    new TiptapImage,
-                    new Table,
-                    new TableRow,
-                    new TableHeader,
-                    new TableCell,
-                ]]))->setContent($rawContent)->getHTML();
-                // Page banner already owns the single <h1> — never let admin
-                // content emit a second one (see RichContentHtml docblock).
-                $richContentHtml = RichContentHtml::capHeadingLevels($richContentHtml);
-                // Strip empty paragraphs only
-                if (trim(strip_tags($richContentHtml)) === '') {
-                    $richContentHtml = null;
-                }
-            } catch (\Throwable) {
-                $richContentHtml = null;
-            }
+        $richContentHtml = RichContentHtml::toHtml($translation->rich_content);
+        if ($richContentHtml !== null) {
+            // Page banner already owns the single <h1> — never let admin
+            // content emit a second one (see RichContentHtml docblock).
+            $richContentHtml = RichContentHtml::capHeadingLevels($richContentHtml);
         }
 
         // ── SEO ───────────────────────────────────────────────────────────────

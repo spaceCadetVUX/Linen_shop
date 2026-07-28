@@ -36,7 +36,7 @@ export function registerSprint2Tools(server: McpServer) {
         name:         z.string().optional().describe("Tên category theo locale"),
         slug:         z.string().optional().describe("Slug theo locale"),
         description:  z.string().optional().describe("Mô tả ngắn"),
-        rich_content: z.string().optional().describe("Nội dung rich text (HTML ok)"),
+        rich_content: z.string().optional().describe("Nội dung rich text — gửi HTML bình thường, backend tự convert sang Tiptap JSON node-tree trước khi lưu"),
       })).optional().describe('{"vi": {...}, "en": {...}}'),
       seo: z.record(z.object({
         meta_title:          z.string().optional().describe("SEO title (≤60 ký tự)"),
