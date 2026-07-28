@@ -32,7 +32,7 @@ export function registerSprint8Tools(server: McpServer) {
 
   server.tool(
     "generate_product_variants",
-    "Sinh variant từ tổ hợp Cartesian các FilterValue thuộc group is_variant_dimension đã gán cho product (VD: Color × Size). Chỉ TẠO tổ hợp còn thiếu — không sửa/xoá variant đã có. Cần gán filter_values qua save_product trước.",
+    "Sinh variant từ tổ hợp Cartesian các FilterValue thuộc group is_variant_dimension đã gán cho product (VD: Color × Size). Chỉ TẠO tổ hợp còn thiếu — không sửa/xoá variant đã có. Cần gán filter_values qua save_product trước. Product phải có sku trước (set qua save_product) — thiếu sku sẽ bị từ chối, tránh sinh ra variant sku dạng 'VAR-...' không gắn với product.",
     {
       slug: z.string().describe("Product slug"),
     },

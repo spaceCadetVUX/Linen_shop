@@ -90,6 +90,14 @@ class McpProductVariantService
     {
         $product = $this->loadProduct($productSlug);
 
+        // VariantGeneratorService falls back to the literal string "VAR" as the
+        // SKU prefix when product->sku is blank, producing generic variant SKUs
+        // (VAR-RED-M) that aren't tied to this product — block it here instead,
+        // same "explicit action" posture as the price > 0 gate on activate().
+        if (blank($product->sku)) {
+            abort(422, "Product '{$productSlug}' chưa có sku — set sku qua save_product trước khi generate variants.");
+        }
+
         $result = app(VariantGeneratorService::class)->generate($product);
 
         return [
