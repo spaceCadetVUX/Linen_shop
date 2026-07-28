@@ -218,6 +218,24 @@ nginx -t && systemctl reload nginx
 ```
 Luôn `nginx -t` trước khi reload — sai syntax mà reload thẳng sẽ sập luôn các domain khác đang chạy chung Nginx hệ thống trên VPS này (flowise, n8n, mcp, sig...).
 
+**g) `curl -I https://cacylinen.com` trả về `502` sau khi restart/rebuild `php-fpm` (hoặc bất kỳ service nào cùng network)** *(gặp thật, fix 2026-07-28)*
+Container `nginx` (trong `docker-compose.yml`, config `docker/nginx/default.conf:29` dùng `fastcgi_pass php-fpm:9000;` — hostname tĩnh, **không có `resolver`**) chỉ resolve IP nội bộ của `php-fpm` **một lần lúc container `nginx` khởi động**. Khi `php-fpm` (hoặc service khác) bị recreate — IP nội bộ đổi — nhưng `nginx` không được restart theo thì nó vẫn giữ IP cũ đã chết → 502. Fix:
+```bash
+docker compose restart nginx
+```
+Quy tắc chung: **mỗi lần restart/rebuild `php-fpm`, `horizon`, `scheduler`, hoặc `mcp-server` xong, luôn restart thêm `nginx`** — đừng đợi 502 mới nhớ ra.
+
+**h) Đổi code trong `mcp-server/` (thêm tool, sửa `sprint*.ts`) nhưng tool mới không xuất hiện dù đã `git pull` + `docker compose restart mcp-server`** *(gặp thật, fix 2026-07-28)*
+Khác với `php-fpm`/`horizon` (dùng bind mount → `restart` là đủ, code mới trên host tự có hiệu lực), service `mcp-server` trong `docker-compose.yml` **build từ Dockerfile, không mount volume** — TypeScript được compile (`tsc`) ngay trong lúc `docker build`. `restart` chỉ khởi động lại **image cũ đã build trước đó**, không thấy source mới. Phải rebuild:
+```bash
+docker compose up -d --build mcp-server
+```
+Verify tool mới đã có trong image:
+```bash
+docker compose exec mcp-server grep -l <tool_name> dist/tools/sprint*.js
+```
+Sau đó **ngắt và kết nối lại MCP connector phía Claude** (Desktop/claude.ai) — client fetch tool list 1 lần lúc initialize session, không tự refresh dù server đã có tool mới.
+
 ```bash
 # 4. Seed data ban đầu (roles + admin user + SEO scaffolding — KHÔNG seed demo products/categories)
 docker compose exec php-fpm php artisan db:seed
@@ -234,9 +252,18 @@ cd /opt/cacylinen
 git pull origin master
 docker compose up -d --build   # rebuild image nếu Dockerfile/composer.lock đổi
 docker compose restart php-fpm horizon scheduler   # đủ nếu chỉ đổi code PHP
+docker compose restart nginx                       # LUÔN chạy — xem mục 5g, tránh 502 do cache IP cũ
 ```
 
 `entrypoint.sh` tự chạy lại `composer install` (nếu `composer.lock` đổi), `migrate --force`, `storage:link`, `filament:assets`, `config:cache` mỗi lần container `php-fpm` khởi động lại — không cần chạy tay các bước này.
+
+**Chỉ đổi code trong `mcp-server/`?** Dùng riêng lệnh này thay vì bộ ở trên (xem lý do ở mục 5h):
+```bash
+cd /opt/cacylinen
+git pull origin master
+docker compose up -d --build mcp-server
+```
+Không cần restart `nginx` cho riêng trường hợp này (`mcp-server` không qua `nginx`, route thẳng qua `mcp-auth-proxy`). Nhớ ngắt/kết nối lại connector phía Claude sau đó để client fetch lại tool list.
 
 ---
 

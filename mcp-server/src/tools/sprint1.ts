@@ -92,7 +92,9 @@ export function registerSprint1Tools(server: McpServer) {
         value:    z.string().describe("Giá trị tiếng Việt, e.g. '4'"),
         value_en: z.string().nullable().optional().describe("Attribute value in English, e.g. '4'"),
         unit:     z.string().nullable().optional().describe("Đơn vị, e.g. 'kênh', null nếu không có"),
-      })).optional().describe("Thông số kỹ thuật dạng key-value — hỗ trợ song ngữ VN + EN"),
+      })).optional().describe("Thông số kỹ thuật dạng key-value — hỗ trợ song ngữ VN + EN. CẢNH BÁO: đây là full-replace — gửi mảng này sẽ XOÁ SẠCH attribute cũ rồi tạo lại từ đầu, phải gửi đủ cả cũ lẫn mới, không phải chỉ phần muốn thêm"),
+      filter_values: z.array(z.string()).optional().describe("Slug các FilterValue muốn GÁN cho product (facet lọc + variant-dimension) — additive, không xoá value đã gán trước đó. Dùng list_filter_groups để biết slug hợp lệ"),
+      remove_filter_values: z.array(z.string()).optional().describe("Slug các FilterValue muốn GỠ khỏi product — chỉ gỡ liên kết với product này, không ảnh hưởng FilterValue ở Filter Group hay ở sản phẩm khác"),
     },
     async ({ slug, ...body }) => ok(await api("PUT", `/mcp/products/${slug}`, body)),
   );

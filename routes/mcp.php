@@ -35,6 +35,11 @@ use App\Http\Controllers\Mcp\Product\ActivateController as ProductActivateContro
 use App\Http\Controllers\Mcp\Product\ContextController as ProductContextController;
 use App\Http\Controllers\Mcp\Product\ReadinessController as ProductReadinessController;
 use App\Http\Controllers\Mcp\Product\UpsertController as ProductUpsertController;
+use App\Http\Controllers\Mcp\ProductVariant\ActivateController as ProductVariantActivateController;
+use App\Http\Controllers\Mcp\ProductVariant\DeactivateController as ProductVariantDeactivateController;
+use App\Http\Controllers\Mcp\ProductVariant\GenerateController as ProductVariantGenerateController;
+use App\Http\Controllers\Mcp\ProductVariant\ListController as ProductVariantListController;
+use App\Http\Controllers\Mcp\ProductVariant\UpsertController as ProductVariantUpsertController;
 use App\Http\Controllers\Mcp\ReviewQueueController;
 use App\Http\Controllers\Mcp\SearchController;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +67,9 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
         // Sprint 1: Products — read
         Route::get('products/{slug}/context', ProductContextController::class);
         Route::get('products/{slug}/readiness', ProductReadinessController::class);
+
+        // Sprint 8: Product Variants — read
+        Route::get('products/{slug}/variants', ProductVariantListController::class);
 
         // Sprint 2: Categories — read
         Route::get('categories/{slug}/context', CategoryContextController::class);
@@ -94,6 +102,10 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
         // Sprint 1: Products — upsert (supports ?dry_run=true)
         Route::put('products/{slug}', ProductUpsertController::class);
 
+        // Sprint 8: Product Variants — upsert + generate
+        Route::put('products/{slug}/variants/{sku}', ProductVariantUpsertController::class);
+        Route::post('products/{slug}/generate-variants', ProductVariantGenerateController::class);
+
         // Sprint 2: Categories — upsert
         Route::put('categories/{slug}', CategoryUpsertController::class);
 
@@ -121,6 +133,10 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
 
         // Sprint 1: Products — activate
         Route::patch('products/{slug}/activate', ProductActivateController::class);
+
+        // Sprint 8: Product Variants — activate / deactivate
+        Route::patch('products/{slug}/variants/{sku}/activate', ProductVariantActivateController::class);
+        Route::patch('products/{slug}/variants/{sku}/deactivate', ProductVariantDeactivateController::class);
 
         // Sprint 2: Categories — activate
         Route::patch('categories/{slug}/activate', CategoryActivateController::class);
