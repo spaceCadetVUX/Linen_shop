@@ -316,8 +316,7 @@ img    { display: block; }
   pointer-events: none;
   user-select: none;
   transform-origin: center center; /* blur dissolve: scale từ tâm, không có hướng */
-  will-change: transform, opacity;
-  animation: fade-in 0.7s ease 0.25s both;
+  will-change: transform;
 }
 
 .hero-logo-text {
@@ -1403,18 +1402,8 @@ img    { display: block; }
 }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0);    }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── Navbar: graceful fade-in on load ── */
-.navbar {
-  animation: fade-in 0.9s ease 0.1s both;
+  from { transform: translateY(28px); }
+  to   { transform: translateY(0);    }
 }
 
 /* ── Hero: Ken Burns slow zoom ── */
@@ -1424,17 +1413,14 @@ img    { display: block; }
 
 /* ── Hero caption: staggered rise ── */
 .hero-eyebrow {
-  opacity: 0;
   animation: rise 1s cubic-bezier(0.25, 0.1, 0.25, 1) 0.5s both;
 }
 
 .hero-title {
-  opacity: 0;
   animation: rise 1.1s cubic-bezier(0.25, 0.1, 0.25, 1) 0.72s both;
 }
 
 .hero-links {
-  opacity: 0;
   animation: rise 1s cubic-bezier(0.25, 0.1, 0.25, 1) 1s both;
 }
 
