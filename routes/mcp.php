@@ -31,6 +31,12 @@ use App\Http\Controllers\Mcp\Manufacturer\ActivateController as ManufacturerActi
 use App\Http\Controllers\Mcp\Manufacturer\ContextController as ManufacturerContextController;
 use App\Http\Controllers\Mcp\Manufacturer\ReadinessController as ManufacturerReadinessController;
 use App\Http\Controllers\Mcp\Manufacturer\UpsertController as ManufacturerUpsertController;
+use App\Http\Controllers\Mcp\Page\ActivateController as PageActivateController;
+use App\Http\Controllers\Mcp\Page\ContextController as PageContextController;
+use App\Http\Controllers\Mcp\Page\DeactivateController as PageDeactivateController;
+use App\Http\Controllers\Mcp\Page\ListController as PageListController;
+use App\Http\Controllers\Mcp\Page\ReadinessController as PageReadinessController;
+use App\Http\Controllers\Mcp\Page\UpsertController as PageUpsertController;
 use App\Http\Controllers\Mcp\Product\ActivateController as ProductActivateController;
 use App\Http\Controllers\Mcp\Product\ContextController as ProductContextController;
 use App\Http\Controllers\Mcp\Product\ReadinessController as ProductReadinessController;
@@ -92,6 +98,11 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
         Route::get('filter-groups/{slug}/context', FilterGroupContextController::class);
         Route::get('filter-groups/{slug}/readiness', FilterGroupReadinessController::class);
 
+        // Sprint 9: Pages — read (list is a fixed path, must stay before the wildcard below)
+        Route::get('pages', PageListController::class);
+        Route::get('pages/{pageKey}/context', PageContextController::class);
+        Route::get('pages/{pageKey}/readiness', PageReadinessController::class);
+
         // Generic entity list — MUST be last (wildcard catches everything)
         Route::get('{modelType}', EntityListController::class);
     });
@@ -119,6 +130,9 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
 
         // Sprint 7: Filter Groups — upsert
         Route::put('filter-groups/{slug}', FilterGroupUpsertController::class);
+
+        // Sprint 9: Pages — upsert
+        Route::put('pages/{pageKey}', PageUpsertController::class);
 
         // Sprint 5: Batch operations
         Route::post('batch/seo-meta', BatchSeoMetaController::class);
@@ -152,5 +166,9 @@ Route::prefix('v1/mcp')->middleware(['auth:sanctum'])->group(function () {
         // Sprint 7: Filter Groups — activate / deactivate
         Route::patch('filter-groups/{slug}/activate', FilterGroupActivateController::class);
         Route::patch('filter-groups/{slug}/deactivate', FilterGroupDeactivateController::class);
+
+        // Sprint 9: Pages — activate / deactivate
+        Route::patch('pages/{pageKey}/activate', PageActivateController::class);
+        Route::patch('pages/{pageKey}/deactivate', PageDeactivateController::class);
     });
 });

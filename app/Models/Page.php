@@ -18,6 +18,7 @@ class Page extends Model
     {
         return [
             'is_active' => 'boolean',
+            'mcp_drafted_at' => 'datetime',
         ];
     }
 
