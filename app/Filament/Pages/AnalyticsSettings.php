@@ -137,7 +137,7 @@ class AnalyticsSettings extends Page
 
     // ── Actions ───────────────────────────────────────────────────────────────
 
-    protected function getFormActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Action::make('save')
