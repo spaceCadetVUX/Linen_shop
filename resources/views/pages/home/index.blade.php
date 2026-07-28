@@ -21,12 +21,6 @@
         alt="{{ $heroHeadline ?? 'CacyLinen - Bộ sưu tập Thu 2026' }}"
         class="hero-img"
       >
-    @else
-      <img
-        src="https://wonder-theme-fashion.myshopify.com/cdn/shop/files/5-velour-main-banner-image-desktop.jpg?v=1754861835&width=1920"
-        alt="CacyLinen - Bộ sưu tập Thu 2026"
-        class="hero-img"
-      >
     @endif
   </div>
   <div class="hero-overlay"></div>
