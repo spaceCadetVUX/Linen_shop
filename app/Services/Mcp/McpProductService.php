@@ -76,9 +76,17 @@ class McpProductService
                 }
 
                 if (! $product) {
-                    // price is NOT NULL — default 0 for MCP drafts; admin sets real price later
+                    // name and price are both NOT NULL — name falls back to slug
+                    // (same as Brand/Category), price defaults to 0 for MCP
+                    // drafts; admin sets the real values later.
+                    $name = $data['name']
+                        ?? $data['translations']['vi']['name']
+                        ?? $data['translations']['en']['name']
+                        ?? $slug;
+
                     $product = new Product([
                         'slug' => $slug,
+                        'name' => $name,
                         'is_active' => false,
                         'price' => 0,
                     ]);
