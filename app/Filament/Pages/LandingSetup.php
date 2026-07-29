@@ -37,16 +37,16 @@ class LandingSetup extends Page
         $landing = (array) (BusinessProfile::instance()->extra['landing'] ?? []);
 
         $this->form->fill([
-            'hero_eyebrow' => $landing['hero_eyebrow'] ?? 'Mới ra mắt',
-            'hero_eyebrow_en' => $landing['hero_eyebrow_en'] ?? 'New Arrivals',
+            'hero_eyebrow' => $landing['hero_eyebrow'] ?? null,
+            'hero_eyebrow_en' => $landing['hero_eyebrow_en'] ?? null,
             'hero_headline' => $landing['hero_headline'] ?? null,
             'hero_headline_en' => $landing['hero_headline_en'] ?? null,
-            'hero_cta_label' => $landing['hero_cta_label'] ?? 'Khám phá lookbook',
-            'hero_cta_label_en' => $landing['hero_cta_label_en'] ?? 'Explore lookbook',
-            'hero_cta_url' => $landing['hero_cta_url'] ?? '/collections/lookbook',
-            'hero_cta2_label' => $landing['hero_cta2_label'] ?? 'Khám phá thêm',
-            'hero_cta2_label_en' => $landing['hero_cta2_label_en'] ?? 'Discover more',
-            'hero_cta2_url' => $landing['hero_cta2_url'] ?? '/collections/new',
+            'hero_cta_label' => $landing['hero_cta_label'] ?? null,
+            'hero_cta_label_en' => $landing['hero_cta_label_en'] ?? null,
+            'hero_cta_url' => $landing['hero_cta_url'] ?? null,
+            'hero_cta2_label' => $landing['hero_cta2_label'] ?? null,
+            'hero_cta2_label_en' => $landing['hero_cta2_label_en'] ?? null,
+            'hero_cta2_url' => $landing['hero_cta2_url'] ?? null,
             'hero_image' => $landing['hero_image'] ?? null,
 
             'featured_enabled' => (bool) ($landing['featured_enabled'] ?? true),

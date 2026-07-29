@@ -99,12 +99,13 @@ class HomeController extends Controller
             })
             ->values()
             ->all();
-        $heroEyebrow = ($isEn ? ($landing['hero_eyebrow_en'] ?? null) : null) ?? $landing['hero_eyebrow'] ?? 'Mới ra mắt';
-        $heroHeadline = ($isEn ? ($landing['hero_headline_en'] ?? null) : null) ?? $landing['hero_headline'] ?? 'Bộ sưu tập Thu 2026';
-        $heroCtaLabel = ($isEn ? ($landing['hero_cta_label_en'] ?? null) : null) ?? $landing['hero_cta_label'] ?? 'Khám phá lookbook';
-        $heroCtaUrl = $landing['hero_cta_url'] ?? '/collections/lookbook';
-        $heroCtaLabel2 = ($isEn ? ($landing['hero_cta2_label_en'] ?? null) : null) ?? $landing['hero_cta2_label'] ?? 'Khám phá thêm';
-        $heroCtaUrl2 = $landing['hero_cta2_url'] ?? '/collections/new';
+        $heroEyebrow = $isEn ? ($landing['hero_eyebrow_en'] ?? null) : ($landing['hero_eyebrow'] ?? null);
+        $heroHeadline = $isEn ? ($landing['hero_headline_en'] ?? null) : ($landing['hero_headline'] ?? null);
+        $heroCtaLabel = $isEn ? ($landing['hero_cta_label_en'] ?? null) : ($landing['hero_cta_label'] ?? null);
+        $heroCtaUrl = $landing['hero_cta_url'] ?? null;
+        $heroCtaLabel2 = $isEn ? ($landing['hero_cta2_label_en'] ?? null) : ($landing['hero_cta2_label'] ?? null);
+        $heroCtaUrl2 = $landing['hero_cta2_url'] ?? null;
+        $heroImageAlt = $heroHeadline ?? $siteName;
 
         $seoMeta = null;
         $ogType = 'website';
@@ -163,7 +164,7 @@ class HomeController extends Controller
         return view('pages.home.index', compact(
             'locale', 'businessSchemas', 'faqItems', 'latestBlogs',
             'seoMeta', 'fallbackTitle', 'fallbackDescription', 'fallbackImage', 'ogType',
-            'heroImageUrl', 'heroEyebrow', 'heroHeadline', 'heroCtaLabel', 'heroCtaUrl', 'heroCtaLabel2', 'heroCtaUrl2',
+            'heroImageUrl', 'heroImageAlt', 'heroEyebrow', 'heroHeadline', 'heroCtaLabel', 'heroCtaUrl', 'heroCtaLabel2', 'heroCtaUrl2',
             'editorialItems', 'featuredEnabled', 'featuredTitle', 'featuredCategoryRows', 'promotions'
         ));
     }

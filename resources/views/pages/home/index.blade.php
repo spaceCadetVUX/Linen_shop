@@ -18,7 +18,7 @@
     @if($heroImageUrl)
       <img
         src="{{ $heroImageUrl }}"
-        alt="{{ $heroHeadline ?? 'CacyLinen - Bộ sưu tập Thu 2026' }}"
+        alt="{{ $heroImageAlt }}"
         class="hero-img"
       >
     @endif
