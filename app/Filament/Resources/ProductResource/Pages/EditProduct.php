@@ -7,7 +7,6 @@ use App\Filament\Resources\ProductResource\Pages\Concerns\ManagesProductRelation
 use App\Models\FilterGroup;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Support\Str;
 
 class EditProduct extends EditRecord
 {
@@ -71,7 +70,22 @@ class EditProduct extends EditRecord
 
         if (filled($vi['name'] ?? null)) {
             $data['name'] = $vi['name'];
-            $data['slug'] = filled($vi['slug'] ?? null) ? $vi['slug'] : Str::slug($vi['name']);
+
+            // Only mirror translations.vi.slug onto the top-level products.slug
+            // when it actually changed THIS save — not whenever it happens to
+            // differ from the DB's current top-level slug. The two can already
+            // be out of sync for reasons unrelated to this edit (e.g. MCP set
+            // an explicit vi slug on first write, independent of the
+            // products.slug column — see McpProductService::writeTranslations()).
+            // Blindly re-syncing here silently renamed products.slug — and
+            // created a real redirect via ProductObserver — on saves that never
+            // touched the slug at all (reproduced live: toggling the new
+            // is_mcp_protected switch alone triggered an unwanted rename).
+            $originalViSlug = $this->getRecord()->translations()->where('locale', 'vi')->value('slug');
+            if (filled($vi['slug'] ?? null) && $vi['slug'] !== $originalViSlug) {
+                $data['slug'] = $vi['slug'];
+            }
+
             $data['short_description'] = $vi['short_description'] ?? null;
             $data['description'] = $vi['description'] ?? null;
             // price / stock_quantity NOT NULL trên products — bỏ trống → giữ giá trị an toàn
