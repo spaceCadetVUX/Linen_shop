@@ -61,7 +61,7 @@ trait ManagesProductRelations
             }
 
             $updateData = collect($localeData)
-                ->only(['name', 'slug', 'short_description', 'description', 'info_sections', 'price', 'sale_price', 'currency'])
+                ->only(['name', 'slug', 'short_description', 'description', 'info_sections', 'price', 'sale_price', 'currency', 'is_mcp_protected'])
                 ->map(fn ($v) => $v === '' ? null : $v)
                 ->toArray();
 

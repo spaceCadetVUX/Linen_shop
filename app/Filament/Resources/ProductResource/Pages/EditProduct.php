@@ -46,7 +46,7 @@ class EditProduct extends EditRecord
             if ($translation) {
                 $data['translations'][$locale] = $translation->only([
                     'name', 'slug', 'short_description', 'description', 'info_sections',
-                    'price', 'sale_price', 'currency',
+                    'price', 'sale_price', 'currency', 'is_mcp_protected',
                 ]);
             }
         }

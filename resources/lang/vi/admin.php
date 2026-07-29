@@ -109,6 +109,10 @@ return [
             'show_price' => 'Hiển thị giá trên website',
             'show_price_help' => 'Tắt → ẩn toàn bộ giá, hiện nút "Liên hệ báo giá".',
 
+            'mcp_protected_vi' => 'Khóa nội dung + SEO (VI) khỏi AI/MCP',
+            'mcp_protected_en' => 'Khóa nội dung + SEO (EN) khỏi AI/MCP',
+            'mcp_protected_help' => 'Bật để chặn công cụ AI/MCP ghi đè nội dung và SEO của ngôn ngữ này. Tắt để cho phép ghi lại bình thường. Có thể bật/tắt lại bất cứ lúc nào.',
+
             'name_vi' => 'Tên sản phẩm (vi)',
             'slug_vi' => 'Slug (vi)',
             'slug_auto_help' => 'Tự động tạo từ tên khi tạo mới. Sau khi đã lưu, sửa tay tại đây nếu muốn đổi URL — đổi tên sẽ không tự đổi slug nữa. Phải là duy nhất theo từng ngôn ngữ.',

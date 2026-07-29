@@ -109,6 +109,10 @@ return [
             'show_price' => 'Show price on website',
             'show_price_help' => 'Off → hides all pricing, shows a "Contact for quote" button instead.',
 
+            'mcp_protected_vi' => 'Lock VI content + SEO from AI/MCP',
+            'mcp_protected_en' => 'Lock EN content + SEO from AI/MCP',
+            'mcp_protected_help' => 'On blocks AI/MCP tools from overwriting this locale\'s content and SEO. Off allows normal writes again. Can be toggled back and forth anytime.',
+
             'name_vi' => 'Product name (vi)',
             'slug_vi' => 'Slug (vi)',
             'slug_auto_help' => 'Auto-generated from name on create only. After the first save, edit it here to change the URL — renaming no longer regenerates it. Must be unique per locale.',

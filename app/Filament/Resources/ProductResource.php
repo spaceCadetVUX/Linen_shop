@@ -156,6 +156,28 @@ class ProductResource extends Resource
                                 ->label(__('admin.product.fields.show_price'))
                                 ->helperText(__('admin.product.fields.show_price_help'))
                                 ->default(true),
+
+                            Forms\Components\Toggle::make('mcp_protected_vi')
+                                ->label(__('admin.product.fields.mcp_protected_vi'))
+                                ->helperText(__('admin.product.fields.mcp_protected_help'))
+                                ->dehydrated(false)
+                                ->live()
+                                ->afterStateHydrated(fn (Forms\Components\Toggle $component, Get $get) => $component->state((bool) $get('translations.vi.is_mcp_protected')))
+                                ->afterStateUpdated(function (Set $set, ?bool $state) {
+                                    $set('translations.vi.is_mcp_protected', (bool) $state);
+                                    $set('seoMetaVi.is_mcp_protected', (bool) $state);
+                                }),
+
+                            Forms\Components\Toggle::make('mcp_protected_en')
+                                ->label(__('admin.product.fields.mcp_protected_en'))
+                                ->helperText(__('admin.product.fields.mcp_protected_help'))
+                                ->dehydrated(false)
+                                ->live()
+                                ->afterStateHydrated(fn (Forms\Components\Toggle $component, Get $get) => $component->state((bool) $get('translations.en.is_mcp_protected')))
+                                ->afterStateUpdated(function (Set $set, ?bool $state) {
+                                    $set('translations.en.is_mcp_protected', (bool) $state);
+                                    $set('seoMetaEn.is_mcp_protected', (bool) $state);
+                                }),
                         ])
                         ->columns(2),
 
