@@ -9,6 +9,8 @@ use App\Models\BlogPost;
 use App\Models\BlogTag;
 use App\Models\Seo\GeoEntityProfile;
 use App\Models\Seo\SeoMeta;
+use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -38,23 +40,29 @@ class McpBlogPostService
                     ->first();
 
                 if ($post) {
-                    if ($post->trashed()) $post->restore();
+                    if ($post->trashed()) {
+                        $post->restore();
+                    }
                 } else {
                     $post = new BlogPost(['status' => BlogPostStatus::Draft]);
                     $post->save();
                 }
 
                 // ── Blog category ─────────────────────────────────────────────
-                if (!empty($data['blog_category_slug'])) {
+                if (! empty($data['blog_category_slug'])) {
                     $cat = BlogCategory::where('slug', $data['blog_category_slug'])->first();
-                    if (!$cat) abort(422, "Blog category '{$data['blog_category_slug']}' not found.");
+                    if (! $cat) {
+                        abort(422, "Blog category '{$data['blog_category_slug']}' not found.");
+                    }
                     $post->blog_category_id = $cat->id;
                 }
 
                 // ── Author ────────────────────────────────────────────────────
-                if (!empty($data['author_slug'])) {
+                if (! empty($data['author_slug'])) {
                     $author = Author::where('slug', $data['author_slug'])->first();
-                    if (!$author) abort(422, "Author '{$data['author_slug']}' not found.");
+                    if (! $author) {
+                        abort(422, "Author '{$data['author_slug']}' not found.");
+                    }
                     $post->author_id = $author->id;
                 }
 
@@ -75,25 +83,27 @@ class McpBlogPostService
 
                 // ── FAQ (legacy faq_items_vi/en) ──────────────────────────────
                 foreach (['faq_items_vi', 'faq_items_en'] as $field) {
-                    if (!array_key_exists($field, $data)) continue;
+                    if (! array_key_exists($field, $data)) {
+                        continue;
+                    }
                     if ($overwrite || empty($post->$field)) {
                         $post->$field = $data[$field];
                     }
                 }
 
                 $post->mcp_drafted_at = now();
-                $post->mcp_token_id   = $tokenId;
+                $post->mcp_token_id = $tokenId;
                 $post->save();
 
                 // ── GEO profiles (AI context + FAQ) ───────────────────────────
                 // geo[locale].faq takes priority; fallback to faq_items_vi/en
                 $geoData = $data['geo'] ?? [];
                 foreach (['vi' => 'faq_items_vi', 'en' => 'faq_items_en'] as $locale => $field) {
-                    if (array_key_exists($field, $data) && !array_key_exists('faq', $geoData[$locale] ?? [])) {
+                    if (array_key_exists($field, $data) && ! array_key_exists('faq', $geoData[$locale] ?? [])) {
                         $geoData[$locale]['faq'] = $data[$field];
                     }
                 }
-                if (!empty($geoData)) {
+                if (! empty($geoData)) {
                     $this->writeGeoProfiles($post, $geoData, $overwrite);
 
                     // Sync geo[locale].faq → faq_items_vi/en so Filament FAQ tab stays in sync.
@@ -101,7 +111,7 @@ class McpBlogPostService
                     foreach (['vi' => 'faq_items_vi', 'en' => 'faq_items_en'] as $locale => $field) {
                         if (isset($geoData[$locale]['faq']) && ($overwrite || empty($post->$field))) {
                             $post->$field = $geoData[$locale]['faq'];
-                            $faqSynced    = true;
+                            $faqSynced = true;
                         }
                     }
                     if ($faqSynced) {
@@ -123,10 +133,14 @@ class McpBlogPostService
                 $post->load(['translations', 'seoMetas', 'geoProfiles', 'blogCategory.translations', 'author', 'tags', 'jsonldSchemas']);
                 $preview = $this->buildContextResponse($post);
 
-                if ($dryRun) throw new \RuntimeException('__mcp_dry_run__');
+                if ($dryRun) {
+                    throw new \RuntimeException('__mcp_dry_run__');
+                }
             });
         } catch (\RuntimeException $e) {
-            if ($e->getMessage() !== '__mcp_dry_run__') throw $e;
+            if ($e->getMessage() !== '__mcp_dry_run__') {
+                throw $e;
+            }
         }
 
         return ['data' => $preview];
@@ -158,10 +172,10 @@ class McpBlogPostService
             : now();
 
         $post->update([
-            'status'         => BlogPostStatus::Published,
-            'published_at'   => $publishedAt,
+            'status' => BlogPostStatus::Published,
+            'published_at' => $publishedAt,
             'mcp_drafted_at' => null,
-            'mcp_token_id'   => null,
+            'mcp_token_id' => null,
         ]);
 
         return [
@@ -177,91 +191,146 @@ class McpBlogPostService
     {
         $post->loadMissing('blogCategory');
 
-        $checks   = [];
+        $checks = [];
         $blocking = [];
         $warnings = [];
-        $score    = 0;
-        $total    = 0;
+        $score = 0;
+        $total = 0;
 
         // Every check below is blocking for both locales — same rule
         // McpCategoryService/McpProductService/McpBlogCategoryService use.
         // (Previously only vi blocked here, so blog posts were the one
         // resource publishable without any en content at all.)
         foreach (['vi', 'en'] as $locale) {
-            $tr         = $post->translations->firstWhere('locale', $locale);
-            $seoMeta    = $post->seoMetas->firstWhere('locale', $locale);
+            $tr = $post->translations->firstWhere('locale', $locale);
+            $seoMeta = $post->seoMetas->firstWhere('locale', $locale);
             $geoProfile = $post->geoProfiles->firstWhere('locale', $locale);
 
             // has_title (blocking)
             $hasTitle = filled($tr?->title);
             $checks[$locale]['has_title'] = ['pass' => $hasTitle];
-            $total++; if ($hasTitle) $score++;
-            if (!$hasTitle) $blocking[] = "{$locale}.title missing";
+            $total++;
+            if ($hasTitle) {
+                $score++;
+            }
+            if (! $hasTitle) {
+                $blocking[] = "{$locale}.title missing";
+            }
 
             // has_body (blocking)
             $hasBody = filled($tr?->body);
             $checks[$locale]['has_body'] = ['pass' => $hasBody];
-            $total++; if ($hasBody) $score++;
-            if (!$hasBody) $blocking[] = "{$locale}.body missing";
+            $total++;
+            if ($hasBody) {
+                $score++;
+            }
+            if (! $hasBody) {
+                $blocking[] = "{$locale}.body missing";
+            }
 
             // body_min_length (warning only)
-            $bodyLen   = mb_strlen($tr?->body ?? '');
+            $bodyLen = mb_strlen($tr?->body ?? '');
             $bodyLenOk = $bodyLen >= 200;
             $checks[$locale]['body_min_length'] = ['pass' => $bodyLenOk, 'min' => 200, 'value' => $bodyLen];
-            $total++; if ($bodyLenOk) $score++;
-            if ($hasBody && !$bodyLenOk) $warnings[] = "{$locale}.body quá ngắn ({$bodyLen}/200 ký tự)";
+            $total++;
+            if ($bodyLenOk) {
+                $score++;
+            }
+            if ($hasBody && ! $bodyLenOk) {
+                $warnings[] = "{$locale}.body quá ngắn ({$bodyLen}/200 ký tự)";
+            }
 
             // has_excerpt (warning)
             $hasExcerpt = filled($tr?->excerpt);
             $checks[$locale]['has_excerpt'] = ['pass' => $hasExcerpt];
-            $total++; if ($hasExcerpt) $score++;
-            if (!$hasExcerpt) $warnings[] = "{$locale}.excerpt chưa có";
+            $total++;
+            if ($hasExcerpt) {
+                $score++;
+            }
+            if (! $hasExcerpt) {
+                $warnings[] = "{$locale}.excerpt chưa có";
+            }
 
             // has_slug (blocking)
             $hasSlug = filled($tr?->slug);
             $checks[$locale]['has_slug'] = ['pass' => $hasSlug];
-            $total++; if ($hasSlug) $score++;
-            if (!$hasSlug) $blocking[] = "{$locale}.slug missing";
+            $total++;
+            if ($hasSlug) {
+                $score++;
+            }
+            if (! $hasSlug) {
+                $blocking[] = "{$locale}.slug missing";
+            }
 
             // has_meta_title (blocking)
             $hasMetaTitle = filled($seoMeta?->meta_title);
             $checks[$locale]['has_meta_title'] = ['pass' => $hasMetaTitle];
-            $total++; if ($hasMetaTitle) $score++;
-            if (!$hasMetaTitle) $blocking[] = "{$locale}.meta_title missing";
+            $total++;
+            if ($hasMetaTitle) {
+                $score++;
+            }
+            if (! $hasMetaTitle) {
+                $blocking[] = "{$locale}.meta_title missing";
+            }
 
             // meta_title_length (warning)
             $metaTitleLen = mb_strlen($seoMeta?->meta_title ?? '');
-            $metaTitleOk  = $metaTitleLen <= 70;
+            $metaTitleOk = $metaTitleLen <= 70;
             $checks[$locale]['meta_title_length'] = ['pass' => $metaTitleOk, 'value' => $metaTitleLen, 'max' => 70];
-            $total++; if ($metaTitleOk) $score++;
-            if ($hasMetaTitle && !$metaTitleOk) $warnings[] = "{$locale}.meta_title quá dài ({$metaTitleLen}/70 ký tự)";
+            $total++;
+            if ($metaTitleOk) {
+                $score++;
+            }
+            if ($hasMetaTitle && ! $metaTitleOk) {
+                $warnings[] = "{$locale}.meta_title quá dài ({$metaTitleLen}/70 ký tự)";
+            }
 
             // has_meta_description (blocking)
             $hasMetaDesc = filled($seoMeta?->meta_description);
             $checks[$locale]['has_meta_description'] = ['pass' => $hasMetaDesc];
-            $total++; if ($hasMetaDesc) $score++;
-            if (!$hasMetaDesc) $blocking[] = "{$locale}.meta_description missing";
+            $total++;
+            if ($hasMetaDesc) {
+                $score++;
+            }
+            if (! $hasMetaDesc) {
+                $blocking[] = "{$locale}.meta_description missing";
+            }
 
             // has_faq (warning)
             $faqItems = $geoProfile?->faq ?? $post->{"faq_items_{$locale}"} ?? [];
-            $hasFaq   = !empty($faqItems);
+            $hasFaq = ! empty($faqItems);
             $checks[$locale]['has_faq'] = ['pass' => $hasFaq, 'count' => count((array) $faqItems)];
-            $total++; if ($hasFaq) $score++;
-            if (!$hasFaq) $warnings[] = "{$locale}.faq chưa có — nên thêm ít nhất 3 câu hỏi (geo.{$locale}.faq)";
+            $total++;
+            if ($hasFaq) {
+                $score++;
+            }
+            if (! $hasFaq) {
+                $warnings[] = "{$locale}.faq chưa có — nên thêm ít nhất 3 câu hỏi (geo.{$locale}.faq)";
+            }
         }
 
         // has_featured_image (warning)
         $hasFeaturedImage = filled($post->featured_image);
         $checks['general']['has_featured_image'] = ['pass' => $hasFeaturedImage];
-        $total++; if ($hasFeaturedImage) $score++;
-        if (!$hasFeaturedImage) $warnings[] = 'featured_image chưa có';
+        $total++;
+        if ($hasFeaturedImage) {
+            $score++;
+        }
+        if (! $hasFeaturedImage) {
+            $warnings[] = 'featured_image chưa có';
+        }
 
         // has_blog_category (blocking — public post URL requires a category slug;
         // a category-less published post is unreachable, see LocaleUrl::forBlogPost())
         $hasBlogCategory = filled($post->blog_category_id);
         $checks['general']['has_blog_category'] = ['pass' => $hasBlogCategory];
-        $total++; if ($hasBlogCategory) $score++;
-        if (!$hasBlogCategory) $blocking[] = 'blog_category chưa có — bắt buộc để URL bài viết hoạt động';
+        $total++;
+        if ($hasBlogCategory) {
+            $score++;
+        }
+        if (! $hasBlogCategory) {
+            $blocking[] = 'blog_category chưa có — bắt buộc để URL bài viết hoạt động';
+        }
 
         // category_is_active (blocking — same rule as McpProductService::computeReadiness().
         // BlogController::category() 404s on an inactive category but ::show() never checks
@@ -269,18 +338,23 @@ class McpBlogPostService
         // post: live at its own URL, gone from the category page and post listing.)
         $categoryIsActive = ! $hasBlogCategory || (bool) $post->blogCategory?->is_active;
         $checks['general']['category_is_active'] = ['pass' => $categoryIsActive];
-        $total++; if ($categoryIsActive) $score++;
-        if (!$categoryIsActive) $blocking[] = "blog_category '{$post->blogCategory?->slug}' chưa active";
+        $total++;
+        if ($categoryIsActive) {
+            $score++;
+        }
+        if (! $categoryIsActive) {
+            $blocking[] = "blog_category '{$post->blogCategory?->slug}' chưa active";
+        }
 
         $scorePercent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
 
         return [
-            'slug'            => $post->translations->firstWhere('locale', 'vi')?->slug ?? '',
-            'score'           => $scorePercent,
-            'ready'           => empty($blocking),
-            'checks'          => $checks,
+            'slug' => $post->translations->firstWhere('locale', 'vi')?->slug ?? '',
+            'score' => $scorePercent,
+            'ready' => empty($blocking),
+            'checks' => $checks,
             'blocking_issues' => $blocking,
-            'warnings'        => $warnings,
+            'warnings' => $warnings,
         ];
     }
 
@@ -291,7 +365,9 @@ class McpBlogPostService
             ->whereHas('translations', fn ($q) => $q->where('slug', $slug))
             ->first();
 
-        if (!$post) abort(404, "Blog post with slug '{$slug}' not found.");
+        if (! $post) {
+            abort(404, "Blog post with slug '{$slug}' not found.");
+        }
 
         return $post;
     }
@@ -299,38 +375,80 @@ class McpBlogPostService
     private function writeTranslations(BlogPost $post, array $translations, bool $overwrite, string $routeSlug = ''): void
     {
         foreach ($translations as $locale => $trans) {
-            if (! in_array($locale, ['vi', 'en'], true)) continue;
+            if (! in_array($locale, ['vi', 'en'], true)) {
+                continue;
+            }
 
             $existing = $post->translations()->where('locale', $locale)->first();
 
-            if ($existing?->is_mcp_protected) continue;
+            if ($existing?->is_mcp_protected) {
+                continue;
+            }
 
             $title = filled($trans['title'] ?? null) ? $trans['title'] : null;
 
-            // Resolve slug
-            $slug = filled($trans['slug'] ?? null) ? $trans['slug'] : null;
-            if (! $slug && $locale === 'vi' && filled($routeSlug)) $slug = $routeSlug;
-            if (! $slug && filled($title))                          $slug = Str::slug($title);
+            // Resolve slug — only ever needed while the translation is still
+            // slug-less (new row, or an existing row somehow still missing one).
+            // Once a slug exists, it's locked (mirrors the admin-side lock in
+            // BlogPostResource): AI can no longer rename it via title/slug.
+            $slug = null;
+            if (! $existing || empty($existing->slug)) {
+                $slug = filled($trans['slug'] ?? null) ? $trans['slug'] : null;
+                if (! $slug && $locale === 'vi' && filled($routeSlug)) {
+                    $slug = $routeSlug;
+                }
+                if (! $slug && filled($title)) {
+                    $slug = Str::slug($title);
+                }
+
+                if (filled($slug)) {
+                    $blogCategory = $post->blogCategory;
+                    $categorySlug = $blogCategory?->translations()->where('locale', $locale)->value('slug') ?? $blogCategory?->slug;
+                    $localeSegment = $locale === 'vi' ? 'vi/bai-viet' : 'en/blog';
+                    $path = $categorySlug
+                        ? "/{$localeSegment}/{$categorySlug}/{$slug}"
+                        : parse_url(LocaleUrl::for('blog_post', $slug, $locale), PHP_URL_PATH);
+                    $conflict = SlugRedirectGuard::conflictAt($path);
+
+                    if ($conflict) {
+                        abort(422, "Generated slug '{$slug}' is currently redirected elsewhere (to {$conflict->to_path}). Provide a different title/slug or resolve the redirect first.");
+                    }
+                }
+            }
 
             if (! $existing) {
-                if (empty($title) || empty($slug)) continue;
+                if (empty($title) || empty($slug)) {
+                    continue;
+                }
                 $row = ['locale' => $locale, 'title' => $title, 'slug' => $slug];
-                if (array_key_exists('excerpt', $trans)) $row['excerpt'] = $trans['excerpt'];
-                if (array_key_exists('body', $trans))    $row['body']    = $trans['body'];
+                if (array_key_exists('excerpt', $trans)) {
+                    $row['excerpt'] = $trans['excerpt'];
+                }
+                if (array_key_exists('body', $trans)) {
+                    $row['body'] = $trans['body'];
+                }
                 $post->translations()->create($row);
             } else {
                 $update = [];
-                foreach (['title' => $title, 'slug' => $slug] as $field => $value) {
-                    if ($value === null) continue;
-                    if (! $overwrite && filled($existing->$field)) continue;
-                    $update[$field] = $value;
+                if ($title !== null && ($overwrite || ! filled($existing->title))) {
+                    $update['title'] = $title;
+                }
+                if ($slug !== null) {
+                    // Only reachable above when $existing->slug was still empty.
+                    $update['slug'] = $slug;
                 }
                 foreach (['excerpt', 'body'] as $field) {
-                    if (! array_key_exists($field, $trans)) continue;
-                    if (! $overwrite && filled($existing->$field)) continue;
+                    if (! array_key_exists($field, $trans)) {
+                        continue;
+                    }
+                    if (! $overwrite && filled($existing->$field)) {
+                        continue;
+                    }
                     $update[$field] = $trans[$field];
                 }
-                if (! empty($update)) $existing->update($update);
+                if (! empty($update)) {
+                    $existing->update($update);
+                }
             }
         }
     }
@@ -340,63 +458,79 @@ class McpBlogPostService
         $writeable = ['meta_title', 'meta_description', 'meta_keywords', 'canonical_url', 'og_title', 'og_description', 'og_image', 'robots'];
 
         foreach ($seo as $locale => $data) {
-            if (!in_array($locale, ['vi', 'en'], true)) continue;
+            if (! in_array($locale, ['vi', 'en'], true)) {
+                continue;
+            }
 
             $seoMeta = SeoMeta::firstOrNew([
                 'model_type' => 'blog_post',
-                'model_id'   => $post->id,
-                'locale'     => $locale,
+                'model_id' => $post->id,
+                'locale' => $locale,
             ]);
 
-            if ($seoMeta->exists && $seoMeta->is_mcp_protected) continue;
+            if ($seoMeta->exists && $seoMeta->is_mcp_protected) {
+                continue;
+            }
 
             foreach ($writeable as $field) {
-                if (!array_key_exists($field, $data)) continue;
-                if (!$overwrite && $seoMeta->exists && filled($seoMeta->$field)) continue;
+                if (! array_key_exists($field, $data)) {
+                    continue;
+                }
+                if (! $overwrite && $seoMeta->exists && filled($seoMeta->$field)) {
+                    continue;
+                }
                 $seoMeta->$field = $data[$field];
             }
 
             if (filled($seoMeta->robots)) {
                 $seoMeta->robots = str_replace(', ', ',', $seoMeta->robots);
             }
-            if (blank($seoMeta->robots)) $seoMeta->robots = 'index,follow';
+            if (blank($seoMeta->robots)) {
+                $seoMeta->robots = 'index,follow';
+            }
 
             $seoMeta->model_type = 'blog_post';
-            $seoMeta->model_id   = $post->id;
-            $seoMeta->locale     = $locale;
+            $seoMeta->model_id = $post->id;
+            $seoMeta->locale = $locale;
             $seoMeta->save();
         }
     }
 
     private function writeGeoProfiles(BlogPost $post, array $geoPerLocale, bool $overwrite): void
     {
-        $morphType     = $post->getMorphClass();
-        $modelId       = $post->getKey();
-        $writeable     = ['ai_summary', 'use_cases', 'target_audience', 'llm_context_hint'];
+        $morphType = $post->getMorphClass();
+        $modelId = $post->getKey();
+        $writeable = ['ai_summary', 'use_cases', 'target_audience', 'llm_context_hint'];
 
         $normalize = fn (array $items): array => collect($items)
             ->filter(fn (array $item): bool => filled($item['question'] ?? null))
             ->map(fn (array $item): array => [
                 'question' => trim($item['question']),
-                'answer'   => trim($item['answer'] ?? ''),
+                'answer' => trim($item['answer'] ?? ''),
             ])
             ->values()
             ->toArray();
 
         foreach (['vi', 'en'] as $locale) {
-            if (!array_key_exists($locale, $geoPerLocale)) continue;
+            if (! array_key_exists($locale, $geoPerLocale)) {
+                continue;
+            }
 
             $input = $geoPerLocale[$locale];
 
             $profile = GeoEntityProfile::firstOrNew([
                 'model_type' => $morphType,
-                'model_id'   => $modelId,
-                'locale'     => $locale,
+                'model_id' => $modelId,
+                'locale' => $locale,
             ]);
 
             foreach ($writeable as $field) {
-                if (!array_key_exists($field, $input)) continue;
-                if (!$overwrite && $profile->exists && filled($profile->$field)) continue;
+                if (! array_key_exists($field, $input)) {
+                    continue;
+                }
+                if (! $overwrite && $profile->exists && filled($profile->$field)) {
+                    continue;
+                }
                 $profile->$field = $input[$field];
             }
 
@@ -413,10 +547,10 @@ class McpBlogPostService
                 }
             }
 
-            if ($profile->isDirty() || !$profile->exists) {
+            if ($profile->isDirty() || ! $profile->exists) {
                 $profile->model_type = $morphType;
-                $profile->model_id   = $modelId;
-                $profile->locale     = $locale;
+                $profile->model_id = $modelId;
+                $profile->locale = $locale;
                 $profile->save();
             }
         }
@@ -439,10 +573,10 @@ class McpBlogPostService
         $translations = [];
         foreach ($post->translations as $tr) {
             $translations[$tr->locale] = [
-                'title'            => $tr->title,
-                'slug'             => $tr->slug,
-                'excerpt'          => $tr->excerpt,
-                'body'             => $tr->body,
+                'title' => $tr->title,
+                'slug' => $tr->slug,
+                'excerpt' => $tr->excerpt,
+                'body' => $tr->body,
                 'is_mcp_protected' => $tr->is_mcp_protected,
             ];
         }
@@ -450,14 +584,14 @@ class McpBlogPostService
         $seo = [];
         foreach ($post->seoMetas as $meta) {
             $seo[$meta->locale] = [
-                'meta_title'       => $meta->meta_title,
+                'meta_title' => $meta->meta_title,
                 'meta_description' => $meta->meta_description,
-                'meta_keywords'    => $meta->meta_keywords,
-                'canonical_url'    => $meta->canonical_url,
-                'og_title'         => $meta->og_title,
-                'og_description'   => $meta->og_description,
-                'og_image'         => $meta->og_image,
-                'robots'           => $meta->robots,
+                'meta_keywords' => $meta->meta_keywords,
+                'canonical_url' => $meta->canonical_url,
+                'og_title' => $meta->og_title,
+                'og_description' => $meta->og_description,
+                'og_image' => $meta->og_image,
+                'robots' => $meta->robots,
                 'is_mcp_protected' => $meta->is_mcp_protected,
             ];
         }
@@ -467,12 +601,12 @@ class McpBlogPostService
             $profile = $post->geoProfiles->firstWhere('locale', $locale);
             if ($profile) {
                 $geo[$locale] = [
-                    'ai_summary'       => $profile->ai_summary,
-                    'use_cases'        => $profile->use_cases,
-                    'target_audience'  => $profile->target_audience,
+                    'ai_summary' => $profile->ai_summary,
+                    'use_cases' => $profile->use_cases,
+                    'target_audience' => $profile->target_audience,
                     'llm_context_hint' => $profile->llm_context_hint,
-                    'key_facts'        => $profile->key_facts ?? [],
-                    'faq'              => $profile->faq ?? [],
+                    'key_facts' => $profile->key_facts ?? [],
+                    'faq' => $profile->faq ?? [],
                 ];
             }
         }
@@ -499,9 +633,10 @@ class McpBlogPostService
                 ->map(function (BlogPost $p) {
                     $viTr = $p->translations->firstWhere('locale', 'vi')
                         ?? $p->translations->first();
+
                     return [
-                        'slug'   => $viTr?->slug,
-                        'title'  => $viTr?->title,
+                        'slug' => $viTr?->slug,
+                        'title' => $viTr?->title,
                         'status' => $p->status?->value,
                     ];
                 })
@@ -511,29 +646,29 @@ class McpBlogPostService
         $jsonldOut = [];
         foreach (($post->jsonldSchemas ?? collect()) as $schema) {
             $jsonldOut[$schema->locale][] = [
-                'type'              => $schema->schema_type?->value,
-                'label'             => $schema->label,
+                'type' => $schema->schema_type?->value,
+                'label' => $schema->label,
                 'is_auto_generated' => (bool) $schema->is_auto_generated,
-                'is_active'         => (bool) $schema->is_active,
-                'payload'           => $schema->payload,
+                'is_active' => (bool) $schema->is_active,
+                'payload' => $schema->payload,
             ];
         }
 
         return [
-            'id'             => $post->id,
-            'status'         => $post->status?->value,
-            'published_at'   => $post->published_at?->toIso8601String(),
+            'id' => $post->id,
+            'status' => $post->status?->value,
+            'published_at' => $post->published_at?->toIso8601String(),
             'featured_image' => $post->featured_image,
-            'blog_category'  => $blogCategory,
-            'author'         => $post->author ? ['name' => $post->author->name, 'slug' => $post->author->slug] : null,
-            'tags'           => $post->tags->map(fn ($t) => ['slug' => $t->slug, 'name' => $t->name])->all(),
-            'translations'   => $translations,
-            'seo'            => $seo,
-            'geo'            => $geo,
-            'faq_items_vi'   => $post->faq_items_vi ?? [],
-            'faq_items_en'   => $post->faq_items_en ?? [],
+            'blog_category' => $blogCategory,
+            'author' => $post->author ? ['name' => $post->author->name, 'slug' => $post->author->slug] : null,
+            'tags' => $post->tags->map(fn ($t) => ['slug' => $t->slug, 'name' => $t->name])->all(),
+            'translations' => $translations,
+            'seo' => $seo,
+            'geo' => $geo,
+            'faq_items_vi' => $post->faq_items_vi ?? [],
+            'faq_items_en' => $post->faq_items_en ?? [],
             'jsonld_schemas' => $jsonldOut,
-            'related_posts'  => $relatedPosts,
+            'related_posts' => $relatedPosts,
             'mcp_drafted_at' => $post->mcp_drafted_at?->toIso8601String(),
         ];
     }

@@ -12,6 +12,8 @@ use App\Models\ProductAttribute;
 use App\Models\ProductTranslation;
 use App\Models\Seo\GeoEntityProfile;
 use App\Models\Seo\SeoMeta;
+use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -76,6 +78,18 @@ class McpProductService
                 }
 
                 if (! $product) {
+                    // products.slug maps to the fallback locale's canonical URL
+                    // (see ProductObserver::updating()) and is otherwise never
+                    // rewritten after creation, so this is the only moment it can
+                    // collide with a live redirect.
+                    $defaultLocale = config('app.fallback_locale', 'vi');
+                    $path = parse_url(LocaleUrl::for('product', $slug, $defaultLocale), PHP_URL_PATH);
+                    $conflict = SlugRedirectGuard::conflictAt($path);
+
+                    if ($conflict) {
+                        abort(422, "Slug '{$slug}' is currently redirected elsewhere (to {$conflict->to_path}). Choose a different slug or resolve the redirect first.");
+                    }
+
                     // name and price are both NOT NULL — name falls back to slug
                     // (same as Brand/Category), price defaults to 0 for MCP
                     // drafts; admin sets the real values later.
@@ -430,9 +444,19 @@ class McpProductService
                 $translation->{$field} = $data[$field];
             }
 
-            // Auto-generate slug from name — never let AI set slug directly
-            if (filled($data['name'] ?? null) && ($overwrite || ! filled($translation->slug))) {
-                $translation->slug = Str::slug($data['name']);
+            // Auto-generate slug from name once, on first write only — never let
+            // AI rename an existing translation's slug (mirrors the admin-side
+            // lock in ProductResource), and never let AI set slug directly.
+            if (filled($data['name'] ?? null) && ! filled($translation->slug)) {
+                $candidateSlug = Str::slug($data['name']);
+                $path = parse_url(LocaleUrl::for('product', $candidateSlug, $locale), PHP_URL_PATH);
+                $conflict = SlugRedirectGuard::conflictAt($path);
+
+                if ($conflict) {
+                    abort(422, "Generated slug '{$candidateSlug}' is currently redirected elsewhere (to {$conflict->to_path}). Provide a different name or resolve the redirect first.");
+                }
+
+                $translation->slug = $candidateSlug;
             }
 
             $translation->save();

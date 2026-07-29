@@ -4,7 +4,9 @@ namespace App\Services\Mcp;
 
 use App\Models\Category;
 use App\Models\Seo\GeoEntityProfile;
+use App\Support\LocaleUrl;
 use App\Support\RichContentHtml;
+use App\Support\SlugRedirectGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -346,7 +348,7 @@ class McpCategoryService
 
             $trans = $translations[$locale] ?? [];
 
-            foreach (['name', 'slug', 'description'] as $field) {
+            foreach (['name', 'description'] as $field) {
                 if (! array_key_exists($field, $trans)) {
                     continue;
                 }
@@ -375,12 +377,24 @@ class McpCategoryService
                 $tr->$field = $seoLocale[$field];
             }
 
-            // Slug is never AI-required — derive it from name when omitted,
-            // same fallback McpBlogCategoryService already uses. Previously
-            // this silently dropped the entire row (translations + seo for
-            // that locale) whenever slug was left out on first creation.
-            if (empty($tr->slug) && filled($tr->name)) {
-                $tr->slug = Str::slug($tr->name);
+            // Slug is locked after first save — only ever set once (either the
+            // AI-provided value or, if omitted, derived from name), and only
+            // while the row is still slug-less. Mirrors the admin-side lock in
+            // CategoryResource, and never let AI silently reuse a slug that's
+            // currently redirected elsewhere.
+            if (empty($tr->slug)) {
+                $candidateSlug = filled($trans['slug'] ?? null) ? $trans['slug'] : (filled($tr->name) ? Str::slug($tr->name) : null);
+
+                if (filled($candidateSlug)) {
+                    $path = parse_url(LocaleUrl::for('category', $candidateSlug, $locale), PHP_URL_PATH);
+                    $conflict = SlugRedirectGuard::conflictAt($path);
+
+                    if ($conflict) {
+                        abort(422, "Generated slug '{$candidateSlug}' is currently redirected elsewhere (to {$conflict->to_path}). Provide a different name/slug or resolve the redirect first.");
+                    }
+
+                    $tr->slug = $candidateSlug;
+                }
             }
 
             if ($tr->isDirty()) {

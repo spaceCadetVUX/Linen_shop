@@ -5,6 +5,8 @@ namespace App\Services\Mcp;
 use App\Models\Manufacturer;
 use App\Models\Seo\GeoEntityProfile;
 use App\Models\Seo\SeoMeta;
+use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use Illuminate\Support\Facades\DB;
 
 class McpManufacturerService
@@ -30,9 +32,21 @@ class McpManufacturerService
                 $mfr = Manufacturer::where('slug', $slug)->first();
 
                 if (! $mfr) {
+                    // Manufacturer's slug is shared across locales and is never
+                    // rewritable after creation (not in the $writeable list below),
+                    // so the only moment it can collide with a live redirect is now.
+                    foreach (config('app.supported_locales', ['vi', 'en']) as $locale) {
+                        $path = parse_url(LocaleUrl::for('manufacturer', $slug, $locale), PHP_URL_PATH);
+                        $conflict = SlugRedirectGuard::conflictAt($path);
+
+                        if ($conflict) {
+                            abort(422, "Slug '{$slug}' is currently redirected elsewhere (to {$conflict->to_path}). Choose a different slug or resolve the redirect first.");
+                        }
+                    }
+
                     $mfr = new Manufacturer([
-                        'slug'      => $slug,
-                        'name'      => $data['name'] ?? $slug,
+                        'slug' => $slug,
+                        'name' => $data['name'] ?? $slug,
                         'is_active' => false,
                     ]);
                     $mfr->save();
@@ -56,7 +70,7 @@ class McpManufacturerService
                 }
 
                 $mfr->mcp_drafted_at = now();
-                $mfr->mcp_token_id   = $tokenId;
+                $mfr->mcp_token_id = $tokenId;
                 $mfr->save();
 
                 // ── SEO meta ──────────────────────────────────────────────────
@@ -92,17 +106,17 @@ class McpManufacturerService
 
     public function activate(string $slug): array
     {
-        $mfr      = $this->loadManufacturer($slug);
+        $mfr = $this->loadManufacturer($slug);
         $readiness = $this->computeReadiness($mfr);
 
         if (! empty($readiness['blocking_issues'])) {
-            abort(422, 'Manufacturer chưa sẵn sàng để activate: ' . implode('; ', $readiness['blocking_issues']));
+            abort(422, 'Manufacturer chưa sẵn sàng để activate: '.implode('; ', $readiness['blocking_issues']));
         }
 
         $mfr->update([
-            'is_active'      => true,
+            'is_active' => true,
             'mcp_drafted_at' => null,
-            'mcp_token_id'   => null,
+            'mcp_token_id' => null,
         ]);
 
         $mfr->refresh()->load(['seoMetas', 'geoProfiles']);
@@ -130,30 +144,45 @@ class McpManufacturerService
 
     private function computeReadiness(Manufacturer $mfr): array
     {
-        $checks   = [];
+        $checks = [];
         $blocking = [];
         $warnings = [];
-        $score    = 0;
-        $total    = 0;
+        $score = 0;
+        $total = 0;
 
         // has_description (blocking)
         $hasDesc = filled($mfr->description);
         $checks['has_description'] = ['pass' => $hasDesc];
-        $total++; if ($hasDesc) { $score++; }
-        if (! $hasDesc) { $blocking[] = 'description missing'; }
+        $total++;
+        if ($hasDesc) {
+            $score++;
+        }
+        if (! $hasDesc) {
+            $blocking[] = 'description missing';
+        }
 
         // has_logo (warning)
         $hasLogo = filled($mfr->logo);
         $checks['has_logo'] = ['pass' => $hasLogo];
-        $total++; if ($hasLogo) { $score++; }
-        if (! $hasLogo) { $warnings[] = 'logo chưa có'; }
+        $total++;
+        if ($hasLogo) {
+            $score++;
+        }
+        if (! $hasLogo) {
+            $warnings[] = 'logo chưa có';
+        }
 
         // has_geo vi (warning)
-        $geoVi    = $mfr->geoProfiles->firstWhere('locale', 'vi');
+        $geoVi = $mfr->geoProfiles->firstWhere('locale', 'vi');
         $hasGeoVi = filled($geoVi?->ai_summary);
         $checks['has_geo_vi'] = ['pass' => $hasGeoVi];
-        $total++; if ($hasGeoVi) { $score++; }
-        if (! $hasGeoVi) { $warnings[] = 'geo.vi.ai_summary chưa có'; }
+        $total++;
+        if ($hasGeoVi) {
+            $score++;
+        }
+        if (! $hasGeoVi) {
+            $warnings[] = 'geo.vi.ai_summary chưa có';
+        }
 
         // SEO per locale
         foreach (['vi', 'en'] as $locale) {
@@ -161,32 +190,38 @@ class McpManufacturerService
 
             $hasMetaTitle = filled($seoMeta?->meta_title);
             $checks["seo_{$locale}"]['has_meta_title'] = ['pass' => $hasMetaTitle];
-            $total++; if ($hasMetaTitle) { $score++; }
+            $total++;
+            if ($hasMetaTitle) {
+                $score++;
+            }
             if (! $hasMetaTitle) {
                 $locale === 'vi'
-                    ? $blocking[] = "seo_vi.meta_title missing"
-                    : $warnings[] = "seo_en.meta_title missing";
+                    ? $blocking[] = 'seo_vi.meta_title missing'
+                    : $warnings[] = 'seo_en.meta_title missing';
             }
 
             $hasMetaDesc = filled($seoMeta?->meta_description);
             $checks["seo_{$locale}"]['has_meta_description'] = ['pass' => $hasMetaDesc];
-            $total++; if ($hasMetaDesc) { $score++; }
+            $total++;
+            if ($hasMetaDesc) {
+                $score++;
+            }
             if (! $hasMetaDesc) {
                 $locale === 'vi'
-                    ? $blocking[] = "seo_vi.meta_description missing"
-                    : $warnings[] = "seo_en.meta_description missing";
+                    ? $blocking[] = 'seo_vi.meta_description missing'
+                    : $warnings[] = 'seo_en.meta_description missing';
             }
         }
 
         $scorePercent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
 
         return [
-            'slug'            => $mfr->slug,
-            'score'           => $scorePercent,
-            'ready'           => empty($blocking),
-            'checks'          => $checks,
+            'slug' => $mfr->slug,
+            'score' => $scorePercent,
+            'ready' => empty($blocking),
+            'checks' => $checks,
             'blocking_issues' => $blocking,
-            'warnings'        => $warnings,
+            'warnings' => $warnings,
         ];
     }
 
@@ -203,8 +238,8 @@ class McpManufacturerService
 
             $seoMeta = SeoMeta::firstOrNew([
                 'model_type' => 'manufacturer',
-                'model_id'   => (string) $mfr->id,
-                'locale'     => $locale,
+                'model_id' => (string) $mfr->id,
+                'locale' => $locale,
             ]);
 
             if ($seoMeta->exists && $seoMeta->is_mcp_protected) {
@@ -229,15 +264,15 @@ class McpManufacturerService
             }
 
             $seoMeta->model_type = 'manufacturer';
-            $seoMeta->model_id   = (string) $mfr->id;
-            $seoMeta->locale     = $locale;
+            $seoMeta->model_id = (string) $mfr->id;
+            $seoMeta->locale = $locale;
             $seoMeta->save();
         }
     }
 
     private function writeGeoProfiles(Manufacturer $mfr, array $geo, bool $overwrite): void
     {
-        $writeable     = ['ai_summary', 'use_cases', 'target_audience', 'llm_context_hint'];
+        $writeable = ['ai_summary', 'use_cases', 'target_audience', 'llm_context_hint'];
         $writeableJson = ['key_facts', 'faq'];
 
         foreach ($geo as $locale => $data) {
@@ -247,8 +282,8 @@ class McpManufacturerService
 
             $profile = GeoEntityProfile::firstOrNew([
                 'model_type' => 'manufacturer',
-                'model_id'   => (string) $mfr->id,
-                'locale'     => $locale,
+                'model_id' => (string) $mfr->id,
+                'locale' => $locale,
             ]);
 
             foreach ($writeable as $field) {
@@ -272,8 +307,8 @@ class McpManufacturerService
             }
 
             $profile->model_type = 'manufacturer';
-            $profile->model_id   = (string) $mfr->id;
-            $profile->locale     = $locale;
+            $profile->model_id = (string) $mfr->id;
+            $profile->locale = $locale;
             $profile->save();
         }
     }
@@ -285,14 +320,14 @@ class McpManufacturerService
         $seoOut = [];
         foreach ($mfr->seoMetas as $meta) {
             $seoOut[$meta->locale] = [
-                'meta_title'       => $meta->meta_title,
+                'meta_title' => $meta->meta_title,
                 'meta_description' => $meta->meta_description,
-                'meta_keywords'    => $meta->meta_keywords,
-                'canonical_url'    => $meta->canonical_url,
-                'og_title'         => $meta->og_title,
-                'og_description'   => $meta->og_description,
-                'og_image'         => $meta->og_image,
-                'robots'           => $meta->robots,
+                'meta_keywords' => $meta->meta_keywords,
+                'canonical_url' => $meta->canonical_url,
+                'og_title' => $meta->og_title,
+                'og_description' => $meta->og_description,
+                'og_image' => $meta->og_image,
+                'robots' => $meta->robots,
                 'is_mcp_protected' => (bool) $meta->is_mcp_protected,
             ];
         }
@@ -300,27 +335,27 @@ class McpManufacturerService
         $geoOut = [];
         foreach ($mfr->geoProfiles as $g) {
             $geoOut[$g->locale] = [
-                'ai_summary'       => $g->ai_summary,
-                'use_cases'        => $g->use_cases,
-                'target_audience'  => $g->target_audience,
+                'ai_summary' => $g->ai_summary,
+                'use_cases' => $g->use_cases,
+                'target_audience' => $g->target_audience,
                 'llm_context_hint' => $g->llm_context_hint,
-                'key_facts'        => $g->key_facts ?? [],
-                'faq'              => $g->faq ?? [],
+                'key_facts' => $g->key_facts ?? [],
+                'faq' => $g->faq ?? [],
             ];
         }
 
         return [
-            'slug'           => $mfr->slug,
-            'name'           => $mfr->name,
-            'logo'           => $mfr->logo,
-            'description'    => $mfr->description,
-            'website'        => $mfr->website,
-            'country'        => $mfr->country,
-            'is_active'      => (bool) $mfr->is_active,
-            'sort_order'     => $mfr->sort_order,
-            'product_count'  => $mfr->products_count ?? $mfr->loadCount('products')->products_count,
-            'geo'            => $geoOut,
-            'seo'            => $seoOut,
+            'slug' => $mfr->slug,
+            'name' => $mfr->name,
+            'logo' => $mfr->logo,
+            'description' => $mfr->description,
+            'website' => $mfr->website,
+            'country' => $mfr->country,
+            'is_active' => (bool) $mfr->is_active,
+            'sort_order' => $mfr->sort_order,
+            'product_count' => $mfr->products_count ?? $mfr->loadCount('products')->products_count,
+            'geo' => $geoOut,
+            'seo' => $seoOut,
             'mcp_drafted_at' => $mfr->mcp_drafted_at?->toIso8601String(),
         ];
     }

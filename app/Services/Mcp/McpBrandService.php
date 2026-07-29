@@ -5,6 +5,8 @@ namespace App\Services\Mcp;
 use App\Models\Brand;
 use App\Models\Seo\GeoEntityProfile;
 use App\Models\Seo\SeoMeta;
+use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use Illuminate\Support\Facades\DB;
 
 class McpBrandService
@@ -30,9 +32,21 @@ class McpBrandService
                 $brand = Brand::where('slug', $slug)->first();
 
                 if (! $brand) {
+                    // Brand's slug is shared across locales and is never rewritable
+                    // after creation (not in the $writeable list below), so the
+                    // only moment it can collide with a live redirect is right now.
+                    foreach (config('app.supported_locales', ['vi', 'en']) as $locale) {
+                        $path = parse_url(LocaleUrl::for('brand', $slug, $locale), PHP_URL_PATH);
+                        $conflict = SlugRedirectGuard::conflictAt($path);
+
+                        if ($conflict) {
+                            abort(422, "Slug '{$slug}' is currently redirected elsewhere (to {$conflict->to_path}). Choose a different slug or resolve the redirect first.");
+                        }
+                    }
+
                     $brand = new Brand([
-                        'slug'      => $slug,
-                        'name'      => $data['name'] ?? $slug,
+                        'slug' => $slug,
+                        'name' => $data['name'] ?? $slug,
                         'is_active' => false,
                     ]);
                     $brand->save();
@@ -56,7 +70,7 @@ class McpBrandService
                 }
 
                 $brand->mcp_drafted_at = now();
-                $brand->mcp_token_id   = $tokenId;
+                $brand->mcp_token_id = $tokenId;
                 $brand->save();
 
                 // ── SEO meta ──────────────────────────────────────────────────
@@ -92,17 +106,17 @@ class McpBrandService
 
     public function activate(string $slug): array
     {
-        $brand    = $this->loadBrand($slug);
+        $brand = $this->loadBrand($slug);
         $readiness = $this->computeReadiness($brand);
 
         if (! empty($readiness['blocking_issues'])) {
-            abort(422, 'Brand chưa sẵn sàng để activate: ' . implode('; ', $readiness['blocking_issues']));
+            abort(422, 'Brand chưa sẵn sàng để activate: '.implode('; ', $readiness['blocking_issues']));
         }
 
         $brand->update([
-            'is_active'      => true,
+            'is_active' => true,
             'mcp_drafted_at' => null,
-            'mcp_token_id'   => null,
+            'mcp_token_id' => null,
         ]);
 
         $brand->refresh()->load(['seoMetas', 'geoProfiles']);
@@ -130,30 +144,45 @@ class McpBrandService
 
     private function computeReadiness(Brand $brand): array
     {
-        $checks   = [];
+        $checks = [];
         $blocking = [];
         $warnings = [];
-        $score    = 0;
-        $total    = 0;
+        $score = 0;
+        $total = 0;
 
         // has_description (blocking)
         $hasDesc = filled($brand->description);
         $checks['has_description'] = ['pass' => $hasDesc];
-        $total++; if ($hasDesc) { $score++; }
-        if (! $hasDesc) { $blocking[] = 'description missing'; }
+        $total++;
+        if ($hasDesc) {
+            $score++;
+        }
+        if (! $hasDesc) {
+            $blocking[] = 'description missing';
+        }
 
         // has_logo (warning)
         $hasLogo = filled($brand->logo);
         $checks['has_logo'] = ['pass' => $hasLogo];
-        $total++; if ($hasLogo) { $score++; }
-        if (! $hasLogo) { $warnings[] = 'logo chưa có'; }
+        $total++;
+        if ($hasLogo) {
+            $score++;
+        }
+        if (! $hasLogo) {
+            $warnings[] = 'logo chưa có';
+        }
 
         // has_geo vi (warning)
-        $geoVi    = $brand->geoProfiles->firstWhere('locale', 'vi');
+        $geoVi = $brand->geoProfiles->firstWhere('locale', 'vi');
         $hasGeoVi = filled($geoVi?->ai_summary);
         $checks['has_geo_vi'] = ['pass' => $hasGeoVi];
-        $total++; if ($hasGeoVi) { $score++; }
-        if (! $hasGeoVi) { $warnings[] = 'geo.vi.ai_summary chưa có'; }
+        $total++;
+        if ($hasGeoVi) {
+            $score++;
+        }
+        if (! $hasGeoVi) {
+            $warnings[] = 'geo.vi.ai_summary chưa có';
+        }
 
         // SEO per locale
         foreach (['vi', 'en'] as $locale) {
@@ -161,32 +190,38 @@ class McpBrandService
 
             $hasMetaTitle = filled($seoMeta?->meta_title);
             $checks["seo_{$locale}"]['has_meta_title'] = ['pass' => $hasMetaTitle];
-            $total++; if ($hasMetaTitle) { $score++; }
+            $total++;
+            if ($hasMetaTitle) {
+                $score++;
+            }
             if (! $hasMetaTitle) {
                 $locale === 'vi'
-                    ? $blocking[] = "seo_vi.meta_title missing"
-                    : $warnings[] = "seo_en.meta_title missing";
+                    ? $blocking[] = 'seo_vi.meta_title missing'
+                    : $warnings[] = 'seo_en.meta_title missing';
             }
 
             $hasMetaDesc = filled($seoMeta?->meta_description);
             $checks["seo_{$locale}"]['has_meta_description'] = ['pass' => $hasMetaDesc];
-            $total++; if ($hasMetaDesc) { $score++; }
+            $total++;
+            if ($hasMetaDesc) {
+                $score++;
+            }
             if (! $hasMetaDesc) {
                 $locale === 'vi'
-                    ? $blocking[] = "seo_vi.meta_description missing"
-                    : $warnings[] = "seo_en.meta_description missing";
+                    ? $blocking[] = 'seo_vi.meta_description missing'
+                    : $warnings[] = 'seo_en.meta_description missing';
             }
         }
 
         $scorePercent = $total > 0 ? (int) round(($score / $total) * 100) : 0;
 
         return [
-            'slug'            => $brand->slug,
-            'score'           => $scorePercent,
-            'ready'           => empty($blocking),
-            'checks'          => $checks,
+            'slug' => $brand->slug,
+            'score' => $scorePercent,
+            'ready' => empty($blocking),
+            'checks' => $checks,
             'blocking_issues' => $blocking,
-            'warnings'        => $warnings,
+            'warnings' => $warnings,
         ];
     }
 
@@ -203,8 +238,8 @@ class McpBrandService
 
             $seoMeta = SeoMeta::firstOrNew([
                 'model_type' => 'brand',
-                'model_id'   => (string) $brand->id,
-                'locale'     => $locale,
+                'model_id' => (string) $brand->id,
+                'locale' => $locale,
             ]);
 
             if ($seoMeta->exists && $seoMeta->is_mcp_protected) {
@@ -229,15 +264,15 @@ class McpBrandService
             }
 
             $seoMeta->model_type = 'brand';
-            $seoMeta->model_id   = (string) $brand->id;
-            $seoMeta->locale     = $locale;
+            $seoMeta->model_id = (string) $brand->id;
+            $seoMeta->locale = $locale;
             $seoMeta->save();
         }
     }
 
     private function writeGeoProfiles(Brand $brand, array $geo, bool $overwrite): void
     {
-        $writeable     = ['ai_summary', 'use_cases', 'target_audience', 'llm_context_hint'];
+        $writeable = ['ai_summary', 'use_cases', 'target_audience', 'llm_context_hint'];
         $writeableJson = ['key_facts', 'faq'];
 
         foreach ($geo as $locale => $data) {
@@ -247,8 +282,8 @@ class McpBrandService
 
             $profile = GeoEntityProfile::firstOrNew([
                 'model_type' => 'brand',
-                'model_id'   => (string) $brand->id,
-                'locale'     => $locale,
+                'model_id' => (string) $brand->id,
+                'locale' => $locale,
             ]);
 
             foreach ($writeable as $field) {
@@ -272,8 +307,8 @@ class McpBrandService
             }
 
             $profile->model_type = 'brand';
-            $profile->model_id   = (string) $brand->id;
-            $profile->locale     = $locale;
+            $profile->model_id = (string) $brand->id;
+            $profile->locale = $locale;
             $profile->save();
         }
     }
@@ -285,14 +320,14 @@ class McpBrandService
         $seoOut = [];
         foreach ($brand->seoMetas as $meta) {
             $seoOut[$meta->locale] = [
-                'meta_title'       => $meta->meta_title,
+                'meta_title' => $meta->meta_title,
                 'meta_description' => $meta->meta_description,
-                'meta_keywords'    => $meta->meta_keywords,
-                'canonical_url'    => $meta->canonical_url,
-                'og_title'         => $meta->og_title,
-                'og_description'   => $meta->og_description,
-                'og_image'         => $meta->og_image,
-                'robots'           => $meta->robots,
+                'meta_keywords' => $meta->meta_keywords,
+                'canonical_url' => $meta->canonical_url,
+                'og_title' => $meta->og_title,
+                'og_description' => $meta->og_description,
+                'og_image' => $meta->og_image,
+                'robots' => $meta->robots,
                 'is_mcp_protected' => (bool) $meta->is_mcp_protected,
             ];
         }
@@ -300,26 +335,26 @@ class McpBrandService
         $geoOut = [];
         foreach ($brand->geoProfiles as $g) {
             $geoOut[$g->locale] = [
-                'ai_summary'       => $g->ai_summary,
-                'use_cases'        => $g->use_cases,
-                'target_audience'  => $g->target_audience,
+                'ai_summary' => $g->ai_summary,
+                'use_cases' => $g->use_cases,
+                'target_audience' => $g->target_audience,
                 'llm_context_hint' => $g->llm_context_hint,
-                'key_facts'        => $g->key_facts ?? [],
-                'faq'              => $g->faq ?? [],
+                'key_facts' => $g->key_facts ?? [],
+                'faq' => $g->faq ?? [],
             ];
         }
 
         return [
-            'slug'           => $brand->slug,
-            'name'           => $brand->name,
-            'description'    => $brand->description,
-            'logo'           => $brand->logo,
-            'website'        => $brand->website,
-            'is_active'      => (bool) $brand->is_active,
-            'sort_order'     => $brand->sort_order,
-            'product_count'  => $brand->products_count ?? $brand->loadCount('products')->products_count,
-            'geo'            => $geoOut,
-            'seo'            => $seoOut,
+            'slug' => $brand->slug,
+            'name' => $brand->name,
+            'description' => $brand->description,
+            'logo' => $brand->logo,
+            'website' => $brand->website,
+            'is_active' => (bool) $brand->is_active,
+            'sort_order' => $brand->sort_order,
+            'product_count' => $brand->products_count ?? $brand->loadCount('products')->products_count,
+            'geo' => $geoOut,
+            'seo' => $seoOut,
             'mcp_drafted_at' => $brand->mcp_drafted_at?->toIso8601String(),
         ];
     }
