@@ -9,7 +9,9 @@ use App\Forms\Plugins\MediaRichEditorPlugin;
 use App\Models\BlogCategory;
 use App\Services\Seo\JsonldService;
 use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use BackedEnum;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -108,7 +110,12 @@ class BlogCategoryResource extends Resource
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->live(onBlur: true)
-                                        ->afterStateUpdated(fn ($state, Set $set) => $set('translations.vi.slug', Str::slug($state ?? '')))
+                                        ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                            if ($operation !== 'create') {
+                                                return;
+                                            }
+                                            $set('translations.vi.slug', Str::slug($state ?? ''));
+                                        })
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.vi.slug')
@@ -117,6 +124,9 @@ class BlogCategoryResource extends Resource
                                         ->hintIcon('heroicon-o-link')
                                         ->hintColor('success')
                                         ->helperText(__('admin.blog_category.fields.slug_auto_help'))
+                                        ->rules([
+                                            fn (?BlogCategory $record) => self::noRedirectConflictRule('vi', $record),
+                                        ])
                                         ->columnSpanFull(),
 
                                     Forms\Components\Textarea::make('translations.vi.description')
@@ -144,7 +154,12 @@ class BlogCategoryResource extends Resource
                                         ->hintIcon('heroicon-o-eye')
                                         ->hintColor('success')
                                         ->live(onBlur: true)
-                                        ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
+                                        ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                            if ($operation !== 'create') {
+                                                return;
+                                            }
+                                            $set('translations.en.slug', Str::slug($state ?? ''));
+                                        })
                                         ->columnSpanFull(),
 
                                     Forms\Components\TextInput::make('translations.en.slug')
@@ -153,6 +168,9 @@ class BlogCategoryResource extends Resource
                                         ->hintIcon('heroicon-o-link')
                                         ->hintColor('success')
                                         ->helperText(__('admin.blog_category.fields.slug_auto_help'))
+                                        ->rules([
+                                            fn (?BlogCategory $record) => self::noRedirectConflictRule('en', $record),
+                                        ])
                                         ->columnSpanFull(),
 
                                     Forms\Components\Textarea::make('translations.en.description')
@@ -919,5 +937,29 @@ class BlogCategoryResource extends Resource
             'create' => Pages\CreateBlogCategory::route('/create'),
             'edit' => Pages\EditBlogCategory::route('/{record}/edit'),
         ];
+    }
+
+    // ── Slug validation rules ─────────────────────────────────────────────────
+
+    /**
+     * Blocks reusing a slug that is currently the source of an active redirect
+     * pointing elsewhere — otherwise HandleRedirects would 301 traffic away
+     * from this blog category's own canonical URL toward the old redirect target.
+     */
+    private static function noRedirectConflictRule(string $locale, ?BlogCategory $record): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($locale, $record): void {
+            if (blank($value)) {
+                return;
+            }
+
+            $currentSlug = $record?->translations()->where('locale', $locale)->value('slug');
+            $path = parse_url(LocaleUrl::for('blog_category', $value, $locale), PHP_URL_PATH);
+            $conflict = SlugRedirectGuard::conflictAt($path, $currentSlug);
+
+            if ($conflict) {
+                $fail("Slug này đang là URL cũ, hiện đang chuyển hướng sang {$conflict->to_path}. Chọn slug khác hoặc vào mục Redirect để xử lý trước.");
+            }
+        };
     }
 }

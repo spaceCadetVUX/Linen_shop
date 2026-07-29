@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ManufacturerResource\Pages;
 use App\Models\Manufacturer;
 use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use BackedEnum;
+use Closure;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -53,12 +55,19 @@ class ManufacturerResource extends Resource
                     Forms\Components\TextInput::make('name')
                         ->required()
                         ->live(debounce: 500)
-                        ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state ?? ''))
-                        ),
+                        ->afterStateUpdated(function (string $operation, Set $set, ?string $state) {
+                            if ($operation !== 'create') {
+                                return;
+                            }
+                            $set('slug', Str::slug($state ?? ''));
+                        }),
 
                     Forms\Components\TextInput::make('slug')
                         ->required()
-                        ->unique(table: Manufacturer::class, column: 'slug', ignoreRecord: true),
+                        ->unique(table: Manufacturer::class, column: 'slug', ignoreRecord: true)
+                        ->rules([
+                            fn (?Manufacturer $record) => self::noRedirectConflictRule($record),
+                        ]),
 
                     Forms\Components\TextInput::make('website')
                         ->url()
@@ -276,5 +285,33 @@ class ManufacturerResource extends Resource
             'create' => Pages\CreateManufacturer::route('/create'),
             'edit' => Pages\EditManufacturer::route('/{record}/edit'),
         ];
+    }
+
+    // ── Slug validation rules ─────────────────────────────────────────────────
+
+    /**
+     * Blocks reusing a slug that is currently the source of an active redirect
+     * pointing elsewhere — otherwise HandleRedirects would 301 traffic away
+     * from this manufacturer's own canonical URL toward the old redirect target.
+     * Manufacturer's slug is shared across locales, so both locale paths are checked.
+     */
+    private static function noRedirectConflictRule(?Manufacturer $record): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($record): void {
+            if (blank($value)) {
+                return;
+            }
+
+            foreach (config('app.supported_locales', ['vi', 'en']) as $locale) {
+                $path = parse_url(LocaleUrl::for('manufacturer', $value, $locale), PHP_URL_PATH);
+                $conflict = SlugRedirectGuard::conflictAt($path, $record?->slug);
+
+                if ($conflict) {
+                    $fail("Slug này đang là URL cũ, hiện đang chuyển hướng sang {$conflict->to_path}. Chọn slug khác hoặc vào mục Redirect để xử lý trước.");
+
+                    return;
+                }
+            }
+        };
     }
 }

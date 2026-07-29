@@ -6,11 +6,14 @@ use App\Enums\BlogPostStatus;
 use App\Filament\Resources\BlogPostResource\Pages;
 use App\Forms\Components\MediaFileUpload;
 use App\Forms\Plugins\MediaRichEditorPlugin;
+use App\Models\BlogCategory;
 use App\Models\BlogPost;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\LlmsGeneratorService;
 use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use BackedEnum;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -25,6 +28,7 @@ use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables;
@@ -109,12 +113,20 @@ class BlogPostResource extends Resource
                                                 ->label(__('admin.blog_post.fields.title_vi'))
                                                 ->required()
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.vi.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                                    if ($operation !== 'create') {
+                                                        return;
+                                                    }
+                                                    $set('translations.vi.slug', Str::slug($state ?? ''));
+                                                })
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
                                                 ->label(__('admin.blog_post.fields.slug_vi'))
                                                 ->helperText(__('admin.blog_post.fields.slug_auto_help'))
+                                                ->rules([
+                                                    fn (?BlogPost $record, Get $get) => self::noRedirectConflictRule('vi', $record, $get),
+                                                ])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.excerpt')
@@ -133,12 +145,20 @@ class BlogPostResource extends Resource
                                             Forms\Components\TextInput::make('translations.en.title')
                                                 ->label(__('admin.blog_post.fields.title_en'))
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                                    if ($operation !== 'create') {
+                                                        return;
+                                                    }
+                                                    $set('translations.en.slug', Str::slug($state ?? ''));
+                                                })
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
                                                 ->label(__('admin.blog_post.fields.slug_en'))
                                                 ->helperText(__('admin.blog_post.fields.slug_auto_help'))
+                                                ->rules([
+                                                    fn (?BlogPost $record, Get $get) => self::noRedirectConflictRule('en', $record, $get),
+                                                ])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.en.excerpt')
@@ -942,5 +962,44 @@ class BlogPostResource extends Resource
             'create' => Pages\CreateBlogPost::route('/create'),
             'edit' => Pages\EditBlogPost::route('/{record}/edit'),
         ];
+    }
+
+    // ── Slug validation rules ─────────────────────────────────────────────────
+
+    /**
+     * Blocks reusing a slug that is currently the source of an active redirect
+     * pointing elsewhere — otherwise HandleRedirects would 301 traffic away
+     * from this post's own canonical URL toward the old redirect target.
+     * Mirrors BlogPostTranslationObserver's nested /{locale-segment}/{category}/{slug}
+     * path when the post has a category, falling back to the flat blog_post path.
+     */
+    private static function noRedirectConflictRule(string $locale, ?BlogPost $record, Get $get): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($locale, $record, $get): void {
+            if (blank($value)) {
+                return;
+            }
+
+            $categoryId = $get('blog_category_id');
+            $categorySlug = $categoryId
+                ? BlogCategory::find($categoryId)?->translations()->where('locale', $locale)->value('slug')
+                : null;
+
+            if ($categoryId && ! $categorySlug) {
+                $categorySlug = BlogCategory::find($categoryId)?->slug;
+            }
+
+            $localeSegment = $locale === 'vi' ? 'vi/bai-viet' : 'en/blog';
+            $path = $categorySlug
+                ? "/{$localeSegment}/{$categorySlug}/{$value}"
+                : parse_url(LocaleUrl::for('blog_post', $value, $locale), PHP_URL_PATH);
+
+            $currentSlug = $record?->translations()->where('locale', $locale)->value('slug');
+            $conflict = SlugRedirectGuard::conflictAt($path, $currentSlug);
+
+            if ($conflict) {
+                $fail("Slug này đang là URL cũ, hiện đang chuyển hướng sang {$conflict->to_path}. Chọn slug khác hoặc vào mục Redirect để xử lý trước.");
+            }
+        };
     }
 }

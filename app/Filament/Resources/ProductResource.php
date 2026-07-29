@@ -16,6 +16,7 @@ use App\Services\Product\VariantGeneratorService;
 use App\Services\Seo\JsonldService;
 use App\Services\Seo\LlmsGeneratorService;
 use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use BackedEnum;
 use Closure;
 use Filament\Actions\Action;
@@ -170,7 +171,10 @@ class ProductResource extends Resource
                                                 ->label(new HtmlString('<span style="color:#16a34a;font-weight:600;">'.__('admin.product.fields.name_vi').'</span>'))
                                                 ->required()
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(function ($state, Set $set) {
+                                                ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                                    if ($operation !== 'create') {
+                                                        return;
+                                                    }
                                                     $set('translations.vi.slug', Str::slug($state ?? ''));
                                                     $set('name', $state);
                                                     $set('slug', Str::slug($state ?? ''));
@@ -186,6 +190,7 @@ class ProductResource extends Resource
                                                 ->rules([
                                                     fn (?Product $record) => self::uniqueTranslationSlugRule('vi', $record),
                                                     fn (?Product $record) => self::uniqueProductSlugRule($record),
+                                                    fn (?Product $record) => self::noRedirectConflictRule('vi', $record),
                                                 ])
                                                 ->columnSpanFull(),
 
@@ -256,7 +261,12 @@ class ProductResource extends Resource
                                             Forms\Components\TextInput::make('translations.en.name')
                                                 ->label(new HtmlString('<span style="color:#2563eb;font-weight:600;">'.__('admin.product.fields.name_en').'</span>'))
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                                    if ($operation !== 'create') {
+                                                        return;
+                                                    }
+                                                    $set('translations.en.slug', Str::slug($state ?? ''));
+                                                })
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
@@ -265,6 +275,7 @@ class ProductResource extends Resource
                                                 ->requiredWith('translations.en.name')
                                                 ->rules([
                                                     fn (?Product $record) => self::uniqueTranslationSlugRule('en', $record),
+                                                    fn (?Product $record) => self::noRedirectConflictRule('en', $record),
                                                 ])
                                                 ->columnSpanFull(),
 
@@ -2017,6 +2028,28 @@ class ProductResource extends Resource
 
             if ($exists) {
                 $fail('Slug này đã được dùng bởi sản phẩm khác (kể cả sản phẩm đã xóa mềm).');
+            }
+        };
+    }
+
+    /**
+     * Blocks reusing a slug that is currently the source of an active redirect
+     * pointing elsewhere — otherwise HandleRedirects would 301 traffic away
+     * from this product's own canonical URL toward the old redirect target.
+     */
+    private static function noRedirectConflictRule(string $locale, ?Product $record): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($locale, $record): void {
+            if (blank($value)) {
+                return;
+            }
+
+            $currentSlug = $record?->translations()->where('locale', $locale)->value('slug');
+            $path = parse_url(LocaleUrl::for('product', $value, $locale), PHP_URL_PATH);
+            $conflict = SlugRedirectGuard::conflictAt($path, $currentSlug);
+
+            if ($conflict) {
+                $fail("Slug này đang là URL cũ, hiện đang chuyển hướng sang {$conflict->to_path}. Chọn slug khác hoặc vào mục Redirect để xử lý trước.");
             }
         };
     }

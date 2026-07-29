@@ -8,6 +8,7 @@ use App\Jobs\Seo\SyncLlmsEntry;
 use App\Jobs\Seo\SyncSitemapEntry;
 use App\Models\CategoryTranslation;
 use App\Models\Seo\Redirect;
+use App\Support\LocaleUrl;
 
 class CategoryTranslationObserver
 {
@@ -34,18 +35,18 @@ class CategoryTranslationObserver
 
         $oldSlug = $translation->getOriginal('slug');
         $newSlug = $translation->slug;
-        $locale  = $translation->locale;
+        $locale = $translation->locale;
 
         if (! $oldSlug || ! $newSlug || $oldSlug === $newSlug) {
             return;
         }
 
         Redirect::updateOrCreate(
-            ['from_path' => "/{$locale}/categories/{$oldSlug}"],
+            ['from_path' => parse_url(LocaleUrl::for('category', $oldSlug, $locale), PHP_URL_PATH)],
             [
-                'to_path'   => "/{$locale}/categories/{$newSlug}",
-                'type'      => RedirectType::Permanent,
-                'locale'    => $locale,
+                'to_path' => parse_url(LocaleUrl::for('category', $newSlug, $locale), PHP_URL_PATH),
+                'type' => RedirectType::Permanent,
+                'locale' => $locale,
                 'is_active' => true,
             ]
         );

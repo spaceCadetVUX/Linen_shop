@@ -9,7 +9,9 @@ use App\Forms\Plugins\MediaRichEditorPlugin;
 use App\Models\Category;
 use App\Services\Seo\JsonldService;
 use App\Support\LocaleUrl;
+use App\Support\SlugRedirectGuard;
 use BackedEnum;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -161,7 +163,12 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.vi.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                                    if ($operation !== 'create') {
+                                                        return;
+                                                    }
+                                                    $set('translations.vi.slug', Str::slug($state ?? ''));
+                                                })
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.vi.slug')
@@ -184,6 +191,9 @@ class CategoryResource extends Resource
                                                     },
                                                 )
                                                 ->validationMessages(['unique' => __('admin.category.validation.slug_vi_unique')])
+                                                ->rules([
+                                                    fn (?Category $record) => self::noRedirectConflictRule('vi', $record),
+                                                ])
                                                 ->columnSpanFull(),
 
                                             Forms\Components\Textarea::make('translations.vi.description')
@@ -211,7 +221,12 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-eye')
                                                 ->hintColor('success')
                                                 ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($state, Set $set) => $set('translations.en.slug', Str::slug($state ?? '')))
+                                                ->afterStateUpdated(function (string $operation, $state, Set $set) {
+                                                    if ($operation !== 'create') {
+                                                        return;
+                                                    }
+                                                    $set('translations.en.slug', Str::slug($state ?? ''));
+                                                })
                                                 ->columnSpanFull(),
 
                                             Forms\Components\TextInput::make('translations.en.slug')
@@ -220,6 +235,9 @@ class CategoryResource extends Resource
                                                 ->hintIcon('heroicon-o-link')
                                                 ->hintColor('success')
                                                 ->helperText(__('admin.category.fields.slug_auto_help'))
+                                                ->rules([
+                                                    fn (?Category $record) => self::noRedirectConflictRule('en', $record),
+                                                ])
                                                 ->unique(
                                                     table: 'category_translations',
                                                     column: 'slug',
@@ -1077,6 +1095,30 @@ class CategoryResource extends Resource
             'create' => Pages\CreateCategory::route('/create'),
             'edit' => Pages\EditCategory::route('/{record}/edit'),
         ];
+    }
+
+    // ── Slug validation rules ─────────────────────────────────────────────────
+
+    /**
+     * Blocks reusing a slug that is currently the source of an active redirect
+     * pointing elsewhere — otherwise HandleRedirects would 301 traffic away
+     * from this category's own canonical URL toward the old redirect target.
+     */
+    private static function noRedirectConflictRule(string $locale, ?Category $record): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($locale, $record): void {
+            if (blank($value)) {
+                return;
+            }
+
+            $currentSlug = $record?->translations()->where('locale', $locale)->value('slug');
+            $path = parse_url(LocaleUrl::for('category', $value, $locale), PHP_URL_PATH);
+            $conflict = SlugRedirectGuard::conflictAt($path, $currentSlug);
+
+            if ($conflict) {
+                $fail("Slug này đang là URL cũ, hiện đang chuyển hướng sang {$conflict->to_path}. Chọn slug khác hoặc vào mục Redirect để xử lý trước.");
+            }
+        };
     }
 
     // ── Char counter helpers ──────────────────────────────────────────────────
