@@ -114,30 +114,24 @@
     <div class="mega-col mega-col--new">
       <h3 class="mega-col-title">{{ $currentLocale === 'vi' ? 'Mới' : 'New' }}</h3>
 
-      <div class="mega-group mega-group--img">
-        <div class="mega-group-hd">
-          <span class="mega-group-name">{{ $megaMenuNewProductsLabel }}</span>
-          <span class="mega-group-plus" aria-hidden="true">
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-          </span>
+      @if(!empty($megaMenuNewProducts))
+        <div class="mega-group mega-group--img">
+          <div class="mega-group-hd">
+            <span class="mega-group-name">{{ $megaMenuNewProductsLabel }}</span>
+            <span class="mega-group-plus" aria-hidden="true">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+            </span>
+          </div>
+          {{-- Auto-slide every 5s, loops — JS in app.js toggles .is-active --}}
+          <div class="mega-feature-img-wrap" id="megaNewSlider">
+            @foreach ($megaMenuNewProducts as $i => $p)
+              <a href="{{ $p['url'] }}" class="mega-new-slide{{ $i === 0 ? ' is-active' : '' }}">
+                <img src="{{ $p['image'] }}" alt="{{ $p['name'] }}" class="mega-feature-img">
+              </a>
+            @endforeach
+          </div>
         </div>
-        {{-- Auto-slide every 5s, loops — JS in app.js toggles .is-active --}}
-        <div class="mega-feature-img-wrap" id="megaNewSlider">
-          @forelse ($megaMenuNewProducts as $i => $p)
-            <a href="{{ $p['url'] }}" class="mega-new-slide{{ $i === 0 ? ' is-active' : '' }}">
-              <img src="{{ $p['image'] }}" alt="{{ $p['name'] }}" class="mega-feature-img">
-            </a>
-          @empty
-            <a href="{{ url('/collections/new') }}" class="mega-new-slide is-active">
-              <img
-                src="{{ asset('assets/images/collections/new-arrivals.jpg') }}"
-                alt="{{ $currentLocale === 'vi' ? 'Sản phẩm mới - CacyLinen' : 'New arrivals - CacyLinen' }}"
-                class="mega-feature-img"
-              >
-            </a>
-          @endforelse
-        </div>
-      </div>
+      @endif
 
       <div class="mega-group">
         <div class="mega-group-hd">
