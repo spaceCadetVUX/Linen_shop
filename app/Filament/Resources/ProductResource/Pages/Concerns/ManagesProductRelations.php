@@ -53,18 +53,21 @@ trait ManagesProductRelations
         $record = $this->getRecord();
         $translationsData = $this->translationsForSave;
 
+        // Single combined toggle in the form (translations.vi.is_mcp_protected) —
+        // mirrored onto 'en' explicitly below since there's no separate en field.
+        $mcpProtected = (bool) ($translationsData['vi']['is_mcp_protected'] ?? false);
+
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];
+            $localeData['is_mcp_protected'] = $mcpProtected;
 
             // Synced independently of the name/slug save below — the protection
             // toggle covers seo_meta too, and shouldn't silently no-op just
             // because this locale's translation content is still empty.
-            if (array_key_exists('is_mcp_protected', $localeData)) {
-                $record->seoMetas()->updateOrCreate(
-                    ['locale' => $locale],
-                    ['is_mcp_protected' => (bool) $localeData['is_mcp_protected']]
-                );
-            }
+            $record->seoMetas()->updateOrCreate(
+                ['locale' => $locale],
+                ['is_mcp_protected' => $mcpProtected]
+            );
 
             if (empty($localeData['name'])) {
                 continue;

@@ -157,21 +157,16 @@ class ProductResource extends Resource
                                 ->helperText(__('admin.product.fields.show_price_help'))
                                 ->default(true),
 
-                            // Real fields bound to the exact translations.{locale}.is_mcp_protected
-                            // path — NOT a virtual field synced via $set(). Filament's save-time
-                            // state ("pruneStateToMatchKeys" in HasState::getState()) is rebuilt
-                            // from the validated component tree, dropping any raw $set() value
-                            // that has no real backing field at that exact path. The seo_meta
-                            // side of this (seoMetaVi/seoMetaEn) is synced explicitly in
-                            // ManagesProductRelations::saveTranslations() instead of relying on
-                            // Filament's Group::relationship() auto-save, since that only picks up
-                            // fields actually nested inside that specific Group in the schema tree.
+                            // One combined toggle for both locales — a real field bound to
+                            // translations.vi.is_mcp_protected (NOT a virtual field synced via
+                            // $set(): Filament's save-time state ("pruneStateToMatchKeys" in
+                            // HasState::getState()) is rebuilt from the validated component tree,
+                            // dropping any raw $set() value with no real backing field at that
+                            // exact path). ManagesProductRelations::saveTranslations() mirrors this
+                            // same value onto the 'en' translation + both seo_meta rows explicitly —
+                            // there's no separate en field for it.
                             Forms\Components\Toggle::make('translations.vi.is_mcp_protected')
-                                ->label(__('admin.product.fields.mcp_protected_vi'))
-                                ->helperText(__('admin.product.fields.mcp_protected_help')),
-
-                            Forms\Components\Toggle::make('translations.en.is_mcp_protected')
-                                ->label(__('admin.product.fields.mcp_protected_en'))
+                                ->label(__('admin.product.fields.mcp_protected'))
                                 ->helperText(__('admin.product.fields.mcp_protected_help')),
                         ])
                         ->columns(2),
