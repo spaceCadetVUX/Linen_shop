@@ -286,7 +286,7 @@
         <div class="about-cta-head">
           <p class="about-cta-eyebrow">{{ __('about.cta.eyebrow') }}</p>
           <h2 class="about-cta-title">{{ __('about.cta.title_line1') }}<br><em>{{ __('about.cta.title_line2') }}</em></h2>
-          <a href="{{ url('/collections') }}" class="about-cta-btn">{{ __('about.cta.btn') }} &rarr;</a>
+          <a href="{{ route(current_locale() . '.product.shop') }}" class="about-cta-btn">{{ __('about.cta.btn') }} &rarr;</a>
         </div>
 
         <!-- Scrolling thumbnail reel -->

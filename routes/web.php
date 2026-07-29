@@ -204,6 +204,10 @@ Route::prefix('vi')
         Route::get('tai-khoan/yeu-thich', [WishlistController::class, 'index'])
             ->name('vi.account.wishlist');
 
+        // Legacy hardcoded links /account, /collections (fallback redirects here without locale)
+        Route::get('account', fn () => redirect(route('vi.account.wishlist'), 301));
+        Route::get('collections', fn () => redirect(route('vi.product.shop'), 301));
+
         // ── Giỏ hàng (guest-session cart, xem CartController) ─────────────────
         Route::get('gio-hang', [CartController::class, 'index'])
             ->name('vi.cart');
