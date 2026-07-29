@@ -96,6 +96,14 @@ class BlogCategoryResource extends Resource
             Forms\Components\Toggle::make('is_active')
                 ->default(true),
 
+            // Real field bound to translations.vi.is_mcp_protected — see
+            // ProductResource's equivalent field for why this can't be a virtual
+            // $set()-synced toggle. CreateBlogCategory/EditBlogCategory mirror
+            // this onto 'en' + both seo_meta rows explicitly.
+            Forms\Components\Toggle::make('translations.vi.is_mcp_protected')
+                ->label(__('admin.blog_category.fields.mcp_protected'))
+                ->helperText(__('admin.blog_category.fields.mcp_protected_help')),
+
             // ── Translations ──────────────────────────────────────────────────
             Section::make(__('admin.blog_category.sections.translations'))
                 ->icon('heroicon-o-language')

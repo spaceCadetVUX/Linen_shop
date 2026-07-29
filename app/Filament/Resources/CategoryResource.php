@@ -146,6 +146,15 @@ class CategoryResource extends Resource
                                 ->label(__('admin.category.fields.show_on_landing'))
                                 ->helperText(__('admin.category.fields.show_on_landing_help'))
                                 ->default(false),
+
+                            // Real field bound to translations.vi.is_mcp_protected — see
+                            // ProductResource's equivalent field for why this can't be a
+                            // virtual $set()-synced toggle. EditCategory/CreateCategory's
+                            // afterSave()/afterCreate() mirror this onto 'en' + both
+                            // seo_meta rows explicitly.
+                            Forms\Components\Toggle::make('translations.vi.is_mcp_protected')
+                                ->label(__('admin.category.fields.mcp_protected'))
+                                ->helperText(__('admin.category.fields.mcp_protected_help')),
                         ])
                         ->columns(2),
 

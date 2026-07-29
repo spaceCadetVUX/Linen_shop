@@ -60,8 +60,18 @@ class CreateCategory extends CreateRecord
         // ── Translations ──────────────────────────────────────────────────────
         $translationsData = $this->translationsForSave;
 
+        // Single combined toggle in the form (translations.vi.is_mcp_protected) —
+        // mirrored onto 'en' + both seo_meta rows explicitly, same as Product.
+        $mcpProtected = (bool) ($translationsData['vi']['is_mcp_protected'] ?? false);
+
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];
+            $localeData['is_mcp_protected'] = $mcpProtected;
+
+            $this->record->seoMetas()->updateOrCreate(
+                ['locale' => $locale],
+                ['is_mcp_protected' => $mcpProtected]
+            );
 
             if (empty($localeData['name'])) {
                 continue;
@@ -83,6 +93,7 @@ class CreateCategory extends CreateRecord
                         'meta_title', 'meta_description',
                         'og_title', 'og_description',
                         'twitter_title', 'twitter_description',
+                        'is_mcp_protected',
                     ])
                     ->filter(fn ($v) => $v !== null)
                     ->toArray()

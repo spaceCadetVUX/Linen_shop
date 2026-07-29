@@ -98,6 +98,14 @@ class BlogPostResource extends Resource
                                         ->required(),
                                 ])
                                 ->columnSpanFull(),
+
+                            // Real field bound to translations.vi.is_mcp_protected — see
+                            // ProductResource's equivalent field for why this can't be a
+                            // virtual $set()-synced toggle. CreateBlogPost/EditBlogPost
+                            // mirror this onto 'en' + both seo_meta rows explicitly.
+                            Forms\Components\Toggle::make('translations.vi.is_mcp_protected')
+                                ->label(__('admin.blog_post.fields.mcp_protected'))
+                                ->helperText(__('admin.blog_post.fields.mcp_protected_help')),
                         ])
                         ->columns(2),
 

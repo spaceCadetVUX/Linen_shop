@@ -29,11 +29,21 @@ class CreateBlogCategory extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $record           = $this->getRecord();
+        $record = $this->getRecord();
         $translationsData = $this->translationsForSave;
+
+        // Single combined toggle in the form (translations.vi.is_mcp_protected) —
+        // mirrored onto 'en' + both seo_meta rows explicitly, same as Product.
+        $mcpProtected = (bool) ($translationsData['vi']['is_mcp_protected'] ?? false);
 
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];
+            $localeData['is_mcp_protected'] = $mcpProtected;
+
+            $record->seoMetas()->updateOrCreate(
+                ['locale' => $locale],
+                ['is_mcp_protected' => $mcpProtected]
+            );
 
             if (empty($localeData['name'])) {
                 continue;
@@ -42,7 +52,7 @@ class CreateBlogCategory extends CreateRecord
             $record->translations()->updateOrCreate(
                 ['locale' => $locale],
                 collect($localeData)
-                    ->only(['name', 'slug', 'description', 'rich_content'])
+                    ->only(['name', 'slug', 'description', 'rich_content', 'is_mcp_protected'])
                     ->filter(fn ($v) => $v !== null)
                     ->toArray()
             );

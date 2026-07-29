@@ -109,6 +109,15 @@ class ManufacturerResource extends Resource
 
                     Forms\Components\Toggle::make('is_active')
                         ->default(true),
+
+                    // Plain top-level field, NOT persisted on the Manufacturer model
+                    // itself (stripped in CreateManufacturer/EditManufacturer before
+                    // the record is created/updated) — their afterCreate()/afterSave()
+                    // mirror it onto both seo_meta rows (Manufacturer has no
+                    // per-locale content table, only SEO is locale-split here).
+                    Forms\Components\Toggle::make('mcp_protected')
+                        ->label(__('admin.manufacturer.fields.mcp_protected'))
+                        ->helperText(__('admin.manufacturer.fields.mcp_protected_help')),
                 ])
                 ->columns(2),
 

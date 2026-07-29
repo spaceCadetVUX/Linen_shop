@@ -41,7 +41,7 @@ class EditBlogPost extends EditRecord
 
             if ($translation) {
                 $data['translations'][$locale] = $translation->only([
-                    'title', 'slug', 'excerpt', 'body',
+                    'title', 'slug', 'excerpt', 'body', 'is_mcp_protected',
                 ]);
             }
         }
@@ -51,16 +51,16 @@ class EditBlogPost extends EditRecord
 
     protected function afterSave(): void
     {
-        $state      = $this->data;
+        $state = $this->data;
         $morphClass = $this->record->getMorphClass();
-        $modelId    = $this->record->getKey();
+        $modelId = $this->record->getKey();
 
         // ── FAQ → geo_entity_profiles.faq (per locale) ───────────────────────
         $normalizeFaq = fn (array $items): array => collect($items)
             ->filter(fn (array $item): bool => filled($item['question'] ?? null))
             ->map(fn (array $item): array => [
                 'question' => trim($item['question']),
-                'answer'   => trim($item['answer'] ?? ''),
+                'answer' => trim($item['answer'] ?? ''),
             ])
             ->values()
             ->toArray();
@@ -77,11 +77,21 @@ class EditBlogPost extends EditRecord
 
     private function saveTranslations(): void
     {
-        $record           = $this->getRecord();
+        $record = $this->getRecord();
         $translationsData = $this->translationsForSave;
+
+        // Single combined toggle in the form (translations.vi.is_mcp_protected) —
+        // mirrored onto 'en' + both seo_meta rows explicitly, same as Product.
+        $mcpProtected = (bool) ($translationsData['vi']['is_mcp_protected'] ?? false);
 
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];
+            $localeData['is_mcp_protected'] = $mcpProtected;
+
+            $record->seoMetas()->updateOrCreate(
+                ['locale' => $locale],
+                ['is_mcp_protected' => $mcpProtected]
+            );
 
             if (empty($localeData['title'])) {
                 continue;
@@ -90,7 +100,7 @@ class EditBlogPost extends EditRecord
             $record->translations()->updateOrCreate(
                 ['locale' => $locale],
                 collect($localeData)
-                    ->only(['title', 'slug', 'excerpt', 'body'])
+                    ->only(['title', 'slug', 'excerpt', 'body', 'is_mcp_protected'])
                     ->filter(fn ($v) => $v !== null && $v !== '')
                     ->toArray()
             );

@@ -30,16 +30,16 @@ class CreateBlogPost extends CreateRecord
 
     protected function afterCreate(): void
     {
-        $state      = $this->data;
+        $state = $this->data;
         $morphClass = $this->record->getMorphClass();
-        $modelId    = $this->record->getKey();
+        $modelId = $this->record->getKey();
 
         // ── FAQ (per locale) — only save if at least one question filled ────────
         $normalizeFaq = fn (array $items): array => collect($items)
             ->filter(fn (array $item): bool => filled($item['question'] ?? null))
             ->map(fn (array $item): array => [
                 'question' => trim($item['question']),
-                'answer'   => trim($item['answer'] ?? ''),
+                'answer' => trim($item['answer'] ?? ''),
             ])
             ->values()
             ->toArray();
@@ -50,9 +50,9 @@ class CreateBlogPost extends CreateRecord
             if (! empty($faqItems)) {
                 GeoEntityProfile::create([
                     'model_type' => $morphClass,
-                    'model_id'   => $modelId,
-                    'locale'     => $locale,
-                    'faq'        => $faqItems,
+                    'model_id' => $modelId,
+                    'locale' => $locale,
+                    'faq' => $faqItems,
                 ]);
             }
         }
@@ -60,8 +60,18 @@ class CreateBlogPost extends CreateRecord
         // ── Translations ──────────────────────────────────────────────────────
         $translationsData = $this->translationsForSave;
 
+        // Single combined toggle in the form (translations.vi.is_mcp_protected) —
+        // mirrored onto 'en' + both seo_meta rows explicitly, same as Product.
+        $mcpProtected = (bool) ($translationsData['vi']['is_mcp_protected'] ?? false);
+
         foreach (config('app.supported_locales') as $locale) {
             $localeData = $translationsData[$locale] ?? [];
+            $localeData['is_mcp_protected'] = $mcpProtected;
+
+            $this->record->seoMetas()->updateOrCreate(
+                ['locale' => $locale],
+                ['is_mcp_protected' => $mcpProtected]
+            );
 
             if (empty($localeData['title'])) {
                 continue;
@@ -70,7 +80,7 @@ class CreateBlogPost extends CreateRecord
             $this->record->translations()->updateOrCreate(
                 ['locale' => $locale],
                 collect($localeData)
-                    ->only(['title', 'slug', 'excerpt', 'body'])
+                    ->only(['title', 'slug', 'excerpt', 'body', 'is_mcp_protected'])
                     ->filter(fn ($v) => $v !== null && $v !== '')
                     ->toArray()
             );

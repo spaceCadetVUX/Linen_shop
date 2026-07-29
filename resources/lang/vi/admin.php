@@ -339,6 +339,8 @@ return [
             'category_image' => 'Ảnh danh mục',
             'show_on_landing' => 'Hiện trên trang chủ (Sản phẩm nổi bật)',
             'show_on_landing_help' => 'Bật để danh mục này có 1 hàng sản phẩm riêng trên landing page. Thứ tự các hàng theo Sort Order.',
+            'mcp_protected' => 'Khóa nội dung + SEO (VI & EN) khỏi AI/MCP',
+            'mcp_protected_help' => 'Bật để chặn công cụ AI/MCP ghi đè nội dung và SEO của cả 2 ngôn ngữ. Tắt để cho phép ghi lại bình thường. Có thể bật/tắt lại bất cứ lúc nào.',
 
             'display_name_vi' => 'Tên hiển thị (vi)',
             'display_name_vi_hint' => 'Hiển thị trên trang web cho người dùng Việt Nam',
@@ -485,6 +487,8 @@ return [
             'internal_slug_help' => 'URL công khai dùng slug từ phần Translations.',
             'internal_description' => 'Mô tả nội bộ',
             'internal_description_hint' => 'Không hiển thị trực tiếp — dùng làm gợi ý nội dung',
+            'mcp_protected' => 'Khóa nội dung + SEO (VI & EN) khỏi AI/MCP',
+            'mcp_protected_help' => 'Bật để chặn công cụ AI/MCP ghi đè nội dung và SEO của cả 2 ngôn ngữ. Tắt để cho phép ghi lại bình thường. Có thể bật/tắt lại bất cứ lúc nào.',
 
             'display_name_vi' => 'Tên hiển thị (vi)',
             'display_name_vi_hint' => 'Hiển thị trên trang web cho người dùng Việt Nam',
@@ -823,6 +827,8 @@ return [
             'category_help' => 'Bắt buộc — URL bài viết công khai (/bai-viet/{category}/{slug}) phụ thuộc vào category. Bài không có category sẽ bị gãy link.',
             'featured_image' => 'Ảnh đại diện',
             'tags' => 'Thẻ',
+            'mcp_protected' => 'Khóa nội dung + SEO (VI & EN) khỏi AI/MCP',
+            'mcp_protected_help' => 'Bật để chặn công cụ AI/MCP ghi đè nội dung và SEO của cả 2 ngôn ngữ. Tắt để cho phép ghi lại bình thường. Có thể bật/tắt lại bất cứ lúc nào.',
 
             'title_vi' => 'Tiêu đề (vi)',
             'slug_vi' => 'Slug (vi)',
@@ -944,6 +950,8 @@ return [
             'logo' => 'Logo',
             'website_placeholder' => 'https://...',
             'sort_order_help' => 'Số nhỏ hơn hiện trước. Kéo thả để sắp xếp lại trong danh sách.',
+            'mcp_protected' => 'Khóa SEO (VI & EN) khỏi AI/MCP',
+            'mcp_protected_help' => 'Bật để chặn công cụ AI/MCP ghi đè SEO của cả 2 ngôn ngữ. Tắt để cho phép ghi lại bình thường. Có thể bật/tắt lại bất cứ lúc nào.',
 
             'meta_title_vi' => 'Meta Title (vi)',
             'meta_title_placeholder' => 'Tự điền từ tên thương hiệu',
@@ -1054,6 +1062,8 @@ return [
             'country_help' => 'VN = Vietnam · JP = Japan · DE = Germany · US = United States · CN = China · KR = Korea',
             'logo' => 'Logo',
             'sort_order_help' => 'Số nhỏ hơn hiện trước. Kéo thả để sắp xếp lại trong danh sách.',
+            'mcp_protected' => 'Khóa SEO (VI & EN) khỏi AI/MCP',
+            'mcp_protected_help' => 'Bật để chặn công cụ AI/MCP ghi đè SEO của cả 2 ngôn ngữ. Tắt để cho phép ghi lại bình thường. Có thể bật/tắt lại bất cứ lúc nào.',
 
             'meta_title' => 'Meta Title',
             'meta_title_placeholder' => 'Tự điền từ tên nhà sản xuất',

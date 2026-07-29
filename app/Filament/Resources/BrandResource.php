@@ -102,6 +102,16 @@ class BrandResource extends Resource
 
                             Forms\Components\Toggle::make('is_active')
                                 ->default(true),
+
+                            // Plain top-level field, NOT persisted on the Brand model itself
+                            // (stripped in CreateBrand/EditBrand before the record is
+                            // created/updated) — CreateBrand::afterCreate() /
+                            // EditBrand::afterSave() mirror it onto both seo_meta rows
+                            // (Brand has no per-locale content table, only SEO is
+                            // locale-split for this resource).
+                            Forms\Components\Toggle::make('mcp_protected')
+                                ->label(__('admin.brand.fields.mcp_protected'))
+                                ->helperText(__('admin.brand.fields.mcp_protected_help')),
                         ])
                         ->columns(2),
 

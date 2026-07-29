@@ -339,6 +339,8 @@ return [
             'category_image' => 'Category Image',
             'show_on_landing' => 'Show on homepage (Featured Products)',
             'show_on_landing_help' => 'Enable to give this category its own product row on the landing page. Row order follows Sort Order.',
+            'mcp_protected' => 'Lock VI & EN content + SEO from AI/MCP',
+            'mcp_protected_help' => 'On blocks AI/MCP tools from overwriting both locales\' content and SEO. Off allows normal writes again. Can be toggled back and forth anytime.',
 
             'display_name_vi' => 'Display Name (vi)',
             'display_name_vi_hint' => 'Shown on the website to Vietnamese visitors',
@@ -485,6 +487,8 @@ return [
             'internal_slug_help' => 'The public URL uses the slug from the Translations section.',
             'internal_description' => 'Internal Description',
             'internal_description_hint' => 'Not shown directly — used as a content hint',
+            'mcp_protected' => 'Lock VI & EN content + SEO from AI/MCP',
+            'mcp_protected_help' => 'On blocks AI/MCP tools from overwriting both locales\' content and SEO. Off allows normal writes again. Can be toggled back and forth anytime.',
 
             'display_name_vi' => 'Display Name (vi)',
             'display_name_vi_hint' => 'Shown on the website to Vietnamese visitors',
@@ -823,6 +827,8 @@ return [
             'category_help' => 'Required — the public post URL (/bai-viet/{category}/{slug}) depends on the category. Posts without a category will have a broken link.',
             'featured_image' => 'Featured Image',
             'tags' => 'Tags',
+            'mcp_protected' => 'Lock VI & EN content + SEO from AI/MCP',
+            'mcp_protected_help' => 'On blocks AI/MCP tools from overwriting both locales\' content and SEO. Off allows normal writes again. Can be toggled back and forth anytime.',
 
             'title_vi' => 'Title (vi)',
             'slug_vi' => 'Slug (vi)',
@@ -944,6 +950,8 @@ return [
             'logo' => 'Logo',
             'website_placeholder' => 'https://...',
             'sort_order_help' => 'Lower = appears first. Drag to reorder in the list view.',
+            'mcp_protected' => 'Lock SEO (VI & EN) from AI/MCP',
+            'mcp_protected_help' => 'On blocks AI/MCP tools from overwriting both locales\' SEO. Off allows normal writes again. Can be toggled back and forth anytime.',
 
             'meta_title_vi' => 'Meta Title (vi)',
             'meta_title_placeholder' => 'Auto-filled from brand name',
@@ -1054,6 +1062,8 @@ return [
             'country_help' => 'VN = Vietnam · JP = Japan · DE = Germany · US = United States · CN = China · KR = Korea',
             'logo' => 'Logo',
             'sort_order_help' => 'Lower = appears first. Drag to reorder in the list view.',
+            'mcp_protected' => 'Lock SEO (VI & EN) from AI/MCP',
+            'mcp_protected_help' => 'On blocks AI/MCP tools from overwriting both locales\' SEO. Off allows normal writes again. Can be toggled back and forth anytime.',
 
             'meta_title' => 'Meta Title',
             'meta_title_placeholder' => 'Auto-filled from manufacturer name',
