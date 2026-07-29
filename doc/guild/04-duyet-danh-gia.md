@@ -1,4 +1,4 @@
-# 04 — Duyệt Đánh giá sản phẩm (Reviews)
+# 04. Duyệt Đánh giá sản phẩm (Reviews)
 
 > Đọc `00-phan-quyen.md` trước nếu chưa đọc.
 
@@ -6,11 +6,11 @@
 
 ## Vì sao cần duyệt?
 
-Khi khách hàng gửi đánh giá (review) cho 1 sản phẩm, đánh giá đó **không tự động hiển thị công khai** — phải được nhân viên **duyệt (Approve)** trước.
+Khi khách hàng gửi đánh giá (review) cho 1 sản phẩm, đánh giá đó **không tự động hiển thị công khai**, phải được nhân viên **duyệt (Approve)** trước.
 
 ## Nơi duyệt đánh giá
 
-Vào mục **Reviews** trong menu (nhóm Catalog). Trên menu bên trái có **số đếm (badge)** hiển thị số lượng đánh giá **đang chờ duyệt** — dùng số này để biết có việc cần xử lý hay không.
+Vào mục **Reviews** trong menu (nhóm Catalog). Trên menu bên trái có **số đếm (badge)** hiển thị số lượng đánh giá **đang chờ duyệt**, dùng số này để biết có việc cần xử lý hay không.
 
 ## Các thao tác
 
@@ -22,10 +22,10 @@ Vào mục **Reviews** trong menu (nhóm Catalog). Trên menu bên trái có **s
 
 ## Lưu ý khi duyệt
 
-- Đánh giá **chưa duyệt hoàn toàn không hiển thị** trên trang sản phẩm — khách truy cập bình thường sẽ không thấy sự tồn tại của đánh giá đó, kể cả điểm sao trung bình sẽ không tính đánh giá chưa duyệt.
+- Đánh giá **chưa duyệt hoàn toàn không hiển thị** trên trang sản phẩm: khách truy cập bình thường sẽ không thấy sự tồn tại của đánh giá đó, kể cả điểm sao trung bình sẽ không tính đánh giá chưa duyệt.
 - Nên kiểm tra nội dung đánh giá trước khi duyệt: tránh spam, nội dung phản cảm, hoặc đánh giá không liên quan đến sản phẩm.
-- Việc duyệt/từ chối **có thể đổi lại** bất cứ lúc nào (không phải thao tác một chiều) — nếu duyệt nhầm, mở lại đánh giá và chuyển về trạng thái chưa duyệt.
+- Việc duyệt/từ chối **có thể đổi lại** bất cứ lúc nào (không phải thao tác một chiều). Nếu duyệt nhầm, mở lại đánh giá và chuyển về trạng thái chưa duyệt.
 
 ---
 
-*Đã hết 5 file hướng dẫn. Xem lại `00-phan-quyen.md` nếu cần tra cứu khái niệm chung.*
+*Tiếp theo: `05-thao-tac-mcp.md` nếu bạn có điều khiển AI/Claude thao tác qua MCP. Xem lại `00-phan-quyen.md` nếu cần tra cứu khái niệm chung.*

@@ -40,6 +40,7 @@ Khi tạo 1 Filter Group (VD: "Size", "Màu sắc"), có 1 công tắc tên **"D
 - Chọn **Danh mục chính**: chỉ được chọn trong số các danh mục đã tick ở trên. Nếu bỏ tick danh mục đang là "danh mục chính", ô này sẽ tự trống lại, nhớ chọn lại.
 - Bật **"Kích hoạt" (is_active)** khi sẵn sàng bán, xem lưu ý bên dưới về các trường bắt buộc.
 - Công tắc **"Hiển thị giá" (show_price)**: nếu tắt, giá sẽ bị ẩn hoàn toàn trên web (dùng cho sản phẩm dạng "Liên hệ báo giá"). Đây khác với việc Ẩn/Kích hoạt cả sản phẩm.
+- Công tắc **"Khóa nội dung + SEO khỏi AI/MCP"**: chi tiết ở `00-phan-quyen.md` mục 6. Chỉ bật khi đã viết xong nội dung và không muốn AI ghi đè lại.
 
 ## Bước 2. Tab Content (có 2 tab con: VI / EN)
 

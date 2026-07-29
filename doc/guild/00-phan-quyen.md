@@ -71,4 +71,19 @@ Nội dung song ngữ của sản phẩm/danh mục/blog nằm ở các **tab ri
 
 ---
 
+## 6. Toggle "Khóa nội dung + SEO khỏi AI/MCP"
+
+Product, Category, Brand, Manufacturer, Blog Post, Blog Category đều có 1 công tắc này trong tab **General** (tên đầy đủ tùy resource, ví dụ "Khóa nội dung + SEO (VI & EN) khỏi AI/MCP").
+
+**Dùng để làm gì:** hệ thống có kết nối MCP cho phép AI (Claude) tự động tạo/sửa nội dung sản phẩm, bài viết... qua các lệnh như `save_product`. Nếu bạn đã tự tay viết nội dung hoàn chỉnh cho 1 sản phẩm/bài viết và không muốn AI vô tình ghi đè lại sau này, bật công tắc này lên.
+
+**Cách hoạt động:**
+- Bật lên: khóa **cả nội dung lẫn SEO** của **cả 2 ngôn ngữ VI và EN cùng lúc** (không tách riêng được từng ngôn ngữ).
+- Khi đã khóa, mọi lệnh AI/MCP cố ghi vào sản phẩm/bài viết này sẽ **bị bỏ qua ở phần đã khóa**, không báo lỗi ầm ĩ, chỉ đơn giản không ghi đè.
+- Có thể **bật/tắt lại bất cứ lúc nào**, không phải thao tác một chiều. Tắt đi để AI được phép ghi lại bình thường.
+
+> 👉 Chỉ bật khi bạn thực sự muốn "đóng băng" nội dung đó khỏi AI. Nếu ngôn ngữ EN chưa có nội dung gì, hệ thống sẽ không khóa phần EN dù bạn có bật công tắc (không có gì để khóa). Nội dung EN vẫn có thể được AI điền vào bình thường cho tới khi bạn quay lại bấm Save một lần sau khi EN đã có nội dung.
+
+---
+
 *Tiếp theo: xem `01-quy-cach-hinh-anh.md` để biết quy cách ảnh cho từng vị trí, hoặc `02-quy-trinh-san-pham.md` để bắt đầu tạo sản phẩm.*
