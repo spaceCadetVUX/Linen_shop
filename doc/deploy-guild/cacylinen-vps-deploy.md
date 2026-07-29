@@ -1,6 +1,6 @@
 # Deploy Linen_shop lên VPS iNET (cacylinen.com) — Docker
 
-**Last Updated:** 2026-07-10
+**Last Updated:** 2026-07-29
 
 > Ghi lại quy trình đã thực hiện thật để deploy domain `cacylinen.com` lên VPS
 > iNET dùng chung với Flowise + n8n. Dùng file này để redeploy hoặc dựng lại
@@ -286,3 +286,45 @@ free -h && docker stats --no-stream        # theo dõi RAM — VPS dùng chung v
 - [ ] Setup cron backup Postgres định kỳ + đẩy backup ra ngoài VPS
 - [ ] Theo dõi RAM khi traffic tăng — VPS 4GB dùng chung 3 stack (Linen_shop + Flowise + n8n)
 - [ ] Test đầy đủ luồng checkout/cart/order trên domain thật (chưa test nghiệp vụ, chỉ xác nhận hạ tầng chạy)
+
+---
+
+## 9. Quản lý tài khoản được phép dùng MCP (Google OAuth allowlist)
+
+`mcp.cacylinen.com` được bảo vệ bằng Google OAuth qua container `mcp-auth-proxy` đứng trước
+`mcp-server` (kiến trúc đầy đủ xem `mcp-oauth-claude-ai-connector.md`). Danh sách tài khoản Google
+được phép đăng nhập nằm hoàn toàn trong biến `MCP_AUTH_ALLOWED_EMAILS` của `.env` trên VPS —
+**không có UI quản lý trên trang Admin** (lý do xem cuối mục này).
+
+### Thêm / sửa / xóa 1 tài khoản
+
+```bash
+ssh root@103.166.183.176 -p 24700
+cd /opt/cacylinen
+nano .env
+```
+Sửa dòng `MCP_AUTH_ALLOWED_EMAILS` — danh sách email cách nhau bằng dấu phẩy, **không** có khoảng
+trắng. Thêm user: nối `,email-moi@gmail.com` vào cuối danh sách. Xóa user: bỏ đúng email đó ra,
+dọn dấu phẩy thừa.
+
+```bash
+docker compose up -d mcp-auth-proxy   # bắt buộc — container chỉ đọc env lúc khởi động, sửa .env không tự áp dụng
+docker compose exec mcp-auth-proxy env | grep -i google_allowed_users   # verify danh sách mới đã nạp đúng
+```
+
+Email hiện tại (2026-07-29): `tung.vu@knxstore.vn`, `thnga.co@gmail.com`, `vvtung84@gmail.com`,
+`vusu3214@gmail.com`.
+
+Đổi allowlist **không** cần chạm tới Google Cloud Console — Client ID/Secret dùng chung cho mọi
+user, không phải per-user. Ngoại lệ: nếu OAuth consent screen của Client đó đang ở trạng thái
+"Testing", Google tự giới hạn thêm bằng danh sách "Test users" riêng của họ — chỉ xem/sửa được
+trong Google Cloud Console, không có lệnh VPS nào tra hay sửa được.
+
+### Vì sao không có UI trên trang Admin
+`mcp-auth-proxy` là binary bên thứ ba (github.com/sigbit/mcp-auth-proxy), chỉ đọc allowlist từ
+biến môi trường lúc container khởi động — không có database, không có API để sửa từ xa. Để
+Laravel (chạy trong container `php-fpm` riêng) tự sửa `.env` + restart 1 container khác trên host,
+cần cấp cho nó quyền SSH ra host hoặc quyền truy cập Docker socket — cả 2 đều tương đương cấp
+quyền root trên VPS cho ứng dụng web, rủi ro vượt xa lợi ích tiết kiệm vài dòng lệnh SSH cho 1
+thao tác hiếm khi làm (team 5 người, tần suất thêm/xóa user thấp). Đã cân nhắc và quyết định giữ
+thao tác này ở tầng SSH/root, tách khỏi ứng dụng web.
