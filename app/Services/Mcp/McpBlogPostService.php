@@ -31,9 +31,10 @@ class McpBlogPostService
     public function upsert(string $slug, array $data, int $tokenId, bool $dryRun): array
     {
         $preview = null;
+        $protectedFieldsSkipped = [];
 
         try {
-            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview) {
+            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview, &$protectedFieldsSkipped) {
                 $overwrite = (bool) ($data['overwrite_existing'] ?? false);
 
                 // ── Find or create ────────────────────────────────────────────
@@ -148,10 +149,10 @@ class McpBlogPostService
                 }
 
                 // ── Translations ──────────────────────────────────────────────
-                $this->writeTranslations($post, $data['translations'] ?? [], $overwrite, $slug);
+                $this->writeTranslations($post, $data['translations'] ?? [], $overwrite, $slug, $protectedFieldsSkipped);
 
                 // ── SEO meta ──────────────────────────────────────────────────
-                $this->writeSeoMeta($post, $data['seo'] ?? [], $overwrite);
+                $this->writeSeoMeta($post, $data['seo'] ?? [], $overwrite, $protectedFieldsSkipped);
 
                 // ── Tags ──────────────────────────────────────────────────────
                 if (array_key_exists('tags', $data)) {
@@ -171,7 +172,13 @@ class McpBlogPostService
             }
         }
 
-        return ['data' => $preview];
+        $response = ['data' => $preview];
+
+        if (! empty($protectedFieldsSkipped)) {
+            $response['protected_fields_skipped'] = $protectedFieldsSkipped;
+        }
+
+        return $response;
     }
 
     public function readiness(string $slug): array
@@ -400,7 +407,7 @@ class McpBlogPostService
         return $post;
     }
 
-    private function writeTranslations(BlogPost $post, array $translations, bool $overwrite, string $routeSlug = ''): void
+    private function writeTranslations(BlogPost $post, array $translations, bool $overwrite, string $routeSlug = '', array &$skipped = []): void
     {
         foreach ($translations as $locale => $trans) {
             if (! in_array($locale, ['vi', 'en'], true)) {
@@ -410,6 +417,8 @@ class McpBlogPostService
             $existing = $post->translations()->where('locale', $locale)->first();
 
             if ($existing?->is_mcp_protected) {
+                $skipped[] = "translations.{$locale}";
+
                 continue;
             }
 
@@ -495,7 +504,7 @@ class McpBlogPostService
         }
     }
 
-    private function writeSeoMeta(BlogPost $post, array $seo, bool $overwrite): void
+    private function writeSeoMeta(BlogPost $post, array $seo, bool $overwrite, array &$skipped = []): void
     {
         $writeable = ['meta_title', 'meta_description', 'meta_keywords', 'canonical_url', 'og_title', 'og_description', 'og_image', 'robots'];
 
@@ -511,6 +520,8 @@ class McpBlogPostService
             ]);
 
             if ($seoMeta->exists && $seoMeta->is_mcp_protected) {
+                $skipped[] = "seo.{$locale}";
+
                 continue;
             }
 

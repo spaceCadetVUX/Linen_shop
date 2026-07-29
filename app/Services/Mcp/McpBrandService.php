@@ -23,9 +23,10 @@ class McpBrandService
     public function upsert(string $slug, array $data, int $tokenId, bool $dryRun): array
     {
         $preview = null;
+        $protectedFieldsSkipped = [];
 
         try {
-            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview) {
+            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview, &$protectedFieldsSkipped) {
                 $overwrite = (bool) ($data['overwrite_existing'] ?? false);
 
                 // ── Find or create ────────────────────────────────────────────
@@ -75,7 +76,7 @@ class McpBrandService
 
                 // ── SEO meta ──────────────────────────────────────────────────
                 if (! empty($data['seo'])) {
-                    $this->writeSeoMeta($brand, $data['seo'], $overwrite);
+                    $this->writeSeoMeta($brand, $data['seo'], $overwrite, $protectedFieldsSkipped);
                 }
 
                 // ── Geo profiles (AI Context + Key Facts) ─────────────────────
@@ -96,7 +97,13 @@ class McpBrandService
             }
         }
 
-        return ['data' => $preview];
+        $response = ['data' => $preview];
+
+        if (! empty($protectedFieldsSkipped)) {
+            $response['protected_fields_skipped'] = $protectedFieldsSkipped;
+        }
+
+        return $response;
     }
 
     public function readiness(string $slug): array
@@ -227,7 +234,7 @@ class McpBrandService
 
     // ── Private: write helpers ─────────────────────────────────────────────────
 
-    private function writeSeoMeta(Brand $brand, array $seo, bool $overwrite): void
+    private function writeSeoMeta(Brand $brand, array $seo, bool $overwrite, array &$skipped = []): void
     {
         $writeable = ['meta_title', 'meta_description', 'meta_keywords', 'canonical_url', 'og_title', 'og_description', 'og_image', 'robots'];
 
@@ -243,6 +250,8 @@ class McpBrandService
             ]);
 
             if ($seoMeta->exists && $seoMeta->is_mcp_protected) {
+                $skipped[] = "seo.{$locale}";
+
                 continue;
             }
 

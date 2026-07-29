@@ -17,14 +17,14 @@ class UpsertController extends Controller
     public function __invoke(Request $request, string $slug): JsonResponse
     {
         $tokenId = $request->user()->currentAccessToken()->id;
-        $dryRun  = $request->boolean('dry_run');
+        $dryRun = $request->boolean('dry_run');
 
         $result = $this->service->upsert($slug, $request->all(), $tokenId, $dryRun);
 
         return $this->success(
             data: $result['data'],
             message: $dryRun ? 'Dry run — no changes written.' : 'Brand saved.',
+            meta: isset($result['protected_fields_skipped']) ? ['protected_fields_skipped' => $result['protected_fields_skipped']] : [],
         );
     }
 }
-

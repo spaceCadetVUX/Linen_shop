@@ -45,9 +45,10 @@ class McpProductService
         // Captured before potential rollback so dry_run can return the preview
         $preview = null;
         $autoCreated = [];
+        $protectedFieldsSkipped = [];
 
         try {
-            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview, &$autoCreated) {
+            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview, &$autoCreated, &$protectedFieldsSkipped) {
                 $overwrite = (bool) ($data['overwrite_existing'] ?? false);
 
                 // 1a. Resolve brand via _stubs
@@ -180,7 +181,7 @@ class McpProductService
 
                 // 5. Translations
                 if (! empty($data['translations'])) {
-                    $this->writeTranslations($product, $data['translations'], $overwrite);
+                    $this->writeTranslations($product, $data['translations'], $overwrite, $protectedFieldsSkipped);
                 }
 
                 // 5b. Auto-promote root price/sale_price/currency → per-locale translations.
@@ -219,7 +220,7 @@ class McpProductService
 
                 // 6. SEO meta
                 if (! empty($data['seo'])) {
-                    $this->writeSeoMeta($product, $data['seo'], $overwrite);
+                    $this->writeSeoMeta($product, $data['seo'], $overwrite, $protectedFieldsSkipped);
                 }
 
                 // 7. Attributes
@@ -272,6 +273,10 @@ class McpProductService
 
         if (! empty($autoCreated)) {
             $response['auto_created'] = $autoCreated;
+        }
+
+        if (! empty($protectedFieldsSkipped)) {
+            $response['protected_fields_skipped'] = $protectedFieldsSkipped;
         }
 
         return $response;
@@ -415,7 +420,7 @@ class McpProductService
 
     // ── Private: write helpers ────────────────────────────────────────────────
 
-    private function writeTranslations(Product $product, array $translations, bool $overwrite): void
+    private function writeTranslations(Product $product, array $translations, bool $overwrite, array &$skipped = []): void
     {
         foreach ($translations as $locale => $data) {
             if (! in_array($locale, ['vi', 'en'], true)) {
@@ -428,6 +433,8 @@ class McpProductService
             ]);
 
             if ($translation->exists && $translation->is_mcp_protected) {
+                $skipped[] = "translations.{$locale}";
+
                 continue; // translation is human-written — never overwrite
             }
 
@@ -469,7 +476,7 @@ class McpProductService
         }
     }
 
-    private function writeSeoMeta(Product $product, array $seo, bool $overwrite): void
+    private function writeSeoMeta(Product $product, array $seo, bool $overwrite, array &$skipped = []): void
     {
         foreach ($seo as $locale => $data) {
             if (! in_array($locale, ['vi', 'en'], true)) {
@@ -483,6 +490,8 @@ class McpProductService
             ]);
 
             if ($seoMeta->exists && $seoMeta->is_mcp_protected) {
+                $skipped[] = "seo.{$locale}";
+
                 continue;
             }
 

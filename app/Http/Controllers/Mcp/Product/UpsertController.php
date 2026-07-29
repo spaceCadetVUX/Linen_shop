@@ -17,14 +17,22 @@ class UpsertController extends Controller
     public function __invoke(Request $request, string $slug): JsonResponse
     {
         $tokenId = $request->user()->currentAccessToken()->id;
-        $dryRun  = $request->boolean('dry_run');
+        $dryRun = $request->boolean('dry_run');
 
         $result = $this->service->upsert($slug, $request->all(), $tokenId, $dryRun);
+
+        $meta = [];
+        if (isset($result['auto_created'])) {
+            $meta['auto_created'] = $result['auto_created'];
+        }
+        if (isset($result['protected_fields_skipped'])) {
+            $meta['protected_fields_skipped'] = $result['protected_fields_skipped'];
+        }
 
         return $this->success(
             data: $result['data'],
             message: $dryRun ? 'Dry run — no changes written.' : 'Product saved.',
-            meta: isset($result['auto_created']) ? ['auto_created' => $result['auto_created']] : [],
+            meta: $meta,
         );
     }
 }

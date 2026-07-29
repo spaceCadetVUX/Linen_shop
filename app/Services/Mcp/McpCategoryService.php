@@ -38,9 +38,10 @@ class McpCategoryService
     public function upsert(string $slug, array $data, int $tokenId, bool $dryRun): array
     {
         $preview = null;
+        $protectedFieldsSkipped = [];
 
         try {
-            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview) {
+            DB::transaction(function () use ($slug, $data, $tokenId, $dryRun, &$preview, &$protectedFieldsSkipped) {
                 $overwrite = (bool) ($data['overwrite_existing'] ?? false);
 
                 // ── Find or create ────────────────────────────────────────────
@@ -137,6 +138,7 @@ class McpCategoryService
                     $data['translations'] ?? [],
                     $data['seo'] ?? [],
                     $overwrite,
+                    $protectedFieldsSkipped,
                 );
 
                 $preview = $this->buildContextResponse(
@@ -153,7 +155,13 @@ class McpCategoryService
             }
         }
 
-        return ['data' => $preview];
+        $response = ['data' => $preview];
+
+        if (! empty($protectedFieldsSkipped)) {
+            $response['protected_fields_skipped'] = $protectedFieldsSkipped;
+        }
+
+        return $response;
     }
 
     public function activate(string $slug): array
@@ -338,6 +346,7 @@ class McpCategoryService
         array $translations,
         array $seo,
         bool $overwrite,
+        array &$skipped = [],
     ): void {
         $locales = array_unique(array_merge(array_keys($translations), array_keys($seo)));
 
@@ -345,6 +354,11 @@ class McpCategoryService
             $tr = $category->translations()->firstOrNew(['locale' => $locale]);
 
             if ($tr->is_mcp_protected) {
+                // Category's content + SEO share one row (category_translations),
+                // unlike Product/BlogPost where they're separate tables — one
+                // protection flag covers both.
+                $skipped[] = "translations.{$locale}";
+
                 continue;
             }
 
