@@ -6,11 +6,13 @@ use App\Enums\BlogPostStatus;
 use App\Models\Author;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
+use App\Models\BlogPostTranslation;
 use App\Models\BlogTag;
 use App\Models\Seo\GeoEntityProfile;
 use App\Models\Seo\SeoMeta;
 use App\Support\LocaleUrl;
 use App\Support\SlugRedirectGuard;
+use App\Support\SlugUniquenessGuard;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -44,8 +46,34 @@ class McpBlogPostService
                         $post->restore();
                     }
                 } else {
+                    // blog_category_id isn't assigned yet at this point (that
+                    // happens below), so the nested /vi/bai-viet/{category}/{slug}
+                    // path this post will ultimately live at isn't knowable here —
+                    // this checks the flat fallback path only (same one
+                    // BlogPostTranslationObserver uses for category-less posts).
+                    $path = parse_url(LocaleUrl::for('blog_post', $slug, 'vi'), PHP_URL_PATH);
+                    $conflict = SlugRedirectGuard::conflictAt($path);
+
+                    if ($conflict) {
+                        abort(422, "Slug '{$slug}' is currently redirected elsewhere (to {$conflict->to_path}). Choose a different slug or resolve the redirect first.");
+                    }
+
                     $post = new BlogPost(['status' => BlogPostStatus::Draft]);
                     $post->save();
+
+                    // Ensure this post is always findable at its own route slug
+                    // afterward. BlogPost has no top-level slug column — the vi
+                    // translation's slug is the ONLY identity whereHas('translations')
+                    // ever matches against. A create call that omits
+                    // translations.vi (e.g. a metadata-only first write) would
+                    // otherwise leave zero translations on the row, making it
+                    // permanently unreachable and silently spawning a duplicate
+                    // on the next call to the same URL.
+                    $post->translations()->create([
+                        'locale' => 'vi',
+                        'title' => $data['translations']['vi']['title'] ?? $slug,
+                        'slug' => $slug,
+                    ]);
                 }
 
                 // ── Blog category ─────────────────────────────────────────────
@@ -391,17 +419,31 @@ class McpBlogPostService
             // slug-less (new row, or an existing row somehow still missing one).
             // Once a slug exists, it's locked (mirrors the admin-side lock in
             // BlogPostResource): AI can no longer rename it via title/slug.
+            //
+            // BlogPost has no top-level slug column (dropped in the i18n
+            // migration) — the vi translation's slug is the ONLY identity this
+            // record is ever found by (see the whereHas('translations') lookup
+            // in upsert()/findBySlug()). So for vi, the route slug MUST win over
+            // whatever the caller passed in translations.vi.slug: otherwise a
+            // mismatched value here makes the record unreachable at its own URL
+            // on the next call, silently spawning a duplicate instead of an
+            // update. (Reproduced 2/2 in production testing — see chat history.)
             $slug = null;
             if (! $existing || empty($existing->slug)) {
-                $slug = filled($trans['slug'] ?? null) ? $trans['slug'] : null;
-                if (! $slug && $locale === 'vi' && filled($routeSlug)) {
+                if ($locale === 'vi' && filled($routeSlug)) {
                     $slug = $routeSlug;
+                } elseif (filled($trans['slug'] ?? null)) {
+                    $slug = $trans['slug'];
                 }
                 if (! $slug && filled($title)) {
                     $slug = Str::slug($title);
                 }
 
                 if (filled($slug)) {
+                    if (SlugUniquenessGuard::takenByOther(BlogPostTranslation::class, 'blog_post_id', $post->id, $locale, $slug)) {
+                        abort(422, "Slug '{$slug}' is already used by another post's {$locale} translation. Provide a different title/slug.");
+                    }
+
                     $blogCategory = $post->blogCategory;
                     $categorySlug = $blogCategory?->translations()->where('locale', $locale)->value('slug') ?? $blogCategory?->slug;
                     $localeSegment = $locale === 'vi' ? 'vi/bai-viet' : 'en/blog';

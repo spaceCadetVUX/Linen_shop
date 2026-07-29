@@ -3,10 +3,12 @@
 namespace App\Services\Mcp;
 
 use App\Models\Category;
+use App\Models\CategoryTranslation;
 use App\Models\Seo\GeoEntityProfile;
 use App\Support\LocaleUrl;
 use App\Support\RichContentHtml;
 use App\Support\SlugRedirectGuard;
+use App\Support\SlugUniquenessGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -386,6 +388,10 @@ class McpCategoryService
                 $candidateSlug = filled($trans['slug'] ?? null) ? $trans['slug'] : (filled($tr->name) ? Str::slug($tr->name) : null);
 
                 if (filled($candidateSlug)) {
+                    if (SlugUniquenessGuard::takenByOther(CategoryTranslation::class, 'category_id', $category->id, $locale, $candidateSlug)) {
+                        abort(422, "Slug '{$candidateSlug}' is already used by another category's {$locale} translation. Provide a different name/slug.");
+                    }
+
                     $path = parse_url(LocaleUrl::for('category', $candidateSlug, $locale), PHP_URL_PATH);
                     $conflict = SlugRedirectGuard::conflictAt($path);
 

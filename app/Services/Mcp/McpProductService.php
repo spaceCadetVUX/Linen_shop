@@ -14,6 +14,7 @@ use App\Models\Seo\GeoEntityProfile;
 use App\Models\Seo\SeoMeta;
 use App\Support\LocaleUrl;
 use App\Support\SlugRedirectGuard;
+use App\Support\SlugUniquenessGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -449,6 +450,11 @@ class McpProductService
             // lock in ProductResource), and never let AI set slug directly.
             if (filled($data['name'] ?? null) && ! filled($translation->slug)) {
                 $candidateSlug = Str::slug($data['name']);
+
+                if (SlugUniquenessGuard::takenByOther(ProductTranslation::class, 'product_id', $product->id, $locale, $candidateSlug)) {
+                    abort(422, "Generated slug '{$candidateSlug}' is already used by another product's {$locale} translation. Provide a different name.");
+                }
+
                 $path = parse_url(LocaleUrl::for('product', $candidateSlug, $locale), PHP_URL_PATH);
                 $conflict = SlugRedirectGuard::conflictAt($path);
 

@@ -3,10 +3,12 @@
 namespace App\Services\Mcp;
 
 use App\Models\BlogCategory;
+use App\Models\BlogCategoryTranslation;
 use App\Models\Seo\GeoEntityProfile;
 use App\Models\Seo\SeoMeta;
 use App\Support\LocaleUrl;
 use App\Support\SlugRedirectGuard;
+use App\Support\SlugUniquenessGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -278,6 +280,10 @@ class McpBlogCategoryService
                     : (filled($name) ? Str::slug($name) : null);
 
                 if (filled($slug)) {
+                    if (SlugUniquenessGuard::takenByOther(BlogCategoryTranslation::class, 'blog_category_id', $bc->id, $locale, $slug)) {
+                        abort(422, "Slug '{$slug}' is already used by another blog category's {$locale} translation. Provide a different name/slug.");
+                    }
+
                     $path = parse_url(LocaleUrl::for('blog_category', $slug, $locale), PHP_URL_PATH);
                     $conflict = SlugRedirectGuard::conflictAt($path);
 
