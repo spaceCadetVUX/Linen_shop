@@ -61,13 +61,21 @@ trait ManagesProductRelations
             $localeData = $translationsData[$locale] ?? [];
             $localeData['is_mcp_protected'] = $mcpProtected;
 
-            // Synced independently of the name/slug save below — the protection
-            // toggle covers seo_meta too, and shouldn't silently no-op just
-            // because this locale's translation content is still empty.
-            $record->seoMetas()->updateOrCreate(
-                ['locale' => $locale],
-                ['is_mcp_protected' => $mcpProtected]
-            );
+            // Only stamp protection onto a locale that actually has (or is
+            // gaining, this save) real content — otherwise this creates AND
+            // locks an empty seo_meta row auto-filled with placeholder values
+            // (canonical_url/meta_title derived from the current slug) for a
+            // locale nobody has written anything for yet, permanently
+            // blocking MCP from ever filling it in with real content.
+            $hasContent = filled($localeData['name'] ?? null)
+                || $record->translations()->where('locale', $locale)->exists();
+
+            if ($hasContent) {
+                $record->seoMetas()->updateOrCreate(
+                    ['locale' => $locale],
+                    ['is_mcp_protected' => $mcpProtected]
+                );
+            }
 
             if (empty($localeData['name'])) {
                 continue;

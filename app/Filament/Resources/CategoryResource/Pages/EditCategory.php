@@ -107,10 +107,20 @@ class EditCategory extends EditRecord
             $localeData = $translationsData[$locale] ?? [];
             $localeData['is_mcp_protected'] = $mcpProtected;
 
-            $this->record->seoMetas()->updateOrCreate(
-                ['locale' => $locale],
-                ['is_mcp_protected' => $mcpProtected]
-            );
+            // Only stamp protection onto a locale that actually has (or is
+            // gaining, this save) real content — otherwise this creates AND
+            // locks an empty seo_meta row auto-filled with placeholder values
+            // for a locale nobody has written anything for yet, permanently
+            // blocking MCP from ever filling it in with real content.
+            $hasContent = filled($localeData['name'] ?? null)
+                || $this->record->translations()->where('locale', $locale)->exists();
+
+            if ($hasContent) {
+                $this->record->seoMetas()->updateOrCreate(
+                    ['locale' => $locale],
+                    ['is_mcp_protected' => $mcpProtected]
+                );
+            }
 
             if (empty($localeData['name'])) {
                 continue;

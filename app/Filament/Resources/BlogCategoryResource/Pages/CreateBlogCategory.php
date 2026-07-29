@@ -40,10 +40,17 @@ class CreateBlogCategory extends CreateRecord
             $localeData = $translationsData[$locale] ?? [];
             $localeData['is_mcp_protected'] = $mcpProtected;
 
-            $record->seoMetas()->updateOrCreate(
-                ['locale' => $locale],
-                ['is_mcp_protected' => $mcpProtected]
-            );
+            // Only stamp protection onto a locale that's actually gaining real
+            // content this save — otherwise this creates AND locks an empty
+            // seo_meta row auto-filled with placeholder values for a locale
+            // nobody has written anything for yet, permanently blocking MCP
+            // from ever filling it in with real content.
+            if (filled($localeData['name'] ?? null)) {
+                $record->seoMetas()->updateOrCreate(
+                    ['locale' => $locale],
+                    ['is_mcp_protected' => $mcpProtected]
+                );
+            }
 
             if (empty($localeData['name'])) {
                 continue;
