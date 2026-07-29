@@ -179,12 +179,11 @@
       </p>
     @endif
     <p>
-      &copy; {{ date('Y') }}, CacyLinen &nbsp;&middot;&nbsp;
-      <a href="{{ route(app()->getLocale() . '.page.show', ['slug' => 'privacy-policy']) }}">{{ __('footer.legal.privacy') }}</a>
-      &nbsp;&middot;&nbsp;
-      <a href="{{ route(app()->getLocale() . '.page.show', ['slug' => 'terms']) }}">{{ __('footer.legal.terms') }}</a>
-      &nbsp;&middot;&nbsp;
-      <a href="{{ route(app()->getLocale() . '.page.show', ['slug' => 'contact']) }}">{{ __('footer.legal.contact') }}</a>
+      &copy; {{ date('Y') }}, CacyLinen
+      @foreach($footerLegalLinks as $link)
+        &nbsp;&middot;&nbsp;
+        <a href="{{ $link['url'] }}">{{ $link['name'] }}</a>
+      @endforeach
     </p>
   </div>
 

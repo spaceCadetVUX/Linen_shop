@@ -183,6 +183,16 @@ class AppServiceProvider extends ServiceProvider
                 'footerPages',
                 app(PageService::class)->getFooterPages($locale)
             );
+
+            // Footer copyright bar (Privacy Policy / Terms / Contact) — matched
+            // by page_key against active static Pages instead of a hardcoded
+            // slug, so a page that isn't set up yet is omitted rather than
+            // linking to a 404, and one that duplicates a page already listed
+            // above doesn't show twice.
+            $view->with(
+                'footerLegalLinks',
+                app(PageService::class)->getLegalLinks($locale)
+            );
         });
     }
 
